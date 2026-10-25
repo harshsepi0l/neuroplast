@@ -1,0 +1,53 @@
+/* Shared by the EasyUI workspace and the learning tools. */
+:root,
+.dark {
+  color-scheme: dark;
+  --brand: #b9adfa;
+  --bg: #111116;
+  --surface: #1a1a22;
+  --surface-hover: #24242f;
+  --border-hover: #53515f;
+  --text-primary: #efedf5;
+  --text-secondary: #a6a2b4;
+  --background: var(--bg);
+  --foreground: var(--text-primary);
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: #202029;
+  --popover-foreground: var(--foreground);
+  --primary: var(--brand);
+  --primary-foreground: #211b35;
+  --secondary: #24242f;
+  --secondary-foreground: #e0dce9;
+  --muted: #202029;
+  --muted-foreground: var(--text-secondary);
+  --accent: #2b273b;
+  --accent-foreground: #e6e0ff;
+  --border: #30303c;
+  --input: #3a3947;
+  --ring: var(--brand);
+  --font-sans3: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-jetbrains: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-title: var(--font-sans3);
+  --font-prose: var(--font-sans3);
+  --neuroplast-heading-weight: 600;
+}
+
+/* Keep interface labels conversational; monospace belongs to code. */
+@theme inline {
+  --font-ui: var(--font-sans3);
+}
+
+.font-title { font-weight: 600; }
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+::selection { background: #65548e; color: #fff; }
