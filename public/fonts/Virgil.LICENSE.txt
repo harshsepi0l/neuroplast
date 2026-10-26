@@ -1,7 +1,0 @@
-Virgil (Virgil.woff2) — the hand-drawn UI face.
-
-Source: Excalidraw (https://excalidraw.com), whose "Virgil" face is
-derived from FG Virgil (Cade Fonts / FontLibrary).
-
-Licensed under the SIL Open Font License, Version 1.1.
-The full license text is reproduced in ./OFL.txt.

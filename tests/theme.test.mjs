@@ -69,9 +69,9 @@ test("theme.css defines the yellow light (white) and dark (black) palettes", () 
 	assert.equal(token(light, "primary-foreground"), "#1e1e1e");
 	assert.equal(token(dark, "primary-foreground"), "#171300");
 
-	// The hand-drawn face is the UI/prose font in both modes.
-	assert.match(token(light, "font-sans3"), /Virgil/);
-	assert.match(token(dark, "font-sans3"), /Virgil/);
+	// The UI/prose face is Cascadia Mono in both modes.
+	assert.match(token(light, "font-sans3"), /Cascadia Mono/);
+	assert.match(token(dark, "font-sans3"), /Cascadia Mono/);
 
 	// Semantic status inks exist with mode-aware variants.
 	for (const name of ["success", "warning", "danger"]) {
@@ -96,10 +96,12 @@ test("the purple premium palette is gone from the skin", () => {
 	}
 });
 
-test("the Virgil hand-drawn face is bundled and referenced", () => {
+test("the Cascadia Mono face is bundled and referenced", () => {
 	const theme = themeCss();
 	assert.match(theme, /@font-face/);
-	assert.match(theme, /font-family:\s*"Virgil"/);
-	assert.match(theme, /\/fonts\/Virgil\.woff2/);
-	assert.ok(readFileSync(join(root, "public/fonts/Virgil.woff2")).length > 1000, "Virgil.woff2 is a real font file");
+	assert.match(theme, /font-family:\s*"Cascadia Mono"/);
+	assert.match(theme, /\/fonts\/CascadiaMono-Regular\.ttf/);
+	assert.match(theme, /\/fonts\/CascadiaMono-Bold\.ttf/);
+	assert.ok(readFileSync(join(root, "public/fonts/CascadiaMono-Regular.ttf")).length > 1000, "CascadiaMono-Regular.ttf is a real font file");
+	assert.ok(readFileSync(join(root, "public/fonts/CascadiaMono-Bold.ttf")).length > 1000, "CascadiaMono-Bold.ttf is a real font file");
 });

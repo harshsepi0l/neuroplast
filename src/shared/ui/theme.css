@@ -9,11 +9,18 @@
  * purple palette is gone; semantic status inks (success/warning/danger)
  * carry their own light/dark variants so both modes stay legible. */
 
-/* Excalidraw's Virgil — the hand-drawn UI face, bundled locally (OFL). */
+/* Cascadia Mono (Microsoft, OFL) — the UI + reading face, bundled locally. */
 @font-face {
-	font-family: "Virgil";
-	src: url("/fonts/Virgil.woff2") format("woff2");
+	font-family: "Cascadia Mono";
+	src: url("/fonts/CascadiaMono-Regular.ttf") format("truetype");
 	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Cascadia Mono";
+	src: url("/fonts/CascadiaMono-Bold.ttf") format("truetype");
+	font-weight: 700;
 	font-style: normal;
 	font-display: swap;
 }
@@ -56,9 +63,9 @@
 	--warning-bg: #fdf3e3;
 	--danger: #c0392b;
 	--danger-bg: #fbeceb;
-	/* Hand-drawn UI face (Excalidraw's Virgil, self-hosted) + code mono. */
-	--font-sans3: "Virgil", "Comic Sans MS", "Chalkboard SE", "Segoe Print", ui-sans-serif, system-ui, sans-serif;
-	--font-jetbrains: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+	/* UI + reading face = Cascadia Mono (self-hosted); code shares the stack. */
+	--font-sans3: "Cascadia Mono", "SF Mono", Menlo, Consolas, ui-monospace, monospace;
+	--font-jetbrains: "Cascadia Mono", "SF Mono", Menlo, Consolas, ui-monospace, monospace;
 	--font-title: var(--font-sans3);
 	--font-prose: var(--font-sans3);
 	--neuroplast-heading-weight: 700;
@@ -98,8 +105,8 @@
 	--warning-bg: #33271b;
 	--danger: #f0aa9b;
 	--danger-bg: #3a252c;
-	--font-sans3: "Virgil", "Comic Sans MS", "Chalkboard SE", "Segoe Print", ui-sans-serif, system-ui, sans-serif;
-	--font-jetbrains: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+	--font-sans3: "Cascadia Mono", "SF Mono", Menlo, Consolas, ui-monospace, monospace;
+	--font-jetbrains: "Cascadia Mono", "SF Mono", Menlo, Consolas, ui-monospace, monospace;
 	--font-title: var(--font-sans3);
 	--font-prose: var(--font-sans3);
 	--neuroplast-heading-weight: 700;
