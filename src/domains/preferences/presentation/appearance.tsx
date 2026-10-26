@@ -21,6 +21,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { FACTORY_SETTINGS, type AppearanceSettings } from "@/domains/preferences/domain/settings";
+import { isDark, THEME_STORAGE_KEY } from "@/domains/preferences/domain/theme";
 
 /** The resolved, fully-concrete appearance view (delta + factory merged). */
 export function resolveAppearance(delta: AppearanceSettings | undefined) {
@@ -125,8 +126,9 @@ export function AppearanceProvider({ children }: { children: React.ReactNode }) 
 	const [delta, setDelta] = useState<AppearanceSettings | undefined>(undefined);
 	const appliedRef = useRef<string>("");
 
+	const resolved = useMemo(() => resolveAppearance(delta), [delta]);
 	// The vars apply on every change — stringified as the change signal.
-	const vars = useMemo(() => appearanceVars(resolveAppearance(delta)), [delta]);
+	const vars = useMemo(() => appearanceVars(resolved), [resolved]);
 	const key = useMemo(() => JSON.stringify(vars), [vars]);
 	// REMOVAL is half the job (owner repro, fix wave): a later write that
 	// OMITS a var (empty field = factory, serif toggle back on) must clear
@@ -148,6 +150,22 @@ export function AppearanceProvider({ children }: { children: React.ReactNode }) 
 			appliedNamesRef.current.add(name);
 		}
 	}, [key, vars]);
+
+	// MODE → <html class="dark"> (yellow skin wave): the class is the ONE
+	// thing the appearance vars can't reach. Gated on delta !== undefined so
+	// the layout's inline no-flash script stands until the settings record
+	// arrives; after that the record is the source of truth and localStorage
+	// is only the cache the script reads next load.
+	useEffect(() => {
+		if (delta === undefined) return;
+		const dark = isDark(resolved.mode);
+		document.documentElement.classList.toggle("dark", dark);
+		try {
+			localStorage.setItem(THEME_STORAGE_KEY, dark ? "dark" : "light");
+		} catch {
+			/* storage unavailable — the class still applies this session */
+		}
+	}, [delta, resolved.mode]);
 
 	// One fetch per app load: the record (sanitized server-side) carries the
 	// delta; resolution happens here against the compiled factory.

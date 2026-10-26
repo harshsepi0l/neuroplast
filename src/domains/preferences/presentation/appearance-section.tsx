@@ -182,9 +182,15 @@ export function AppearanceSection({
 
 	return (
 		<>
-			<SettingsRow label="Mode" hint="Coming soon" testid="row-mode" dimmed>
-				<ThinSelect value="dark" ariaLabel="mode" onChange={() => {}} testid="select-mode" disabled>
+			<SettingsRow label="Mode" hint="Light or dark" testid="row-mode">
+				<ThinSelect
+					value={appearance?.mode ?? "dark"}
+					ariaLabel="mode"
+					testid="select-mode"
+					onChange={(v) => onSectionChange({ ...appearance, mode: v === "light" ? "light" : "dark" })}
+				>
 					<option value="dark">Dark</option>
+					<option value="light">Light</option>
 				</ThinSelect>
 			</SettingsRow>
 			<SettingsRow

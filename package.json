@@ -12,7 +12,7 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test:challenge": "node --experimental-strip-types --test tests/challenge-core.test.mjs tests/custom-quiz.test.mjs tests/knowledge-tree.test.mjs",
+    "test:challenge": "node --experimental-strip-types --test tests/*.test.mjs",
     "lint": "eslint ."
   },
   "dependencies": {

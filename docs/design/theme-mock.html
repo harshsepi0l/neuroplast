@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>neuroplast — hand-drawn yellow theme (Excalidraw feel)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Virgil&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Virgil', 'Comic Sans MS', 'Segoe Print', 'Chalkboard SE', cursive;
+    background: #f4f1e8;
+    background-image: radial-gradient(rgba(0,0,0,.08) 1px, transparent 1.2px);
+    background-size: 24px 24px;
+    color: #1e1e1e;
+    padding: 40px 32px 90px;
+  }
+  .page-head { max-width: 1180px; margin: 0 auto 8px; }
+  .page-head h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .page-head p { margin: 0; color: #5c5c5c; font-size: 15px; line-height: 1.5; max-width: 780px; }
+  .page-head .tag {
+    display: inline-block; background: #ffd43b; color: #1e1e1e; font-weight: 700;
+    font-size: 12px; padding: 4px 10px; border-radius: 8px; margin-bottom: 12px;
+    border: 2px solid #1e1e1e; transform: rotate(-1deg);
+  }
+
+  .pair { max-width: 1180px; margin: 30px auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  .mode-label { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+  .mode-label .dot { width: 14px; height: 14px; border-radius: 4px; border: 2px solid #1e1e1e; }
+
+  /* ---- rough filter (hand-drawn wobble) ---- */
+  .browser { border: 2px solid rgba(0,0,0,.25); border-radius: 12px; overflow: hidden; background: #fff; }
+  .browser-bar {
+    height: 36px; display: flex; align-items: center; gap: 7px; padding: 0 13px;
+    background: #eceade; border-bottom: 2px solid rgba(0,0,0,.18);
+  }
+  .browser-bar .btn { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,.25); }
+  .browser-bar .r { background: #ff6b6b; } .browser-bar .y { background: #ffd43b; } .browser-bar .g { background: #51cf66; }
+  .browser-bar .url {
+    flex: 1; margin-left: 8px; height: 22px; border-radius: 6px; background: #fff;
+    border: 1.5px solid rgba(0,0,0,.18); font-size: 12px; color: #6a6a6a;
+    display: flex; align-items: center; padding: 0 9px;
+  }
+
+  .theme { color-scheme: light; }
+  .theme.light {
+    --canvas: #ffffff;
+    --dot: rgba(30,30,30,.07);
+    --stroke: #1e1e1e;
+    --surface: #ffffff;
+    --surface-warm: #fdfcf6;
+    --text: #1e1e1e;
+    --text-2: #5f5f5f;
+    --brand: #ffd43b;
+    --brand-ink: #1e1e1e;
+    --brand-wash: #fff3bf;
+    --accent-fg: #1e1e1e;
+    color-scheme: light;
+  }
+  .theme.dark {
+    --canvas: #121212;
+    --dot: rgba(255,255,255,.08);
+    --stroke: #e9ecef;
+    --surface: #1a1a1a;
+    --surface-warm: #201f1a;
+    --text: #e9ecef;
+    --text-2: #9b9b9b;
+    --brand: #ffd43b;
+    --brand-ink: #121212;
+    --brand-wash: #3a3413;
+    --accent-fg: #ffd43b;
+    color-scheme: dark;
+  }
+
+  /* shapes get the wobble */
+  .wob { filter: url(#wob); }
+  .wob-sm { filter: url(#wob-sm); }
+
+  .app {
+    display: flex; height: 560px;
+    background-color: var(--canvas);
+    background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    color: var(--text);
+  }
+  .side {
+    width: 200px; flex: none; padding: 16px 13px;
+    display: flex; flex-direction: column;
+    background: var(--surface-warm);
+    border-right: 2px solid var(--stroke);
+    margin: 10px 0 10px 10px; border-radius: 10px;
+  }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; padding: 2px 4px 16px; }
+  .logo .mark {
+    width: 22px; height: 22px; border-radius: 6px; background: var(--brand);
+    border: 2px solid var(--stroke); position: relative; flex: none; transform: rotate(-4deg);
+  }
+  .logo .mark::after { content: ""; position: absolute; inset: 5px; border-radius: 2px; background: var(--brand-ink); }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav a {
+    display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--text-2);
+    text-decoration: none; padding: 7px 9px; border-radius: 8px; font-weight: 600;
+  }
+  .nav a .ic { width: 15px; height: 15px; border: 2px solid currentColor; border-radius: 4px; opacity: .7; flex: none; transform: rotate(-3deg); }
+  .nav a:hover { background: var(--brand-wash); color: var(--text); }
+  .nav a.active { background: var(--brand); color: var(--brand-ink); border: 2px solid var(--stroke); font-weight: 700; transform: rotate(-1deg); }
+  .nav a.active .ic { border-color: currentColor; opacity: 1; }
+  .side .spacer { flex: 1; }
+  .side .plan {
+    border: 2px solid var(--stroke); border-radius: 9px; padding: 9px 11px;
+    font-size: 12px; color: var(--text-2); background: var(--surface); transform: rotate(.6deg);
+  }
+  .side .plan b { color: var(--text); display: block; margin-bottom: 3px; font-size: 13px; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 52px; flex: none; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; border-bottom: 2px solid var(--stroke); margin: 10px 10px 0 0;
+  }
+  .topbar .crumb { font-size: 14px; color: var(--text-2); }
+  .topbar .crumb b { color: var(--text); }
+  .topbar .right { display: flex; align-items: center; gap: 9px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600;
+    border: 2px solid var(--stroke); border-radius: 8px; padding: 5px 10px; color: var(--text);
+    background: var(--surface); transform: rotate(.7deg);
+  }
+  .badge .status { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); border: 1.5px solid var(--stroke); }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); border: 2px solid var(--stroke); font-weight: 700; font-size: 13px; display: grid; place-items: center; transform: rotate(-3deg); }
+
+  .welcome { padding: 30px 34px 8px; }
+  .welcome .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-fg); }
+  .welcome h2 { font-size: 32px; margin: 12px 0 10px; letter-spacing: -0.01em; line-height: 1.1; }
+  .welcome h2 .u { position: relative; color: var(--accent-fg); }
+  .welcome h2 .u::after {
+    content: ""; position: absolute; left: -2px; right: -2px; bottom: -3px; height: 8px;
+    background: var(--brand); opacity: .85; z-index: -1; border-radius: 4px; transform: rotate(-1.2deg);
+  }
+  .welcome p { margin: 0; color: var(--text-2); font-size: 15px; line-height: 1.55; }
+  .chips { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600;
+    border: 2px solid var(--stroke); background: var(--surface); color: var(--text);
+    border-radius: 10px; padding: 8px 14px; cursor: default;
+  }
+  .chip:nth-child(1) { transform: rotate(-1.1deg); }
+  .chip:nth-child(2) { transform: rotate(.8deg); }
+  .chip:nth-child(3) { transform: rotate(-.5deg); }
+  .chip .arr { color: var(--accent-fg); font-size: 15px; }
+  .chip:hover { background: var(--brand-wash); }
+
+  .doodle { position: relative; }
+  .doodle .star { position: absolute; top: 6px; right: 30px; color: var(--brand); font-size: 22px; transform: rotate(9deg); }
+
+  .composer-wrap { padding: 18px 34px 24px; margin-top: auto; }
+  .composer {
+    border: 2px solid var(--stroke); background: var(--surface); border-radius: 12px;
+    padding: 12px 15px; display: flex; align-items: center; gap: 11px; transform: rotate(-.4deg);
+  }
+  .composer .ph { flex: 1; color: var(--text-2); font-size: 15px; }
+  .composer .send {
+    width: 32px; height: 32px; border-radius: 9px; background: var(--brand); color: var(--brand-ink);
+    border: 2px solid var(--stroke); display: grid; place-items: center; flex: none; transform: rotate(4deg);
+  }
+  .composer .send svg { width: 16px; height: 16px; }
+  .hint { font-size: 12px; color: var(--text-2); margin-top: 10px; text-align: center; transform: rotate(-.4deg); }
+
+  /* ---- component sheet ---- */
+  .sheet { max-width: 1180px; margin: 30px auto 0; }
+  .sheet h3 { font-size: 17px; margin: 0 0 15px; }
+  .sheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  .card {
+    border: 2px solid var(--stroke); border-radius: 13px; background: var(--surface); padding: 20px;
+  }
+  .card.tilt { transform: rotate(-.6deg); }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; }
+  .btn {
+    font-size: 15px; font-weight: 700; border-radius: 9px; padding: 9px 15px; cursor: default;
+    display: inline-flex; align-items: center; gap: 7px; border: 2px solid var(--stroke);
+  }
+  .btn.primary { background: var(--brand); color: var(--brand-ink); transform: rotate(-1.2deg); }
+  .btn.secondary { background: var(--surface); color: var(--text); transform: rotate(.9deg); }
+  .btn.ghost { background: transparent; color: var(--text); border-style: dashed; transform: rotate(-.5deg); }
+
+  .prog { margin-bottom: 20px; }
+  .prog .lbl { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 7px; }
+  .prog .lbl b { color: var(--text); } .prog .lbl span { color: var(--text-2); }
+  .prog .track { height: 12px; border-radius: 999px; background: transparent; border: 2px solid var(--stroke); padding: 2px; }
+  .prog .fill { height: 100%; border-radius: 999px; background: var(--brand); }
+
+  .skills { display: flex; flex-direction: column; gap: 10px; }
+  .skill { display: flex; align-items: center; gap: 11px; font-size: 14px; }
+  .skill .name { flex: 1; color: var(--text); font-weight: 600; }
+  .skill .bar { width: 120px; height: 11px; border-radius: 999px; border: 2px solid var(--stroke); padding: 2px; }
+  .skill .bar i { display: block; height: 100%; background: var(--brand); border-radius: 999px; }
+  .skill .val { width: 38px; text-align: right; color: var(--text-2); font-size: 13px; }
+
+  .tagline { font-size: 13px; color: var(--text-2); margin-top: 18px; border-top: 2px dashed var(--stroke); padding-top: 13px; }
+
+  /* ---- palette ---- */
+  .palette { max-width: 1180px; margin: 30px auto 0; }
+  .palette h3 { font-size: 17px; margin: 0 0 15px; }
+  .tokens { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  .token-card { border: 2px solid #1e1e1e; border-radius: 13px; background: #fff; overflow: hidden; transform: rotate(-.3deg); }
+  .token-card.dark { background: #121212; border-color: #e9ecef; transform: rotate(.3deg); }
+  .token-card .thead { font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 12px 15px; border-bottom: 2px solid #1e1e1e; }
+  .token-card.dark .thead { color: #e9ecef; border-bottom-color: #e9ecef; }
+  .token-card table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .token-card td { padding: 8px 15px; border-bottom: 1.5px solid rgba(0,0,0,.12); }
+  .token-card.dark td { border-bottom-color: rgba(255,255,255,.14); }
+  .token-card td:first-child { color: #6a6a6a; }
+  .token-card.dark td:first-child { color: #9b9b9b; }
+  .token-card td:nth-child(2) { font-weight: 600; }
+  .token-card.dark td:nth-child(2) { color: #e9ecef; }
+  .token-card tr:last-child td { border-bottom: 0; }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 8px; border: 1.5px solid rgba(0,0,0,.3); }
+
+  .foot { max-width: 1180px; margin: 36px auto 0; font-size: 13px; color: #6a6a6a; line-height: 1.55; }
+  .foot code { background: #e9e6da; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+  <!-- rough hand-drawn wobble filters -->
+  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+    <defs>
+      <filter id="wob" x="-8%" y="-8%" width="116%" height="116%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="4" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="4"/>
+      </filter>
+      <filter id="wob-sm" x="-8%" y="-8%" width="116%" height="116%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="7" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="2"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="page-head">
+    <span class="tag">theme direction · hand-drawn</span>
+    <h1>neuroplast · sketchy yellow, Excalidraw feel</h1>
+    <p>Same <b>yellow + white</b> and <b>yellow + black</b> idea, but drawn like a whiteboard: hand-drawn Virgil type, wobbly 2px strokes, a dot-grid canvas, and elements tilted a degree or two. Yellow <b>#ffd43b</b> is the accent — fills, highlights, and the underline scribble — while strokes and text carry the contrast.</p>
+  </div>
+
+  <!-- ================= LIGHT / DARK APP MOCKS ================= -->
+  <div class="pair">
+    <div>
+      <div class="mode-label"><span class="dot" style="background:#fff"></span> Light — yellow + white</div>
+      <div class="browser">
+        <div class="browser-bar"><span class="btn r"></span><span class="btn y"></span><span class="btn g"></span><span class="url">neuroplast.app/home</span></div>
+        <div class="theme light">
+          <div class="app">
+            <aside class="side wob">
+              <div class="logo"><span class="mark"></span> neuroplast</div>
+              <nav class="nav">
+                <a class="active"><span class="ic"></span> Home</a>
+                <a><span class="ic"></span> Learn</a>
+                <a><span class="ic"></span> Challenges</a>
+                <a><span class="ic"></span> Knowledge</a>
+                <a><span class="ic"></span> Sessions</a>
+                <a><span class="ic"></span> Settings</a>
+              </nav>
+              <div class="spacer"></div>
+              <div class="plan"><b>Linear Equations</b>Chapter 1 · 4 skills</div>
+            </aside>
+            <main class="main">
+              <div class="topbar">
+                <div class="crumb">Home / <b>Learn</b></div>
+                <div class="right">
+                  <span class="badge wob-sm"><span class="status"></span> Model connected</span>
+                  <span class="avatar">H</span>
+                </div>
+              </div>
+              <div class="welcome doodle">
+                <span class="star">✶</span>
+                <div class="eyebrow">math practice</div>
+                <h2>What would you like<br /><span class="u">to understand?</span></h2>
+                <p>Work through a question, explore a new idea,<br />or practice until it clicks.</p>
+                <div class="chips">
+                  <span class="chip wob-sm">Understand a difficult topic <span class="arr">→</span></span>
+                  <span class="chip wob-sm">Practice something new <span class="arr">→</span></span>
+                  <span class="chip wob-sm">Explore an idea <span class="arr">→</span></span>
+                </div>
+              </div>
+              <div class="composer-wrap">
+                <div class="composer wob">
+                  <div class="ph">Ask about anything — or start a challenge…</div>
+                  <div class="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+                </div>
+                <div class="hint">Enter to send · Shift+Enter for a new line</div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="mode-label"><span class="dot" style="background:#121212;border-color:#e9ecef"></span> Dark — yellow + black</div>
+      <div class="browser">
+        <div class="browser-bar"><span class="btn r"></span><span class="btn y"></span><span class="btn g"></span><span class="url">neuroplast.app/home</span></div>
+        <div class="theme dark">
+          <div class="app">
+            <aside class="side wob">
+              <div class="logo"><span class="mark"></span> neuroplast</div>
+              <nav class="nav">
+                <a class="active"><span class="ic"></span> Home</a>
+                <a><span class="ic"></span> Learn</a>
+                <a><span class="ic"></span> Challenges</a>
+                <a><span class="ic"></span> Knowledge</a>
+                <a><span class="ic"></span> Sessions</a>
+                <a><span class="ic"></span> Settings</a>
+              </nav>
+              <div class="spacer"></div>
+              <div class="plan"><b>Linear Equations</b>Chapter 1 · 4 skills</div>
+            </aside>
+            <main class="main">
+              <div class="topbar">
+                <div class="crumb">Home / <b>Learn</b></div>
+                <div class="right">
+                  <span class="badge wob-sm"><span class="status"></span> Model connected</span>
+                  <span class="avatar">H</span>
+                </div>
+              </div>
+              <div class="welcome doodle">
+                <span class="star">✶</span>
+                <div class="eyebrow">math practice</div>
+                <h2>What would you like<br /><span class="u">to understand?</span></h2>
+                <p>Work through a question, explore a new idea,<br />or practice until it clicks.</p>
+                <div class="chips">
+                  <span class="chip wob-sm">Understand a difficult topic <span class="arr">→</span></span>
+                  <span class="chip wob-sm">Practice something new <span class="arr">→</span></span>
+                  <span class="chip wob-sm">Explore an idea <span class="arr">→</span></span>
+                </div>
+              </div>
+              <div class="composer-wrap">
+                <div class="composer wob">
+                  <div class="ph">Ask about anything — or start a challenge…</div>
+                  <div class="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+                </div>
+                <div class="hint">Enter to send · Shift+Enter for a new line</div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= COMPONENT SHEET ================= -->
+  <div class="sheet">
+    <h3>Component usage — buttons, progress, skill bars</h3>
+    <div class="sheet-grid">
+      <div class="theme light">
+        <div class="card tilt wob">
+          <div class="btn-row">
+            <span class="btn primary wob-sm">Take the challenge</span>
+            <span class="btn secondary wob-sm">Practice a skill</span>
+            <span class="btn ghost wob-sm">Review results</span>
+          </div>
+          <div class="prog">
+            <div class="lbl"><b>Boss — Linear Equations</b><span>6 / 10</span></div>
+            <div class="track"><div class="fill" style="width:60%"></div></div>
+          </div>
+          <div class="skills">
+            <div class="skill"><span class="name">One-step equations</span><span class="bar"><i style="width:80%"></i></span><span class="val">80%</span></div>
+            <div class="skill"><span class="name">Distributive property</span><span class="bar"><i style="width:55%"></i></span><span class="val">55%</span></div>
+            <div class="skill"><span class="name">Variables on both sides</span><span class="bar"><i style="width:35%"></i></span><span class="val">35%</span></div>
+          </div>
+          <div class="tagline">Yellow = accent (primary action, mastery, highlight). Strokes and text carry the contrast — yellow never fills the page.</div>
+        </div>
+      </div>
+      <div class="theme dark">
+        <div class="card tilt wob">
+          <div class="btn-row">
+            <span class="btn primary wob-sm">Take the challenge</span>
+            <span class="btn secondary wob-sm">Practice a skill</span>
+            <span class="btn ghost wob-sm">Review results</span>
+          </div>
+          <div class="prog">
+            <div class="lbl"><b>Boss — Linear Equations</b><span>6 / 10</span></div>
+            <div class="track"><div class="fill" style="width:60%"></div></div>
+          </div>
+          <div class="skills">
+            <div class="skill"><span class="name">One-step equations</span><span class="bar"><i style="width:80%"></i></span><span class="val">80%</span></div>
+            <div class="skill"><span class="name">Distributive property</span><span class="bar"><i style="width:55%"></i></span><span class="val">55%</span></div>
+            <div class="skill"><span class="name">Variables on both sides</span><span class="bar"><i style="width:35%"></i></span><span class="val">35%</span></div>
+          </div>
+          <div class="tagline">Yellow = accent (primary action, mastery, highlight). Strokes and text carry the contrast — yellow never fills the page.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PALETTE ================= -->
+  <div class="palette">
+    <h3>Proposed design tokens</h3>
+    <div class="tokens">
+      <div class="token-card">
+        <div class="thead">Light · yellow + white</div>
+        <table>
+          <tr><td>canvas</td><td><span class="swatch" style="background:#ffffff"></span>#ffffff</td></tr>
+          <tr><td>stroke</td><td><span class="swatch" style="background:#1e1e1e"></span>#1e1e1e</td></tr>
+          <tr><td>surface</td><td><span class="swatch" style="background:#fdfcf6"></span>#fdfcf6</td></tr>
+          <tr><td>text</td><td><span class="swatch" style="background:#1e1e1e"></span>#1e1e1e</td></tr>
+          <tr><td>text secondary</td><td><span class="swatch" style="background:#5f5f5f"></span>#5f5f5f</td></tr>
+          <tr><td>yellow</td><td><span class="swatch" style="background:#ffd43b"></span>#ffd43b</td></tr>
+          <tr><td>yellow wash</td><td><span class="swatch" style="background:#fff3bf"></span>#fff3bf</td></tr>
+          <tr><td>on-yellow ink</td><td><span class="swatch" style="background:#1e1e1e"></span>#1e1e1e</td></tr>
+        </table>
+      </div>
+      <div class="token-card dark">
+        <div class="thead">Dark · yellow + black</div>
+        <table>
+          <tr><td>canvas</td><td><span class="swatch" style="background:#121212"></span>#121212</td></tr>
+          <tr><td>stroke</td><td><span class="swatch" style="background:#e9ecef"></span>#e9ecef</td></tr>
+          <tr><td>surface</td><td><span class="swatch" style="background:#1a1a1a"></span>#1a1a1a</td></tr>
+          <tr><td>text</td><td><span class="swatch" style="background:#e9ecef"></span>#e9ecef</td></tr>
+          <tr><td>text secondary</td><td><span class="swatch" style="background:#9b9b9b"></span>#9b9b9b</td></tr>
+          <tr><td>yellow</td><td><span class="swatch" style="background:#ffd43b"></span>#ffd43b</td></tr>
+          <tr><td>yellow wash</td><td><span class="swatch" style="background:#3a3413"></span>#3a3413</td></tr>
+          <tr><td>on-yellow ink</td><td><span class="swatch" style="background:#121212"></span>#121212</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    Static mock for direction only — no app code changed yet. Once you're happy, I'll port it into <code>theme.css</code> as light + dark tokens, add the hand-drawn font and rough borders, and wire up a light/dark toggle (removing the hardcoded <code>dark</code> class).
+  </div>
+</body>
+</html>

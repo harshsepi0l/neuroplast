@@ -1,44 +1,116 @@
-/* Shared by the EasyUI workspace and the learning tools. */
-:root,
+/* Shared by the EasyUI workspace and the learning tools.
+ *
+ * THE YELLOW SKIN (design wave): a flat, high-contrast product look on
+ * white (light) and near-black (dark), with one bold yellow accent
+ * (--brand). Yellow stays semantic — primary actions, active nav,
+ * progress, focus rings, the brand mark — never a page wash.
+ *
+ * Light = <html> with no class; dark = <html class="dark">. The old
+ * purple palette is gone; semantic status inks (success/warning/danger)
+ * carry their own light/dark variants so both modes stay legible. */
+
+/* Excalidraw's Virgil — the hand-drawn UI face, bundled locally (OFL). */
+@font-face {
+	font-family: "Virgil";
+	src: url("/fonts/Virgil.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	color-scheme: light;
+	/* Brand + legacy aliases (globals.css reads these directly). */
+	--brand: #ffd43b;
+	--bg: #ffffff;
+	--surface: #ffffff;
+	--surface-hover: #f3f1e8;
+	--border-hover: #c9c5b4;
+	--text-primary: #1e1e1e;
+	--text-secondary: #6f6b5c;
+	/* shadcn-style tokens (Tailwind utilities read these via --color-*). */
+	--background: var(--bg);
+	--foreground: var(--text-primary);
+	--card: var(--surface);
+	--card-foreground: var(--foreground);
+	--popover: #ffffff;
+	--popover-foreground: var(--foreground);
+	--primary: var(--brand);
+	--primary-foreground: #1e1e1e;
+	--secondary: #f3f1e8;
+	--secondary-foreground: #1e1e1e;
+	--muted: #f3f1e8;
+	--muted-foreground: #6f6b5c;
+	--accent: #f3f1e8;
+	--accent-foreground: #1e1e1e;
+	--border: #e5e2d4;
+	--input: #e5e2d4;
+	--ring: var(--brand);
+	/* Yellow washes for hover/selected states (never a page fill). */
+	--brand-wash: #fff3bf;
+	--brand-ink: #1e1e1e;
+	/* Semantic status inks. */
+	--success: #1f9d55;
+	--success-bg: #e6f6ec;
+	--warning: #b45309;
+	--warning-bg: #fdf3e3;
+	--danger: #c0392b;
+	--danger-bg: #fbeceb;
+	/* Hand-drawn UI face (Excalidraw's Virgil, self-hosted) + code mono. */
+	--font-sans3: "Virgil", "Comic Sans MS", "Chalkboard SE", "Segoe Print", ui-sans-serif, system-ui, sans-serif;
+	--font-jetbrains: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+	--font-title: var(--font-sans3);
+	--font-prose: var(--font-sans3);
+	--neuroplast-heading-weight: 700;
+}
+
 .dark {
-  color-scheme: dark;
-  --brand: #b9adfa;
-  --bg: #111116;
-  --surface: #1a1a22;
-  --surface-hover: #24242f;
-  --border-hover: #53515f;
-  --text-primary: #efedf5;
-  --text-secondary: #a6a2b4;
-  --background: var(--bg);
-  --foreground: var(--text-primary);
-  --card: var(--surface);
-  --card-foreground: var(--foreground);
-  --popover: #202029;
-  --popover-foreground: var(--foreground);
-  --primary: var(--brand);
-  --primary-foreground: #211b35;
-  --secondary: #24242f;
-  --secondary-foreground: #e0dce9;
-  --muted: #202029;
-  --muted-foreground: var(--text-secondary);
-  --accent: #2b273b;
-  --accent-foreground: #e6e0ff;
-  --border: #30303c;
-  --input: #3a3947;
-  --ring: var(--brand);
-  --font-sans3: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-jetbrains: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --font-title: var(--font-sans3);
-  --font-prose: var(--font-sans3);
-  --neuroplast-heading-weight: 600;
+	color-scheme: dark;
+	--brand: #ffd43b;
+	--bg: #0b0b08;
+	--surface: #15150f;
+	--surface-hover: #1e1e16;
+	--border-hover: #4c4a36;
+	--text-primary: #f4f2e8;
+	--text-secondary: #a6a28c;
+	--background: var(--bg);
+	--foreground: var(--text-primary);
+	--card: var(--surface);
+	--card-foreground: var(--foreground);
+	--popover: #15150f;
+	--popover-foreground: var(--foreground);
+	--primary: var(--brand);
+	--primary-foreground: #171300;
+	--secondary: #1e1e16;
+	--secondary-foreground: #f4f2e8;
+	--muted: #131309;
+	--muted-foreground: #a6a28c;
+	--accent: #1e1e16;
+	--accent-foreground: #f4f2e8;
+	--border: #2b2b20;
+	--input: #2b2b20;
+	--ring: var(--brand);
+	--brand-wash: #2b2608;
+	--brand-ink: #171300;
+	--success: #87d5a5;
+	--success-bg: #1d3329;
+	--warning: #e6a66e;
+	--warning-bg: #33271b;
+	--danger: #f0aa9b;
+	--danger-bg: #3a252c;
+	--font-sans3: "Virgil", "Comic Sans MS", "Chalkboard SE", "Segoe Print", ui-sans-serif, system-ui, sans-serif;
+	--font-jetbrains: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+	--font-title: var(--font-sans3);
+	--font-prose: var(--font-sans3);
+	--neuroplast-heading-weight: 700;
 }
 
 /* Keep interface labels conversational; monospace belongs to code. */
 @theme inline {
-  --font-ui: var(--font-sans3);
+	--font-ui: var(--font-sans3);
 }
 
-.font-title { font-weight: 600; }
+.font-title { font-weight: 700; }
 
 button:focus-visible,
 a:focus-visible,
@@ -46,8 +118,8 @@ input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
 [role="button"]:focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: 3px;
+	outline: 2px solid var(--brand);
+	outline-offset: 3px;
 }
 
-::selection { background: #65548e; color: #fff; }
+::selection { background: var(--brand); color: var(--brand-ink); }
