@@ -44,7 +44,7 @@ export function ChallengeView({ initial }: { initial: ChallengeDto }) {
     const result = view.result;
     const misses = result.items.filter(item => !item.correct);
     return <div className="challenge-page"><div className="challenge-container">
-      <button className="challenge-back" onClick={() => router.push("/")}><ArrowLeft size={15}/> All challenges</button>
+      <button className="challenge-back" onClick={() => router.push("/challenges")}><ArrowLeft size={15}/> All challenges</button>
       <div className="challenge-eyebrow"><Sparkles size={15}/> {result.goalMet ? "BOSS CLEARED" : "CHALLENGE COMPLETE"}</div>
       <div className="challenge-score-hero"><div><h1>{result.goalMet ? "You beat the boss." : "Now you know what to train."}</h1><p>{view.topic.title} · {result.correct} of {result.total} correct</p></div><strong>{result.points}<small>/100</small></strong></div>
       {view.previousScore !== undefined && <p className="challenge-delta">Previous challenge: {view.previousScore}/100 · {result.points > view.previousScore ? `Up ${result.points - view.previousScore} points` : result.points < view.previousScore ? `Down ${view.previousScore - result.points} points` : "Same score"}</p>}
@@ -63,7 +63,7 @@ export function ChallengeView({ initial }: { initial: ChallengeDto }) {
   }
   if (!question) return null;
   return <div className="challenge-page"><div className="challenge-container challenge-taking">
-    <button className="challenge-back" onClick={() => router.push("/")}><ArrowLeft size={15}/> Save and leave</button>
+    <button className="challenge-back" onClick={() => router.push("/challenges")}><ArrowLeft size={15}/> Save and leave</button>
     <div className="challenge-topline"><span className="challenge-tag">BOSS CHALLENGE · {view.topic.title}</span><span>{index + 1} of {view.questions.length}</span></div>
     <div className="challenge-progress" aria-label={`${index + 1} of ${view.questions.length} questions`}><span style={{ width: `${100 * (index + 1) / view.questions.length}%` }}/></div>
     <ProblemScratchpad challengeId={view.id} questionId={question.id}>

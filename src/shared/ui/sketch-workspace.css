@@ -1,0 +1,70 @@
+/* The approved v2 mock, applied to real workspace components.
+   Text stays crisp: small asymmetric corners/tilts replace SVG text distortion. */
+.workspace {
+  background-color:var(--bg);
+  background-image:radial-gradient(var(--dot) 1px,transparent 1.2px);
+  background-size:22px 22px;
+  min-height:0;
+}
+.workspace .sidebar {
+  width:228px; margin:10px 0 10px 10px; padding:18px 14px;
+  background:var(--surface-warm); border-right:2px solid var(--stroke);
+  border-radius:10px 9px 12px 10px;
+}
+.workspace.navigation-closed>.sidebar { margin:0; }
+.workspace .brand { margin-bottom:22px; }
+.workspace .brand>span { font-size:18px; letter-spacing:-.5px; font-weight:700; }
+.workspace .sketch-brand-mark { position:relative; display:inline-block; width:24px; height:24px; flex:none; background:var(--brand); border:2px solid var(--stroke); border-radius:6px; transform:rotate(-1.5deg); }
+.workspace .sketch-brand-mark::after { content:""; position:absolute; inset:5px; background:var(--brand-ink); border-radius:2px; }
+.workspace .nav-item { height:40px; padding:7px 10px; margin:2px 0; font-size:13px; font-weight:600; border:2px solid transparent; border-radius:8px; }
+.workspace .nav-item:hover { background:var(--brand-wash); color:var(--text-primary); }
+.workspace .nav-item.selected { background:var(--brand); color:var(--brand-ink); border-color:var(--stroke); transform:rotate(-.4deg); }
+.workspace .nav-item.selected .nav-count { color:var(--brand-ink); }
+.workspace .sidebar-footer { margin-top:auto; border:0; padding-top:24px; }
+.workspace .sidebar-plan { display:block; width:100%; border:2px solid var(--stroke); border-radius:9px 11px 8px 10px; padding:12px; background:var(--surface); color:var(--text-secondary); text-align:left; font-size:11px; transform:rotate(.25deg); }
+.workspace .sidebar-plan strong { display:block; margin-bottom:5px; color:var(--text-primary); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.workspace .connection-footer { padding:0 4px; margin-top:10px; }
+.workspace .topbar { height:54px; margin:10px 14px 0 0; padding:0 26px; border-bottom:2px solid var(--stroke); background:transparent; }
+.workspace .breadcrumb,.workspace .topbar-title { font-size:13px; }
+.workspace .topbar-title { font-weight:700; }
+.workspace .model-badge { border:2px solid var(--stroke); border-radius:8px; padding:5px 10px; height:32px; background:var(--surface); color:var(--text-primary); font-size:11px; }
+.workspace .connection-dot { width:8px; height:8px; border:1px solid var(--stroke); box-shadow:none; }
+.workspace .learning-pane { overflow:auto; padding:0 clamp(24px,5vw,72px); }
+.workspace .welcome { flex:0 0 auto; align-items:flex-start; justify-content:flex-start; text-align:left; min-height:0; padding:48px 0 24px; }
+.workspace .welcome .eyebrow { color:var(--text-primary); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.dark .workspace .welcome .eyebrow { color:var(--brand); }
+.workspace .welcome h1 { font-size:clamp(28px,3.1vw,44px); font-weight:700; line-height:1.2; letter-spacing:-1.4px; margin:16px 0; }
+.workspace .welcome h1 span { color:var(--text-primary); text-decoration:underline; text-decoration-color:var(--brand); text-decoration-thickness:6px; text-underline-offset:3px; text-decoration-skip-ink:none; }
+.workspace .welcome>p { font-size:14px; line-height:1.65; color:var(--text-secondary); }
+.workspace .suggestions { justify-content:flex-start; gap:10px; margin-top:26px; max-width:850px; }
+.workspace .suggestions button { height:auto; min-height:40px; padding:9px 13px; font-size:12px; color:var(--text-primary); font-weight:600; background:var(--surface); border:2px solid var(--stroke); border-radius:10px 9px 11px 8px; }
+.workspace .suggestions button:first-child { transform:rotate(-.3deg); }
+.workspace .suggestions button:nth-child(2) { transform:rotate(.2deg); }
+.workspace .suggestions button:hover { background:var(--brand-wash); }
+.workspace .learning-pane .composer-wrap { max-width:none; padding:28px 0 24px; margin-top:auto; }
+.workspace .learning-pane .composer-box { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 10px; border:2px solid var(--stroke); border-radius:12px 10px 13px 11px; background:var(--surface); box-shadow:none; padding:12px 15px; }
+.workspace .learning-pane .composer-input { grid-column:1; grid-row:1; min-height:42px!important; height:42px; padding:10px 0!important; font-size:13px!important; }
+.workspace .learning-pane .composer-toolbar { display:contents; }
+.workspace .learning-pane .composer-toolbar>.row { grid-row:2; grid-column:1 / -1; }
+.workspace .learning-pane .composer-toolbar>.send-button { grid-row:1; grid-column:2; align-self:center; border:2px solid var(--stroke); transform:rotate(1deg); }
+.workspace .learning-pane .attachment { grid-row:3; grid-column:1 / -1; }
+.workspace .learning-pane .composer-caption { justify-content:center; flex-wrap:wrap; font-size:11px; }
+.workspace .learning-pane .composer-caption>span:last-child { display:inline; }
+.workspace .learning-pane .composer-box:focus-within { outline:2px solid var(--brand); outline-offset:3px; }
+.workspace .challenge-topic,.workspace .knowledge-map,.workspace .knowledge-detail { background:var(--surface); box-shadow:none; }
+@media(max-width:760px) {
+  .workspace .sidebar { margin:0; height:100dvh; width:228px; border-radius:0 12px 12px 0; }
+  .workspace .topbar { margin:0 10px; padding:0 4px; min-height:58px; }
+  .workspace .model-badge { max-width:160px; font-size:10px; }
+  .workspace .learning-pane { padding:0 20px; }
+  .workspace .welcome { padding-top:32px; }
+  .workspace .welcome h1 { font-size:30px; letter-spacing:-1px; }
+  .workspace .welcome>p { font-size:12px; }
+  .workspace .suggestions { gap:10px; }
+  .workspace .suggestions button { font-size:11px; }
+  .workspace .learning-pane .composer-caption { font-size:10px; }
+  .workspace .learning-pane .composer-input { min-height:66px!important; height:66px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .workspace .nav-item.selected,.workspace .sidebar-plan,.workspace .suggestions button,.workspace .learning-pane .send-button { transform:none; }
+}

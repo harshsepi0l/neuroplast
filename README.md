@@ -1,6 +1,6 @@
 # neuroplast
 
-A math practice website built with Next.js, React, and TypeScript. The first
+A practice website built with Next.js, React, and TypeScript. The first
 playable chapter is linear equations: take a ten-question boss challenge, see a
 score and skill breakdown, practice missed skills through recall and application,
 then retake a new version of the challenge.

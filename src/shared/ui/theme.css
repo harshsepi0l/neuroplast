@@ -1,9 +1,9 @@
 /* Shared by the EasyUI workspace and the learning tools.
  *
- * THE YELLOW SKIN (design wave): a flat, high-contrast product look on
- * white (light) and near-black (dark), with one bold yellow accent
- * (--brand). Yellow stays semantic — primary actions, active nav,
- * progress, focus rings, the brand mark — never a page wash.
+ * THE YELLOW SKIN (design wave): a flat, high-contrast, sketch-like
+ * product look on white (light) and near-black (dark), with one bold
+ * yellow accent (--brand). Yellow stays semantic — primary actions,
+ * active nav, progress, focus rings, the brand mark — never a page wash.
  *
  * Light = <html> with no class; dark = <html class="dark">. The old
  * purple palette is gone; semantic status inks (success/warning/danger)
@@ -31,10 +31,14 @@
 	--brand: #ffd43b;
 	--bg: #ffffff;
 	--surface: #ffffff;
+	--surface-warm: #fdfcf6;
 	--surface-hover: #f3f1e8;
-	--border-hover: #c9c5b4;
+	--border-hover: #1e1e1e;
 	--text-primary: #1e1e1e;
-	--text-secondary: #6f6b5c;
+	--text-secondary: #5f5f5f;
+	/* Sketch strokes + the dot-grid canvas. */
+	--stroke: #1e1e1e;
+	--dot: rgba(30, 30, 30, 0.07);
 	/* shadcn-style tokens (Tailwind utilities read these via --color-*). */
 	--background: var(--bg);
 	--foreground: var(--text-primary);
@@ -47,10 +51,10 @@
 	--secondary: #f3f1e8;
 	--secondary-foreground: #1e1e1e;
 	--muted: #f3f1e8;
-	--muted-foreground: #6f6b5c;
+	--muted-foreground: #5f5f5f;
 	--accent: #f3f1e8;
 	--accent-foreground: #1e1e1e;
-	--border: #e5e2d4;
+	--border: #1e1e1e;
 	--input: #e5e2d4;
 	--ring: var(--brand);
 	/* Yellow washes for hover/selected states (never a page fill). */
@@ -74,27 +78,30 @@
 .dark {
 	color-scheme: dark;
 	--brand: #ffd43b;
-	--bg: #0b0b08;
-	--surface: #15150f;
-	--surface-hover: #1e1e16;
-	--border-hover: #4c4a36;
-	--text-primary: #f4f2e8;
+	--bg: #121212;
+	--surface: #1a1a1a;
+	--surface-warm: #201f1a;
+	--surface-hover: #242424;
+	--border-hover: #e9ecef;
+	--text-primary: #e9ecef;
 	--text-secondary: #a6a28c;
+	--stroke: #e9ecef;
+	--dot: rgba(255, 255, 255, 0.07);
 	--background: var(--bg);
 	--foreground: var(--text-primary);
 	--card: var(--surface);
 	--card-foreground: var(--foreground);
-	--popover: #15150f;
+	--popover: #1a1a1a;
 	--popover-foreground: var(--foreground);
 	--primary: var(--brand);
 	--primary-foreground: #171300;
-	--secondary: #1e1e16;
-	--secondary-foreground: #f4f2e8;
-	--muted: #131309;
+	--secondary: #242424;
+	--secondary-foreground: #e9ecef;
+	--muted: #1a1a1a;
 	--muted-foreground: #a6a28c;
-	--accent: #1e1e16;
-	--accent-foreground: #f4f2e8;
-	--border: #2b2b20;
+	--accent: #242424;
+	--accent-foreground: #e9ecef;
+	--border: #e9ecef;
 	--input: #2b2b20;
 	--ring: var(--brand);
 	--brand-wash: #2b2608;

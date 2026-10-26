@@ -1,2 +1,3 @@
-import { redirect } from "next/navigation";
-export default function NewSessionPage() { redirect("/"); }
+import { LearningStart } from "@/domains/learning/presentation/learning-start";
+
+export default function NewSessionPage() { return <LearningStart/>; }

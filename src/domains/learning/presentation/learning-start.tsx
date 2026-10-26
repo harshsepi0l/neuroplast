@@ -28,7 +28,7 @@ export function LearningStart({ initialMode = "learn" }: { initialMode?: LessonM
   }
   return <div className="learning-pane">
     {error && <div className="error-banner" role="alert"><span>{error}</span><Button variant="ghost" size="sm" aria-label="Dismiss message" onClick={() => setError("")}><X size={15}/></Button></div>}
-    <section className="welcome"><div className="welcome-mark"/><h1>{mode === "practice" ? <>Ready to put it<br/><span>into practice?</span></> : <>What would you like<br/><span>to understand?</span></>}</h1><p>Work through a question, explore a new idea,<br className="desktop-break"/> or practice until it clicks.</p>
+    <section className="welcome"><h1>{mode === "practice" ? <>Ready to put it<br/><span>into practice?</span></> : <>What would you like<br/><span>to understand?</span></>}</h1><p>Work through a question, explore a new idea,<br className="desktop-break"/> or practice until it clicks.</p>
       <div className="suggestions">{suggestions.map(text => <Button key={text} variant="secondary" size="sm" disabled={busy} onClick={() => draft.update({ text })}>{text}<ArrowRight size={13}/></Button>)}</div>
       <div className="welcome-footnote"><Sparkles size={13}/><span>{ready ? "Your tutor is ready. What are you curious about?" : "Add a provider key or connect Grok to bring your tutor online."}</span></div>
     </section>

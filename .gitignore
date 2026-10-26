@@ -16,3 +16,4 @@ coverage/
 !.env.example
 *.log
 *.tsbuildinfo
+/test-results/

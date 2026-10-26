@@ -61,9 +61,15 @@ test("theme.css defines the yellow light (white) and dark (black) palettes", () 
 
 	// Light = white canvas; dark = near-black canvas.
 	assert.equal(token(light, "bg"), "#ffffff");
-	assert.equal(token(dark, "bg"), "#0b0b08");
+	assert.equal(token(dark, "bg"), "#121212");
 	assert.equal(token(light, "background"), "var(--bg)");
 	assert.equal(token(dark, "background"), "var(--bg)");
+
+	// Sketch strokes + dot-grid canvas exist in both modes.
+	assert.equal(token(light, "stroke"), "#1e1e1e");
+	assert.equal(token(dark, "stroke"), "#e9ecef");
+	assert.ok(token(light, "dot"), "--dot in :root");
+	assert.ok(token(dark, "dot"), "--dot in .dark");
 
 	// Dark ink on the yellow primary in both modes.
 	assert.equal(token(light, "primary-foreground"), "#1e1e1e");

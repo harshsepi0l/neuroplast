@@ -1,9 +1,10 @@
 @import "tailwindcss";
 @import "../src/shared/ui/learning-tools.css";
 @import "../src/shared/ui/theme.css";
+@import "../src/shared/ui/sketch-workspace.css";
 @custom-variant dark (&:is(.dark *));
 * { box-sizing:border-box; }
-body { margin:0; background:var(--bg); color:var(--text-primary); font-family:var(--font-sans3); font-size:14px; }
+body { margin:0; background-color:var(--bg); background-image:radial-gradient(var(--dot) 1px,transparent 1.2px); background-size:22px 22px; color:var(--text-primary); font-family:var(--font-sans3); font-size:14px; }
 button,input,textarea,select { font:inherit; }
 button,a,input,textarea,select { -webkit-tap-highlight-color:transparent; }
 button:focus-visible,a:focus-visible,.focus-ring:focus-visible { outline:2px solid var(--brand); outline-offset:3px; }
@@ -141,13 +142,13 @@ button:focus-visible,a:focus-visible,.focus-ring:focus-visible { outline:2px sol
 .practice-context { display:flex; justify-content:center; gap:8px; }
 .knowledge-workspace { position:relative; height:100%; }.knowledge-canvas { position:absolute; inset:0; }.knowledge-practice { display:flex; align-items:center; gap:8px; position:absolute; bottom:24px; left:50%; transform:translateX(-50%); z-index:10; background:var(--surface); padding:6px; border:1px solid var(--border); border-radius:13px; white-space:nowrap; box-shadow:0 12px 40px #0004; }
 .session-working { width:5px; height:5px; background:var(--brand); border-radius:50%; animation:pulse 1.3s infinite alternate; }
-.workspace .brand,.workspace .nav-item,.workspace .session-row,.workspace .connection-footer,.workspace .model-badge { border-color:transparent; }
+.workspace .brand,.workspace .nav-item,.workspace .session-row,.workspace .connection-footer { border-color:transparent; }
 .workspace .brand { background:transparent; }
 .brand-mark { color:var(--brand); }
 .new-session { background:var(--card); border-color:var(--border); color:var(--foreground); }
 .nav-item.selected,.session-row.selected { background:var(--card); }
 .nav-label { letter-spacing:1.2px; }
-.welcome { background:radial-gradient(ellipse at 50% 45%,#ffd43b10,transparent 60%); }
+.welcome { background:transparent; }
 .welcome-mark:empty { display:none; }
 .welcome h1 span { color:var(--muted-foreground); }
 .suggestions button { border-radius:12px; padding:11px 14px; height:auto; background:var(--card); color:var(--foreground); transition:background .18s,border-color .18s; }
@@ -173,7 +174,7 @@ button:focus-visible,a:focus-visible,.focus-ring:focus-visible { outline:2px sol
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important; } }
 
 /* Challenge, score, and recall-led training */
-.challenge-page { height:100%; overflow:auto; padding:54px 28px 80px; background:radial-gradient(ellipse at 52% 0%,#ffd43b12,transparent 52%); }
+.challenge-page { height:100%; overflow:auto; padding:54px 28px 80px; background:transparent; }
 .challenge-container { width:min(100%,860px); margin:0 auto; }
 .challenge-eyebrow { display:flex; align-items:center; gap:8px; color:var(--brand); font-size:11px; font-weight:600; letter-spacing:1.7px; }
 .challenge-container>h1 { font-size:clamp(38px,5vw,62px); line-height:1.08; letter-spacing:-2px; font-weight:600; margin:24px 0 17px; }
@@ -257,7 +258,7 @@ button:focus-visible,a:focus-visible,.focus-ring:focus-visible { outline:2px sol
 @media(max-width:760px) { .scratchpad-canvas,.scratchpad-loading { height:430px; }.scratchpad-panel { padding:8px; }.scratchpad-toggle { margin-bottom:20px; } }
 
 /* Knowledge tree: topic structure with progress derived from challenge records. */
-.knowledge-page { height:100%; overflow:auto; padding:52px 32px 76px; background:radial-gradient(ellipse at 45% 0%,#ffd43b12,transparent 55%); }
+.knowledge-page { height:100%; overflow:auto; padding:52px 32px 76px; background:transparent; }
 .knowledge-container { width:min(100%,1290px); margin:0 auto; }
 .knowledge-intro-row { display:flex; justify-content:space-between; align-items:end; gap:30px; margin:22px 0 30px; }
 .knowledge-intro-row h1 { margin:0 0 11px; font-size:clamp(37px,4.5vw,56px); line-height:1.08; letter-spacing:-1.9px; font-weight:600; }
@@ -298,3 +299,18 @@ button:focus-visible,a:focus-visible,.focus-ring:focus-visible { outline:2px sol
 .new-challenge-error { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:20px; padding:12px 15px; border:1px solid var(--danger); border-radius:9px; color:var(--danger); background:var(--danger-bg); font-size:12px; }.new-challenge-error p { margin:0; }.new-challenge-error a { color:var(--foreground); white-space:nowrap; }
 .new-challenge-ready { display:flex; align-items:center; gap:15px; margin-top:34px; padding:21px 4px; border-top:1px solid var(--border); }.new-challenge-ready>svg { color:var(--brand); flex-shrink:0; }.new-challenge-ready>div { flex:1; }.new-challenge-ready strong { font-size:13px; font-weight:600; }.new-challenge-ready p { margin:4px 0 0; color:var(--text-secondary); font-size:11px; }
 @media(max-width:760px) { .new-challenge-form-bottom,.new-challenge-ready { align-items:flex-start; flex-direction:column; }.new-challenge-error { align-items:flex-start; flex-direction:column; } }
+
+/* Yellow skin: 2px sketch strokes on the primary surfaces. The border
+   COLOR already reads from --border (the stroke); this only thickens the
+   drawn edge so panels read as sketched, not hairline. */
+.sidebar { border-right-width:2px; }
+.topbar,.lesson-heading { border-bottom-width:2px; }
+.composer-box,.user-message,.connection-card,.preference-list,.provider-key-card,
+.notice,.status-badge,.dropdown,.confirm-dialog,.grok-symbol,
+.challenge-topic,.challenge-option,.challenge-custom-cta,.challenge-skill-list span,
+.challenge-mode-results>div,.challenge-feedback,.challenge-training-complete,
+.challenge-number-field input,.challenge-text-field input,.new-challenge-page textarea,
+.knowledge-map,.knowledge-detail,.knowledge-topic-node,.knowledge-skill-node,
+.knowledge-overview>div,.knowledge-topic-picker button,.scratchpad-panel,.scratchpad-toggle {
+	border-width:2px;
+}

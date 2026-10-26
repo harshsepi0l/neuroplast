@@ -41,13 +41,13 @@ export interface ButtonProps
 
 const variantStyles: Record<ButtonVariant, string> = {
   default:
-    'bg-[var(--text-primary)] text-[var(--bg)] hover:opacity-90 shadow-xs border border-transparent font-medium cursor-pointer',
+    'bg-[var(--brand)] text-[var(--brand-ink)] hover:opacity-90 shadow-none border-2 border-[var(--stroke)] font-bold cursor-pointer',
   primary:
-    'bg-[var(--text-primary)] text-[var(--bg)] hover:opacity-90 shadow-xs border border-transparent font-medium cursor-pointer',
+    'bg-[var(--brand)] text-[var(--brand-ink)] hover:opacity-90 shadow-none border-2 border-[var(--stroke)] font-bold cursor-pointer',
   secondary:
-    'bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-hover)] cursor-pointer',
+    'bg-[var(--surface)] border-2 border-[var(--stroke)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-hover)] cursor-pointer',
   outline:
-    'bg-transparent border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-hover)] cursor-pointer',
+    'bg-transparent border-2 border-[var(--stroke)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-hover)] cursor-pointer',
   ghost:
     'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] border border-transparent cursor-pointer',
   destructive:
@@ -57,7 +57,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   link:
     'bg-transparent text-[var(--text-primary)] underline-offset-4 hover:underline p-0 h-auto border-0 focus-ring shadow-none inline-flex cursor-pointer',
   gradient:
-    'bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-hover)] relative overflow-hidden cursor-pointer',
+    'bg-[var(--surface)] border-2 border-[var(--stroke)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-hover)] relative overflow-hidden cursor-pointer',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

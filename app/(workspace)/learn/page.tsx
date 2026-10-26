@@ -1,2 +1,2 @@
 import { redirect } from "next/navigation";
-export default function LegacyLearnPage() { redirect("/"); }
+export default function LegacyLearnPage() { redirect("/chat/new"); }

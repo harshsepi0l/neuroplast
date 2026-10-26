@@ -25,7 +25,7 @@ export function Composer({ busy, ready, mode, setMode, send, stop, enterToSend, 
   return <div className="composer-wrap">
     <div className="composer-box">
       {file && <div className="attachment"><Paperclip size={13}/><span>{file.name}</span><Button variant="ghost" size="sm" aria-label="Remove attachment" onClick={() => setFile(null)}><X size={13}/></Button></div>}
-      <Textarea aria-label="Message your tutor" placeholder={ready ? "Ask a question, share an idea, or tell me where you’re stuck…" : "Write a learning goal. Connect Grok when you’re ready to begin."}
+      <Textarea aria-label="Message your tutor" placeholder="Ask about anything — or start a challenge…"
         value={draft} maxLength={6000} onChange={event => setDraft(event.target.value)} className="composer-input"
         onKeyDown={event => { if (enterToSend && event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void submit(); } }}/>
       <div className="composer-toolbar">
@@ -40,7 +40,7 @@ export function Composer({ busy, ready, mode, setMode, send, stop, enterToSend, 
           <Select aria-label="Learning mode" value={mode} disabled={busy} onChange={event => setMode(event.target.value as LessonMode)} options={[{ value: "learn", label: "Learn" }, { value: "practice", label: "Practice" }]} className="mode-select"/>
         </div>
         {busy ? <Button size="icon" variant="secondary" aria-label="Stop response" onClick={stop}><Square size={15} fill="currentColor"/></Button>
-          : <Button size="icon" aria-label={ready ? "Send message" : "Connect Grok to send"} disabled={!draft.trim()} onClick={() => void submit()} className="send-button"><ArrowUp size={19}/></Button>}
+          : <Button size="icon" aria-label={ready ? "Send message" : "Connect a model to send"} disabled={!draft.trim()} onClick={() => void submit()} className="send-button"><ArrowUp size={19}/></Button>}
       </div>
     </div>
     <div className="composer-caption">{error ? <span role="alert" className="error-text">{error}</span> : <><span>{ready ? "Grok can make mistakes. Check important details." : "Your draft stays here while you connect."}</span><span>{enterToSend ? "↵ send · ⇧↵ new line" : "Click ↑ to send"}</span></>}</div>
