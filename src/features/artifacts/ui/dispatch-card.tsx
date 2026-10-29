@@ -3,7 +3,7 @@
 import { useContext } from "react";
 import { CheckIcon, SettingsIcon, XIcon } from "lucide-react";
 import { JobsContext } from "@/features/learning/ui/session/jobs-context";
-import { ChatActionsContext } from "@/features/learning/ui/session/chat";
+import { ChatActionsContext } from "@/features/learning/ui/session/chat-actions-context";
 import { isModelsRefusal, isProviderKeyRefusal } from "@/features/settings/core/settings";
 import { type JobKind, type JobRecord } from "@/features/artifacts/core/jobs";
 import { BrailleSpinner } from "@/features/learning/ui/messages/braille-spinner";

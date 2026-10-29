@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext, useState } from "react";
-import { ChatActionsContext } from "@/features/learning/ui/session/chat";
+import { ChatActionsContext } from "@/features/learning/ui/session/chat-actions-context";
 import { DownloadIcon, MaximizeIcon } from "lucide-react";
 import { InvertDiscIcon } from "@/features/artifacts/ui/invert-disc";
 import { Toggle } from "@/features/settings/ui/controls";
