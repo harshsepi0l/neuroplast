@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/ui/primitives/button";
+import { Button } from "@/ui/easyui/Button";
 import { cn } from "@/lib/utils";
 import type { MermaidErrorComponentProps } from "streamdown";
 

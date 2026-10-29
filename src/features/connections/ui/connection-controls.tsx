@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useBackdropDismiss } from "@/ui/backdrop-dismiss";
-import { Button } from "@/ui/primitives/button";
+import { Button } from "@/ui/easyui/Button";
 
 export function ConnectionRow({ label, action, disabled, onAction, children, testid, actionTestid }: { label: string; action: string; disabled: boolean; onAction: () => void; children?: React.ReactNode; testid?: string; actionTestid?: string }) {
 	return <div className="flex flex-wrap items-center gap-3" data-testid={testid}>

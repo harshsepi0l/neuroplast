@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/ui/primitives/button";
+import { Button } from "@/ui/easyui/Button";
 import {
   ButtonGroup,
   ButtonGroupText,

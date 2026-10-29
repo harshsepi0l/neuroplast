@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { ChevronRightIcon } from "lucide-react";
 import { MessageResponse } from "@/features/learning/ui/messages/message";
-import { Button } from "@/ui/primitives/button";
+import { Button } from "@/ui/easyui/Button";
 import { joinDictation, useDictationTarget } from "@/features/learning/ui/composer/dictation";
 import { useEnterSubmits } from "@/features/learning/ui/composer/enter-submits";
 import { cn } from "@/lib/utils";
