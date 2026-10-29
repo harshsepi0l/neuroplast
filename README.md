@@ -66,5 +66,5 @@ persistent Node server. File tools read only `NEUROPLAST_MATERIALS_DIR` (default
 Interactive-demo rendering can use server-installed Chrome via `CHROME_PATH`;
 learners use their browser and install no desktop application.
 
-The repository uses AGPL-3.0-only. Retained third-party notices live alongside
-the relevant components and in [docs/licenses](docs/licenses).
+Retained third-party notices live alongside the relevant components and in
+[docs/licenses](docs/licenses).
