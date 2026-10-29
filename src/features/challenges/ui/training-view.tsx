@@ -9,6 +9,8 @@ import type { PublicQuestion } from "../core/linear-equations";
 import { challengeRequest, loadChallenge, loadTraining } from "./challenge-api";
 import { QuestionInput, QuestionPrompt } from "./question-input";
 import { ProblemScratchpad } from "./problem-scratchpad";
+import { renderDrawingsForPrint, scratchpadKey } from "./print-drawings";
+import { PrintButton, printedOn } from "@/ui/print/print-button";
 
 const stageNames = { recall: "Recall", discrimination: "Choose the method", application: "Apply it", "delayed-recall": "Recall again" };
 
@@ -62,8 +64,9 @@ export function TrainingView({ id }: { id: string }) {
   const question = view?.current;
   return <div className="challenge-page"><div className="challenge-container challenge-taking">
     <button className="challenge-back" onClick={() => router.push(`/challenge/${id}`)}><ArrowLeft size={15}/> Back to score</button>
+    <p className="print-only print-header" suppressHydrationWarning><strong>neuroplast</strong> · Training · {view?.topic.title} · Printed {printedOn()}</p>
     <div className="challenge-eyebrow">TRAINING · {view?.topic.title ?? "YOUR TOPIC"}</div><h1 className="challenge-training-title">Build the skills to beat the boss.</h1>
-    {view && <div className="challenge-sheet-bar"><div className="challenge-progress-label" style={{ flex: 1 }}><span>Skill steps completed</span><strong>{view.progress.completed}/{view.progress.total}</strong></div><div className="challenge-progress" style={{ flexBasis: "100%", margin: 0 }}><span style={{ width: `${view.progress.total ? 100 * view.progress.completed / view.progress.total : 100}%` }}/></div></div>}
+    {view && <div className="challenge-sheet-bar"><div className="challenge-progress-label" style={{ flex: 1 }}><span>Skill steps completed</span><strong>{view.progress.completed}/{view.progress.total}</strong></div><PrintButton label="Print" prepare={renderDrawingsForPrint}/><div className="challenge-progress" style={{ flexBasis: "100%", margin: 0 }}><span style={{ width: `${view.progress.total ? 100 * view.progress.completed / view.progress.total : 100}%` }}/></div></div>}
     {view && <ol className="challenge-sheet" aria-label="Practice problems">
       {view.history.map((item, index) => <li key={item.question.id} className="challenge-sheet-item answered">
         <span className="challenge-sheet-number" aria-hidden="true">{index + 1}</span>
@@ -76,6 +79,7 @@ export function TrainingView({ id }: { id: string }) {
             {!item.correct && <p><b>Answer: {label(item.question, item.answer)}.</b></p>}
             <p>{item.explanation}{!item.correct && " This skill returns in a new problem after other work."}</p>
           </div>
+          <div className="print-only print-drawing" data-print-drawing={scratchpadKey(id, item.question.id)}/>
         </div>
       </li>)}
       {question && <li key={question.id} className="challenge-sheet-item">

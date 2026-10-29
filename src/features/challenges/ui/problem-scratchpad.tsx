@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { PencilLine } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { scratchpadKey } from "./print-drawings";
 
 const ScratchpadCanvas = dynamic(() => import("./scratchpad-canvas"), {
   ssr: false,
@@ -23,7 +24,8 @@ export function ProblemScratchpad({ challengeId, questionId, children }: {
       <PencilLine size={16}/>{open ? "Hide scratchpad" : "Scratchpad"}
     </button>
     {open && <div className="scratchpad-panel" id={panelId} role="region" aria-label="Scratchpad">
-      <ScratchpadCanvas key={`${challengeId}:${questionId}`} storageKey={`neuroplast:scratchpad:v1:${challengeId}:${questionId}`}/>
+      <ScratchpadCanvas key={`${challengeId}:${questionId}`} storageKey={scratchpadKey(challengeId, questionId)}/>
     </div>}
+    <div className="print-only print-drawing" data-print-drawing={scratchpadKey(challengeId, questionId)}/>
   </div>;
 }
