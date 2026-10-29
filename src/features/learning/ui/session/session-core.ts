@@ -223,6 +223,10 @@ export class SessionModel {
 	// The single live consume (POST response or reattach stream): a newer
 	// consume cancels the older — one reader at a time.
 	private consumeAbort: AbortController | null = null;
+	/** Whether a page shows this session (mount/release). */
+	private mounted = true;
+	/** The send whose stream release() cut off, if the page comes back. */
+	private releasedSend: AbortController | null = null;
 	/** Synchronous ready check for the gate (send/read mount logic). */
 	readyRef = true;
 
@@ -617,7 +621,17 @@ export class SessionModel {
 			// A stop() or a newer send/consume won while the ack was in
 			// flight: the turn is live server-side either way — do not attach
 			// a stream from a view that is gone or superseded.
-			if (this.consumeAbort !== controller) return;
+			if (this.consumeAbort !== controller) {
+				// THE FIRST-SEND STRAND (2026-10-29): React StrictMode releases
+				// and remounts the page while the first send's ack is in flight.
+				// The page is back, the turn is running: attach, or the session
+				// shows a loading screen over a finished turn until the next
+				// action re-fetches it. A newer send/consume, or a page that is
+				// really gone, still wins.
+				const comeBack = this.releasedSend === controller && this.mounted && this.consumeAbort === null;
+				if (this.releasedSend === controller) this.releasedSend = null;
+				if (!comeBack) return;
+			}
 			await this.resumeStream(true);
 		} catch (err) {
 			if ((err as Error).name === "AbortError") return; // stop() or a newer consume won
@@ -722,6 +736,20 @@ export class SessionModel {
 
 	/** Local detach: cancel the consume, keep the partial tail. The page's
 	 *  settle watch adopts the record when the server turn finishes. */
+	/** The page showing this session went away: release the stream
+	 *  connection. A send in flight remembers it was cut off, so a page
+	 *  that comes back (mount) attaches to its turn. */
+	release(): void {
+		this.mounted = false;
+		this.releasedSend = this.consumeAbort;
+		this.stop();
+	}
+
+	/** A page shows this session (again). */
+	mount(): void {
+		this.mounted = true;
+	}
+
 	stop(): void {
 		this.consumeAbort?.abort();
 		this.consumeAbort = null;
