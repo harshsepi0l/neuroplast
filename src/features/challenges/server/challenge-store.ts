@@ -4,6 +4,7 @@ import path from "node:path";
 import { randomBytes, randomUUID } from "node:crypto";
 import { PATHS } from "@/server/workspace-config";
 import { AppError } from "@/lib/errors";
+import { emit } from "@/features/learning/core/events";
 import {
   SKILLS, TOPIC, challengeQuestions, grade, publicQuestion, trainingQuestion,
   type Question, type SkillId, type TrainingStage,
@@ -50,6 +51,7 @@ function save(record: ChallengeRecord) {
   const temporary = `${target}.${randomUUID()}.tmp`;
   fs.writeFileSync(temporary, JSON.stringify(record, null, "\t"), { mode: 0o600 });
   fs.renameSync(temporary, target);
+  emit("challenges-changed", {});
 }
 export function readChallenge(id: string): ChallengeRecord {
   try {
@@ -67,6 +69,7 @@ export function readChallenge(id: string): ChallengeRecord {
 export function deleteChallenge(id: string): void {
   readChallenge(id);
   fs.rmSync(file(id));
+  emit("challenges-changed", {});
 }
 function seed(): number { return randomBytes(4).readUInt32BE(0); }
 export function createChallenge(previousId?: string): ChallengeRecord {

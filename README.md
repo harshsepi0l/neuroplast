@@ -15,7 +15,8 @@ provider pi supports can drive a lesson.
 | **Challenges** | Ten scored questions. Missed skills turn into training (recall, discrimination, application, delayed recall), then a retake. The first chapter is linear equations. |
 | **Knowledge** | Every topic as a skill tree: Learn sessions by plan step, challenges by skill. **Learn** and **Take the challenge** buttons on each topic. |
 | **Practice** | A problem loop on one skill: you work in a thinking field, the tutor reads it and moves on. |
-| **Settings** | Model slots, provider API keys, Grok sign-in, appearance and prompts. |
+| **Settings** | Model slots, provider API keys, Grok sign-in, appearance, prompts, and the Obsidian vault. |
+| **Obsidian** | Your topics, steps, sessions and challenges as linked Markdown notes in a vault, kept in sync. See [docs/obsidian-vault.md](docs/obsidian-vault.md). |
 
 ## A Learn session
 
@@ -189,6 +190,7 @@ One private workspace per server process.
 | Sessions, jobs, challenges, knowledge graph, settings, API keys | `.neuroplast/workspace/` (files) |
 | Browser identities, encrypted subscription credentials | `.neuroplast/neuroplast.sqlite` |
 | Uploaded and readable study files | `.neuroplast/materials/` (`NEUROPLAST_MATERIALS_DIR`) |
+| Notes mirrored for Obsidian (optional) | `<your vault>/Neuroplast/` |
 
 `NEUROPLAST_DATA_DIR` relocates the workspace. A session's record is its
 native agent transcript; everything the UI shows (stages, questions, plan
@@ -208,6 +210,7 @@ demos are tested in a headless Chrome found through `CHROME_PATH`.
 - [Challenge direction](docs/challenge-practice-direction.md)
 - [Grok connection design](docs/subscription-sign-in-design.md)
 - [LearnHarness integration](docs/learnharness-integration.md)
+- [Obsidian vault](docs/obsidian-vault.md)
 
 ## License and credits
 

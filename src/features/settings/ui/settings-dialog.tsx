@@ -42,6 +42,7 @@ import { KeysSection } from "@/features/connections/ui/keys-section";
 import { Hint } from "@/ui/primitives/hint";
 import { AppearanceSection, GraphSection } from "@/features/settings/ui/appearance-section";
 import { KeyboardSection } from "@/features/settings/ui/keyboard-section";
+import { VaultSection } from "@/features/vault/ui/vault-section";
 import { ChatGPTUIProvider } from "@/features/connections/ui/chatgpt-connection";
 import { NativeSubscriptionUIProvider } from "@/features/connections/ui/subscription-connections";
 
@@ -53,6 +54,7 @@ const SECTIONS = [
 	{ id: "agent", label: "Agent" },
 	{ id: "appearance", label: "Appearance" },
 	{ id: "graph", label: "Graph" },
+	{ id: "obsidian", label: "Obsidian" },
 	{ id: "keyboard", label: "Keyboard", hint: "Stored on this device" },
 	{ id: "general", label: "General" },
 ] as const;
@@ -420,6 +422,15 @@ export function SettingsDialogBody({
 											void write("graph", next)
 										}
 									/>
+								</SettingsSection>
+							)}
+							{active === "obsidian" && (
+								<SettingsSection
+									title="Obsidian"
+									hint="Your topics, sessions and challenges as notes in a vault"
+									testid="section-obsidian"
+								>
+									<VaultSection />
 								</SettingsSection>
 							)}
 							{active === "keyboard" && (
