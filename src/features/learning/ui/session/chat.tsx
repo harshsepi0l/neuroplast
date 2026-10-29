@@ -37,7 +37,6 @@ import { TopBar } from "@/app-shell/top-bar";
 import type { ArtifactPartProps, TurnUsage } from "@/features/learning/core/chat";
 import type { QuestionAnswerData } from "@/features/learning/core/question-core";
 import type { SessionPricing } from "@/features/learning/core/prices";
-import { SessionStepper } from "@/features/learning/ui/session/session-stepper";
 import { CompactionCutDivider, CompactionMomentDivider, type CompactionDividerData } from "@/features/learning/ui/session/compaction-divider";
 import { CoverageRing } from "@/features/knowledge/ui/extraction-coverage";
 import { activeProblemOf } from "@/features/learning/core/native-messages";
@@ -50,12 +49,14 @@ import { useSettingsSaved } from "@/app-shell/settings-signal";
 import { COLUMN } from "./chat-layout";
 import { ChatActionsContext } from "./chat-actions-context";
 import { escAbortTarget, initialPromptOwed, isSubagentSteer, lastPartIsReasoning, stripLeakedToolArgs, parseModelsRefusal, parseProviderKeyRefusal, repeatedUserMessage, SHOW_THINKING_KEY, warmupSummary, workingLabel } from "./chat-logic";
-import { WarmupHeading } from "./warmup-heading";
 import { SessionDock } from "./session-dock";
 import { PrintButton, printedOn } from "@/ui/print/print-button";
 import { questionNumbers } from "@/features/learning/core/answer-summary";
 import { isBackgroundTool } from "@/features/learning/core/pending";
-import { SessionChallenge, type SessionChallengeInfo } from "./session-challenge";
+import { type SessionChallengeInfo } from "./session-challenge";
+import { ChallengeRow, StageLoading, StageSection, type StageStatus } from "./stage-sections";
+import { currentStage, messageStages, SESSION_STAGES, stageLoading, type SessionStage } from "@/features/learning/core/stage-sections";
+import { planNodeCount } from "./phase-divider";
 import { StageActions } from "./stage-actions";
 import { UserText } from "./user-text";
 import { useAttachments } from "@/features/learning/ui/composer/attach";
@@ -388,7 +389,6 @@ export function Chat({
 	// color-coded dotted divider at each boundary; the header chip reads the
 	// session's current phase.
 	const phases = useMemo(() => phaseTimeline(messages), [messages]);
-	const inWarmup = (phases.at(-1) ?? "probe") === "probe";
 	// "Check 3": every question numbered in the order it was asked.
 	const questionNo = useMemo(() => questionNumbers(messages), [messages]);
 
@@ -662,7 +662,19 @@ export function Chat({
 	// The warm-up (probe phase): its answered questions read as one list;
 	// once teaching starts the list folds to a single summary line.
 	const warmup = useMemo(() => warmupSummary(messages), [messages]);
-	const [warmupOpen, setWarmupOpen] = useState(false);
+	// The stacked stage sections (Learn sessions): each message renders in
+	// the stage it began in; the current stage is open, finished ones fold.
+	const stages = useMemo(() => messageStages(messages, phases), [messages, phases]);
+	const stageNow = currentStage(stages, phases.at(-1) ?? "probe");
+	const loadingStage = kind === "teach" ? stageLoading(messages, stages, stageNow) : null;
+	const [openStages, setOpenStages] = useState<Partial<Record<SessionStage, boolean>>>({});
+	const planSteps = useMemo(() => {
+		for (let i = messages.length - 1; i >= 0; i--) {
+			const n = planNodeCount(messages[i]!);
+			if (n) return n;
+		}
+		return undefined;
+	}, [messages]);
 	// The mermaid focus (chrome-melt wave, 2026-09-19): md-blocks' expand
 	// button registers the chart source here; the overlay (and the plan
 	// popup) mount INSIDE the session-area div — both are session-scoped, so
@@ -903,151 +915,7 @@ const setupOpenRef = useRef(setupOpen);
 		doSend();
 	};
 
-	return (
-		<ChatActionsContext.Provider
-			value={{
-				chatId,
-				syncFromServer,
-				sendText: (t: string) => {
-					void send({ type: "text", text: t });
-				},
-				openSetup: () => setSetupOpen(true),
-			}}
-		>
-		<SessionMermaidContext.Provider
-			value={{
-				openMermaid: setMermaidFocus,
-				openFigure: (svg, inverted) => setFigureFocus({ svg, inverted }),
-			}}
-		>
-		<JobsContext.Provider value={jobs}>
-		{/* The session surface: the transcript column (header + scroller) and
-		    the plan-tree panel as full-height SIBLINGS — the panel spans top to
-		    bottom exactly like the left sidebar, and the header (name + phase
-		    chip) spans from the left sidebar's edge to the panel's edge. The
-		    dock overlays the column bottom (outside the scroller); a spacer in
-		    the transcript reserves its height. */}
-		<div data-print-flow className="integrated-session flex h-full min-h-0">
-			<div data-print-flow className="flex min-w-0 flex-1 flex-col">
-				{/* The top bar is its own block (owner, top-fade round 4): in flow
-				    above the scroller on the plain page background — no gradient. Its
-				    bottom outline (border-b border-border) matches the one that
-				    separates the left sidebar — same width, same color (owner, r5).
-				    h-15 (60px), not py-2: the toggle (a size-9 icon button) renders
-				    only while the sidebar is CLOSED — an auto-height row would
-				    collapse when it disappears and slide the title + chip up.
-				    60px is an ALIGNMENT, not just a size: it equals the sidebar's
-				    LH wordmark band, so the header's border-b continues that
-				    band's bottom edge as one line across the app (owner, round 6). */}
-				<TopBar
-					// While renaming the bar is NOT a drag surface: app-region:drag
-					// would eat the mousedown, so click-to-escape (below) could
-					// never fire. Rename mode is interactive mode (owner ask) —
-					// TopBar's one escape hatch.
-					drag={!renaming}
-					onMouseDown={(e) => {
-						// Escape hitbox: any mousedown outside the input itself blurs
-						// it, running the existing onBlur commit path. The input is
-						// shrink-to-fit (field-sizing), so the rest of the bar is
-						// this spacer + inert chips — all click-to-exit (owner ask).
-						if (renaming && e.target !== titleInputRef.current) titleInputRef.current?.blur();
-					}}
-				>
-					{renaming ? (
-						<>
-							<input
-								ref={titleInputRef}
-								value={titleDraft}
-								onChange={(e) => setTitleDraft(e.target.value)}
-								onKeyDown={(e) => {
-									if (e.key === "Enter") void commitRename(titleDraft);
-									// stopPropagation claims the Esc (keyboard wave A):
-									// closing rename must not also abort a turn.
-									else if (e.key === "Escape") {
-										e.stopPropagation();
-										setRenaming(false);
-									}
-								}}
-								onBlur={() => void commitRename(titleDraft)}
-								spellCheck={false}
-								aria-label="Session title"
-								title="Rename this session"
-								className="neuroplast-no-drag min-w-[8ch] max-w-[70%] shrink-0 bg-transparent font-title text-3xl tracking-tight caret-current outline-none [field-sizing:content]"
-							/>
-							{/* flex-1 spacer during rename too, so the chips stay at
-							    the right edge; clicks here commit via the header
-							    mousedown handler. */}
-							<div className="min-w-4 flex-1" aria-hidden="true" />
-						</>
-					) : (
-					<>
-						<Hint
-							// F2 renames (registry) — surfaced on the hover.
-							label="Rename session"
-							action="rename-session"
-							side="bottom"
-						>
-<button
-							type="button"
-														onClick={() => {
-								setTitleDraft(titleText);
-								setRenaming(true);
-							}}
-							className="neuroplast-no-drag -mx-1.5 min-w-4 shrink cursor-text truncate rounded-md px-1.5 text-left font-title text-3xl tracking-tight transition-colors hover:bg-accent"
-						>
-							{titleText}
-							</button>
-						</Hint>
-							{/* flex-1 spacer: keeps the chips at the right edge AND stays a
-							    drag surface (no carve-out) — the freed bar is grippable. */}
-							<div className="min-w-4 flex-1" aria-hidden="true" />
-					</>
-					)}
-					<button type="button" aria-pressed={showThinking} onClick={toggleThinking} className="neuroplast-no-drag shrink-0 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground print:hidden">
-						{showThinking ? "Hide thinking" : "Show thinking"}
-					</button>
-					<PrintButton label="Print" className="neuroplast-no-drag shrink-0" />
-					{/* The extraction ring (owner-locked redesign, 2026-09-24): fills
-					    with uncovered vs the chunk threshold, pulses while a run is in
-					    flight, vanishes when the graph is off. Click → the exact
-					    numbers. Before the phase label — the chips cluster right. */}
-					{/* Practice (owner, 2026-10-04): the coverage ring hides —
-				    practice never extracts, so an ever-filling ring with no
-				    run behind it would lie. */}
-					{kind !== "practice" && <CoverageRing chatId={chatId} refreshKey={coverageTick} />}
-					{/* Practice sessions: no phase arc — a quiet Practice tag
-					    instead of the phase chip. */}
-					{kind === "practice" ? (
-						<span
-							data-testid="phase-chip"
-							data-phase="practice"
-							aria-hidden="true"
-							className="pointer-events-none flex shrink-0 select-none items-center gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground"
-						>
-							<DumbbellIcon className="size-3" />
-							Practice
-						</span>
-					) : (
-						<SessionStepper phase={phases.at(-1) ?? "probe"} challenge={!!challenge} />
-					)}
-				</TopBar>
-
-				<SessionFind scopeRef={sessionFindScopeRef} scrollContextRef={scrollContextRef} />
-				<div data-print-flow ref={sessionFindScopeRef} className="relative flex min-h-0 flex-1">
-				<Conversation data-print-flow className="h-full min-w-0 flex-1" initial="instant" contextRef={scrollContextRef}>
-					<SessionMessageNavigation />
-					<ConversationContent className="min-h-full gap-0 p-0">
-						<div data-session-find-root="" className={`${COLUMN} flex flex-1 flex-col gap-4 pt-4`}>
-							<p className="print-only print-header" suppressHydrationWarning><strong>{titleText}</strong> · Learn session · Printed {printedOn()}</p>
-							<PlanOutline messages={messages} chatId={chatId} />
-							{messages.length === 0 && !busy && (
-								<ConversationEmptyState
-									title="New session"
-									description="The teacher will open by probing what you already know."
-								/>
-							)}
-
-							{messages.map((m, mi) =>
+	const renderMessage = (m: (typeof messages)[number], mi: number) =>
 								// A message re-sent after a failed attempt shows once.
 								repeatedUserMessage(messages, mi) ? null :
 								m.role === "user" && isSubagentSteer(m) ? (
@@ -1207,14 +1075,7 @@ const setupOpenRef = useRef(setupOpen);
 														// transcript; answered ones render as graded records.
 														if (part.state === "output-available") {
 															return (
-																<Fragment key={pi}>
-																	{part.toolCallId === warmup.first && (
-																		<WarmupHeading summary={warmup} folded={!inWarmup} open={warmupOpen} onToggle={() => setWarmupOpen((v) => !v)} />
-																	)}
-																	{(!part.toolCallId || !warmup.ids.has(part.toolCallId) || inWarmup || warmupOpen) && (
-																		<AnsweredCard answer={part.output as QuestionAnswerData} input={part.input} number={part.toolCallId ? questionNo.get(part.toolCallId) : undefined} />
-																	)}
-																</Fragment>
+																<AnsweredCard key={pi} answer={part.output as QuestionAnswerData} input={part.input} number={part.toolCallId ? questionNo.get(part.toolCallId) : undefined} />
 															);
 														}
 														return null;
@@ -1231,8 +1092,6 @@ const setupOpenRef = useRef(setupOpen);
 														// Artifact extension point (contracts.ts): job
 														// parts and future artifacts render via the
 														// registry — add renderers there, not here.
-														// The warm-up's assessment folds with the warm-up.
-														if (part.type === "tool-probe_done" && !inWarmup && !warmupOpen) return null;
 														if (part.type.startsWith("tool-")) {
 															const Renderer = artifactRenderers[part.type.slice("tool-".length)];
 															if (Renderer) return <Renderer key={pi} part={part as ArtifactPartProps["part"]} />;
@@ -1245,7 +1104,196 @@ const setupOpenRef = useRef(setupOpen);
 									</Message>
 									)}
 								</Fragment>
-							))}
+		);
+
+	return (
+		<ChatActionsContext.Provider
+			value={{
+				chatId,
+				syncFromServer,
+				sendText: (t: string) => {
+					void send({ type: "text", text: t });
+				},
+				openSetup: () => setSetupOpen(true),
+			}}
+		>
+		<SessionMermaidContext.Provider
+			value={{
+				openMermaid: setMermaidFocus,
+				openFigure: (svg, inverted) => setFigureFocus({ svg, inverted }),
+			}}
+		>
+		<JobsContext.Provider value={jobs}>
+		{/* The session surface: the transcript column (header + scroller) and
+		    the plan-tree panel as full-height SIBLINGS — the panel spans top to
+		    bottom exactly like the left sidebar, and the header (name + phase
+		    chip) spans from the left sidebar's edge to the panel's edge. The
+		    dock overlays the column bottom (outside the scroller); a spacer in
+		    the transcript reserves its height. */}
+		<div data-print-flow className="integrated-session flex h-full min-h-0">
+			<div data-print-flow className="flex min-w-0 flex-1 flex-col">
+				{/* The top bar is its own block (owner, top-fade round 4): in flow
+				    above the scroller on the plain page background — no gradient. Its
+				    bottom outline (border-b border-border) matches the one that
+				    separates the left sidebar — same width, same color (owner, r5).
+				    h-15 (60px), not py-2: the toggle (a size-9 icon button) renders
+				    only while the sidebar is CLOSED — an auto-height row would
+				    collapse when it disappears and slide the title + chip up.
+				    60px is an ALIGNMENT, not just a size: it equals the sidebar's
+				    LH wordmark band, so the header's border-b continues that
+				    band's bottom edge as one line across the app (owner, round 6). */}
+				<TopBar
+					// While renaming the bar is NOT a drag surface: app-region:drag
+					// would eat the mousedown, so click-to-escape (below) could
+					// never fire. Rename mode is interactive mode (owner ask) —
+					// TopBar's one escape hatch.
+					drag={!renaming}
+					onMouseDown={(e) => {
+						// Escape hitbox: any mousedown outside the input itself blurs
+						// it, running the existing onBlur commit path. The input is
+						// shrink-to-fit (field-sizing), so the rest of the bar is
+						// this spacer + inert chips — all click-to-exit (owner ask).
+						if (renaming && e.target !== titleInputRef.current) titleInputRef.current?.blur();
+					}}
+				>
+					{renaming ? (
+						<>
+							<input
+								ref={titleInputRef}
+								value={titleDraft}
+								onChange={(e) => setTitleDraft(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter") void commitRename(titleDraft);
+									// stopPropagation claims the Esc (keyboard wave A):
+									// closing rename must not also abort a turn.
+									else if (e.key === "Escape") {
+										e.stopPropagation();
+										setRenaming(false);
+									}
+								}}
+								onBlur={() => void commitRename(titleDraft)}
+								spellCheck={false}
+								aria-label="Session title"
+								title="Rename this session"
+								className="neuroplast-no-drag min-w-[8ch] max-w-[70%] shrink-0 bg-transparent font-title text-3xl tracking-tight caret-current outline-none [field-sizing:content]"
+							/>
+							{/* flex-1 spacer during rename too, so the chips stay at
+							    the right edge; clicks here commit via the header
+							    mousedown handler. */}
+							<div className="min-w-4 flex-1" aria-hidden="true" />
+						</>
+					) : (
+					<>
+						<Hint
+							// F2 renames (registry) — surfaced on the hover.
+							label="Rename session"
+							action="rename-session"
+							side="bottom"
+						>
+<button
+							type="button"
+														onClick={() => {
+								setTitleDraft(titleText);
+								setRenaming(true);
+							}}
+							className="neuroplast-no-drag -mx-1.5 min-w-4 shrink cursor-text truncate rounded-md px-1.5 text-left font-title text-3xl tracking-tight transition-colors hover:bg-accent"
+						>
+							{titleText}
+							</button>
+						</Hint>
+							{/* flex-1 spacer: keeps the chips at the right edge AND stays a
+							    drag surface (no carve-out) — the freed bar is grippable. */}
+							<div className="min-w-4 flex-1" aria-hidden="true" />
+					</>
+					)}
+					<button type="button" aria-pressed={showThinking} onClick={toggleThinking} className="neuroplast-no-drag shrink-0 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground print:hidden">
+						{showThinking ? "Hide thinking" : "Show thinking"}
+					</button>
+					<PrintButton label="Print" className="neuroplast-no-drag shrink-0" />
+					{/* The extraction ring (owner-locked redesign, 2026-09-24): fills
+					    with uncovered vs the chunk threshold, pulses while a run is in
+					    flight, vanishes when the graph is off. Click → the exact
+					    numbers. Before the phase label — the chips cluster right. */}
+					{/* Practice (owner, 2026-10-04): the coverage ring hides —
+				    practice never extracts, so an ever-filling ring with no
+				    run behind it would lie. */}
+					{kind !== "practice" && <CoverageRing chatId={chatId} refreshKey={coverageTick} />}
+					{/* Practice sessions: no phase arc — a quiet Practice tag
+					    instead of the phase chip. */}
+					{kind === "practice" ? (
+						<span
+							data-testid="phase-chip"
+							data-phase="practice"
+							aria-hidden="true"
+							className="pointer-events-none flex shrink-0 select-none items-center gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+						>
+							<DumbbellIcon className="size-3" />
+							Practice
+						</span>
+					) : null}
+				</TopBar>
+
+				<SessionFind scopeRef={sessionFindScopeRef} scrollContextRef={scrollContextRef} />
+				<div data-print-flow ref={sessionFindScopeRef} className="relative flex min-h-0 flex-1">
+				<Conversation data-print-flow className="h-full min-w-0 flex-1" initial="instant" contextRef={scrollContextRef}>
+					<SessionMessageNavigation />
+					<ConversationContent className="min-h-full gap-0 p-0">
+						<div data-session-find-root="" className={`${COLUMN} flex flex-1 flex-col gap-4 pt-4`}>
+							<p className="print-only print-header" suppressHydrationWarning><strong>{titleText}</strong> · Learn session · Printed {printedOn()}</p>
+							{messages.length === 0 && !busy && (
+								<ConversationEmptyState
+									title="New session"
+									description="The teacher will open by probing what you already know."
+								/>
+							)}
+
+							{kind === "teach" ? (
+								<div data-testid="stage-sections" data-phase={phases.at(-1) ?? "probe"} className="flex flex-col gap-3 pb-2">
+									{SESSION_STAGES.map((stage) => {
+										const order = SESSION_STAGES.indexOf(stage) - SESSION_STAGES.indexOf(stageNow);
+										const status: StageStatus = order < 0 ? "done" : order === 0 ? "current" : "upcoming";
+										const open = status === "current" || (status === "done" && !!openStages[stage]);
+										const summary =
+											stage === "warmup"
+												? status === "done" ? `${warmup.answered} answered · ${warmup.correct} right` : warmup.answered ? `${warmup.answered} answered` : "Finding where you stand"
+												: stage === "plan"
+													? planSteps ? `${planSteps} steps` : "Your plan"
+													: "Your lesson";
+										const footer =
+											status !== "current" || loadingStage === stage ? undefined
+											: (stage === "warmup" && inWarmupStage) || (stage === "plan" && awaitingStart) ? (
+												<StageActions
+													stage={stage === "plan" ? "plan" : "warmup"}
+													chatId={chatId}
+													challenge={challenge}
+													disabled={busy || compacting}
+													onSkipWarmup={() => void moveStage("skip-warmup")}
+													onStartLearning={() => void moveStage("start-learning")}
+												/>
+											) : undefined;
+										return (
+											<StageSection
+												key={stage}
+												stage={stage}
+												status={status}
+												summary={summary}
+												open={open}
+												onToggle={() => setOpenStages((o) => ({ ...o, [stage]: !o[stage] }))}
+												footer={footer}
+											>
+												{(stage === "plan" || (stage === "learn" && !openStages.plan)) && <PlanOutline messages={messages} chatId={chatId} />}
+												{messages.map((m, mi) => (stages[mi] === stage ? renderMessage(m, mi) : null))}
+												{loadingStage === stage && (
+													<StageLoading stage={stage} busy={busy} onRetry={(t) => void send({ type: "text", text: t })} />
+												)}
+											</StageSection>
+										);
+									})}
+									<ChallengeRow chatId={chatId} challenge={challenge} disabled={busy || compacting} />
+								</div>
+							) : (
+								messages.map(renderMessage)
+							)}
 
 							{/* THE placeholder, ACTION-gated (owner, optimistic round
 							    3, 2026-10-02): spinner + shimmered Thinking… from the
@@ -1273,7 +1321,7 @@ const setupOpenRef = useRef(setupOpen);
 									<Shimmer duration={1}>COMPACTING CONTEXT…</Shimmer>
 								</span>
 							)}
-							{(status === "submitted" || turnInFlight || (status === "streaming" && !showThinking && lastPartIsReasoning(messages))) && (
+								{!loadingStage && (status === "submitted" || turnInFlight || (status === "streaming" && !showThinking && lastPartIsReasoning(messages))) && (
 								<div role="status" className="flex items-center gap-2.5 py-1 text-muted-foreground">
 									<BrailleSpinner label="Working" />
 									<Shimmer duration={1}>{workingLabel(phases.at(-1) ?? "probe", kind)}</Shimmer>
@@ -1298,23 +1346,6 @@ const setupOpenRef = useRef(setupOpen);
 					contextTokens={contextTokens}
 					pricing={pricing}
 					queuedSteers={visibleQueuedSteers(steerQueue, nativeMessages)}
-					stageActions={
-						inWarmupStage || awaitingStart ? (
-							<StageActions
-								stage={awaitingStart ? "plan" : "warmup"}
-								chatId={chatId}
-								challenge={challenge}
-								disabled={busy || compacting}
-								onSkipWarmup={() => void moveStage("skip-warmup")}
-								onStartLearning={() => void moveStage("start-learning")}
-							/>
-						) : undefined
-					}
-					challengeCta={
-						kind === "teach" && phases.at(-1) === "teach" && !busy && !compacting ? (
-							<SessionChallenge chatId={chatId} challenge={challenge} />
-						) : undefined
-					}
 					setupCta={
 						zeroKeys ? (
 							<ZeroKeysPill onOpen={() => setSetupOpen(true)} />

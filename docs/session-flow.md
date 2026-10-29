@@ -10,15 +10,46 @@ out of scope here.
 
 ## Stages
 
-| Stage | Who is talking | Ends when | Stepper |
-| --- | --- | --- | --- |
-| **Warm-up** | the prober | `probe_done` succeeds | Warm-up |
-| **Plan** | the teacher | the learner starts the lesson | Plan |
-| **Learn** | the teacher | — (the learner may take the challenge any time) | Learn |
-| **Challenge** | — (a scored page, outside the chat) | — | Challenge |
+| Stage | Who is talking | Ends when |
+| --- | --- | --- |
+| **Warm-up** | the prober | `probe_done` succeeds |
+| **Plan** | the teacher | the learner starts the lesson |
+| **Learn** | the teacher | — (the learner may take the challenge any time) |
+| **Challenge** | — (a scored page, outside the chat) | — |
 
 The stage is derived from the transcript, never stored:
-`core/phases.ts` (stepper), `core/stages.ts` (gates and buttons).
+`core/phases.ts` (phase fold), `core/stages.ts` (gates and buttons),
+`core/stage-sections.ts` (which section each message renders in).
+
+## The page: one section per stage
+
+A Learn session reads as stacked sections, numbered 1–4
+(`ui/session/stage-sections.tsx`):
+
+- the **current** stage is open, with its buttons at its foot;
+- a **finished** stage folds to one line (warm-up: "9 answered · 3 right";
+  plan: "7 steps") and opens again on Show;
+- a stage **still ahead** is a dashed row saying when it opens;
+- the **Challenge** row sits under them, always: Take it now / Open
+  challenge.
+
+Each message renders in the stage it began in: the warm-up's closing
+message stays in the warm-up, and Learn begins at Start learning or the
+first lesson question, whichever comes first. The plan outline shows at the
+top of Plan, and at the top of Learn while Plan is folded.
+
+**Loading screens** (`stageLoading`): the current section shows neurons
+trying to connect while it waits on the tutor:
+
+| Section | Shows while |
+| --- | --- |
+| Warm-up | the first message is sent and the tutor has not spoken |
+| Plan | the warm-up has ended and no plan is written |
+| Learn | Start learning was pressed and the tutor has not spoken |
+
+When no turn has run for 20 seconds (`STALL_MS`) the screen offers
+**Retry**, which sends a plain message ("Go ahead and write the plan.") so
+a dropped handoff never strands the session.
 
 ## 1. Warm-up
 
@@ -54,22 +85,21 @@ turn ends, so a question there would go unanswered.
 ## 2. Plan
 
 1. The teacher writes the plan with `plan_init` (a mermaid graph of 5–15
-   steps). It shows as a numbered outline at the top of the session, with an
+   steps). It shows as a numbered outline in the Plan section, with an
    **Open the knowledge tree** button (`/knowledge?topic=learn:<chatId>`).
 2. The teacher presents the plan in a few lines and ends its turn.
 
 **Server rule — plan gate** (`planAwaitingStart`): lesson questions (`quiz`,
 `explain`) are refused while the first plan waits. The gate opens on any of:
 **Start learning**, a typed reply, or an answered `ask_user_question`. A
-refused call does not count as teaching (the stepper stays on Plan). A plan
+refused call does not count as teaching (the session stays on Plan). A plan
 rewritten mid-lesson never re-gates.
 
 ## 3. Learn
 
 Teaching runs step by step through the plan. Every lesson question names its
 plan step (`nodeId`); step status (visited / current / upcoming) is derived
-from those tags. The challenge line above the message box offers the
-session's challenge.
+from those tags and shown in the outline at the top of Learn.
 
 ## 4. Challenge
 
@@ -80,9 +110,12 @@ One challenge per session, built from the session title and plan steps
 
 | Where | Buttons | Effect |
 | --- | --- | --- |
-| Warm-up | Skip to plan · Skip to challenge | dismisses the open question, then sends the `skip-warmup` stage message / builds the challenge |
-| Plan (waiting) | Start learning · Skip to challenge · Knowledge tree | sends `start-learning` / builds the challenge / opens this session's tree |
-| Learn | Take the challenge | builds or opens the challenge |
+| Foot of Warm-up | Skip to plan · Skip to challenge | dismisses the open question, then sends the `skip-warmup` stage message / builds the challenge |
+| Foot of Plan (waiting) | Start learning · Skip to challenge | sends `start-learning` / builds the challenge |
+| Plan outline | Open the knowledge tree | opens this session's tree |
+| Challenge row | Take it now · Open challenge | builds or opens the challenge |
+| A stalled loading screen | Retry | sends a plain message to move the session on |
+| A finished section | Show · Hide | unfolds or folds it |
 | Knowledge, Learn topic | Take the challenge | same, without opening the session |
 | Under an open question | Attach file | the file rides the answer |
 
@@ -110,7 +143,8 @@ Helper jobs run outside the turn and report back as a message: `research`,
 | Rule | Code | Tests |
 | --- | --- | --- |
 | warm-up floor, plan gate, stage moves, handoff exemption | `src/features/learning/core/stages.ts`, `core/input-events.ts`, `server/agent/tools/probe.ts`, `server/agent/tools.ts` | `tests/stages.test.mjs` |
-| stage derivation for the stepper | `src/features/learning/core/phases.ts` | `tests/stages.test.mjs` |
+| phase fold | `src/features/learning/core/phases.ts` | `tests/stages.test.mjs` |
+| sections and loading screens | `src/features/learning/core/stage-sections.ts`, `ui/session/stage-sections.tsx` | `tests/stage-sections.test.mjs` |
 | titles | `src/features/learning/core/titles.ts` | `tests/titles.test.mjs` |
 | attachments | `src/features/learning/core/attachments.ts`, `server/materials.ts` | `tests/stages.test.mjs` |
 | prober / teacher instructions | `src/features/learning/server/agent/prompts/` | — |

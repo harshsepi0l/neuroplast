@@ -613,3 +613,26 @@ body {
 	outline: 1px solid var(--border);
 	border-radius: 0.25rem;
 }
+
+/* Stage loading screens: neurons that try to connect. The lines reach,
+   fall short, pull back, then connect with a glow. */
+:root { --neuron-line: #d9a400; --neuron-glow: rgba(217, 164, 0, 0.7); }
+.dark { --neuron-line: var(--brand); --neuron-glow: rgba(255, 212, 59, 0.9); }
+@keyframes neuron-strive {
+	0% { stroke-dashoffset: 100; opacity: 0.5; filter: drop-shadow(0 0 1px var(--neuron-glow)); }
+	22% { stroke-dashoffset: 58; opacity: 0.8; }
+	34% { stroke-dashoffset: 82; opacity: 0.5; }
+	58% { stroke-dashoffset: 22; opacity: 0.9; filter: drop-shadow(0 0 3px var(--neuron-glow)); }
+	68% { stroke-dashoffset: 40; opacity: 0.6; }
+	84%, 92% { stroke-dashoffset: 0; opacity: 1; filter: drop-shadow(0 0 8px var(--neuron-glow)); }
+	100% { stroke-dashoffset: 100; opacity: 0.5; filter: drop-shadow(0 0 1px var(--neuron-glow)); }
+}
+.neuron-strive {
+	stroke: var(--neuron-line);
+	stroke-dasharray: 100;
+	stroke-dashoffset: 100;
+	animation: neuron-strive 3.2s ease-in-out infinite both;
+}
+@media (prefers-reduced-motion: reduce) {
+	.neuron-strive { animation: none; stroke-dashoffset: 0; }
+}
