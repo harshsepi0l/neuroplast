@@ -9,7 +9,7 @@ node_modules/
 .next/
 dist/
 out/
-coverage/
+/coverage/
 .DS_Store
 .env
 .env.*
