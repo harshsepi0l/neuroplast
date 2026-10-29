@@ -34,10 +34,11 @@ test("ask and explain answers show their text, truncated", () => {
   assert.equal(answerSummary(explain, 10), "aaaaaaaaa…");
 });
 
-test("labels follow the tool name, then the kind", () => {
-  assert.equal(answerLabel(quiz({ tool: "probe" })), "Probe");
-  assert.equal(answerLabel(quiz({ questionType: "predict" })), "Prediction");
-  assert.equal(answerLabel(quiz({ tool: undefined })), "Check");
+test("every question carries one label; skipped ones get no verdict", () => {
+  assert.equal(answerLabel(quiz({ tool: "probe" })), "Question");
+  assert.equal(answerLabel(quiz({ questionType: "predict" })), "Question");
+  assert.equal(answerLabel({ kind: "ask", questionText: "q", dontKnow: false, answers: [], answeredAt: "" }), "Question");
+  assert.equal(answerVerdict(quiz({ dismissed: true })), null);
   assert.equal(confidenceWord(30), "guessing");
   assert.equal(confidenceWord(50), "unsure");
   assert.equal(confidenceWord(100), "certain");

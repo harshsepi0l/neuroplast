@@ -88,6 +88,8 @@ export function derivePlanStatuses(tree: PlanTree, messages: readonly PartsCarri
 			// Either quizzing tool (quiz/explain) tags position — the mechanic
 			// is a settings switch; the fold recognizes both (owner 2026-09-27).
 			if (part.type !== "tool-quiz" && part.type !== "tool-explain") continue;
+			// A refused call (the plan gate, bad arguments) asked nothing.
+			if ((part as { state?: string }).state === "output-error") continue;
 			const nodeId = (part.input as { nodeId?: unknown } | undefined)?.nodeId;
 			if (typeof nodeId !== "string" || !ids.has(nodeId)) continue; // untagged/unknown — moves nothing
 			if (runs.at(-1) !== nodeId) runs.push(nodeId);
@@ -132,12 +134,19 @@ import type { NeuroplastMessage } from "@/features/learning/core/native-messages
 export function derivePlanStatusesLh(tree: PlanTree, messages: readonly NeuroplastMessage[]): DerivedPlanStatuses {
 	const ids = new Set(tree.nodes.map((n) => n.id));
 	const runs: string[] = [];
+	// A refused call (the plan gate, bad arguments) asked nothing.
+	const refused = new Set(
+		messages
+			.filter((m) => (m as { role?: string }).role === "toolResult" && (m as { isError?: boolean }).isError)
+			.map((m) => (m as { toolCallId?: string }).toolCallId),
+	);
 	for (const m of messages) {
 		if ((m as { role?: string }).role !== "assistant") continue;
 		const content = (m as { content?: unknown }).content;
 		if (!Array.isArray(content)) continue;
-		for (const block of content as Array<{ type?: string; name?: string; arguments?: unknown }>) {
+		for (const block of content as Array<{ type?: string; id?: string; name?: string; arguments?: unknown }>) {
 			if (block.type !== "toolCall" || (block.name !== "quiz" && block.name !== "explain")) continue;
+			if (refused.has(block.id)) continue;
 			const nodeId = (block.arguments as { nodeId?: unknown } | undefined)?.nodeId;
 			if (typeof nodeId !== "string" || !ids.has(nodeId)) continue;
 			if (runs.at(-1) !== nodeId) runs.push(nodeId);

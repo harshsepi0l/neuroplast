@@ -222,6 +222,22 @@ body {
 	padding-left: 1.5rem;
 }
 
+/* Bullets and numbers: streamdown's list-disc/list-decimal live in
+   node_modules, which Tailwind does not scan, so the utilities never
+   existed and every lesson list rendered bare. Set them here. */
+.neuroplast-prose :where(ul) {
+	list-style-type: disc;
+}
+.neuroplast-prose :where(ol) {
+	list-style-type: decimal;
+}
+.neuroplast-prose :where(ul ul) {
+	list-style-type: circle;
+}
+.neuroplast-prose :where(li)::marker {
+	color: var(--muted-foreground);
+}
+
 /* Markdown headings render at the font's BLACK weight (owner ask,
    2026-09-19) — 900, not streamdown's font-semibold 600. The variable
    Source Sans 3 axis spans 200–900 (next/font loads the full range), so
@@ -297,7 +313,7 @@ body {
  * bundle. Tailwind v4 never scans node_modules, so without this line those
  * classes are dead — code blocks and mermaid containers rendered unstyled.
  * (Streamdown README, "Tailwind CSS setup".) */
-@source "../node_modules/streamdown/dist/*.js";
+@source "../../node_modules/streamdown/dist/*.js";
 
 /* Token the streamdown utilities reference (code-block/mermaid chrome uses
  * bg-sidebar / border-sidebar): map it onto the app's card surface. */

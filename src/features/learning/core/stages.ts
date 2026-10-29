@@ -89,13 +89,16 @@ function latestPlanIndex(messages: readonly NeuroplastMessage[]): number {
 	return -1;
 }
 
-/** Has teaching already begun (a teach question posed)? */
-function teachingBegan(messages: readonly NeuroplastMessage[], before = messages.length): boolean {
-	return messages.slice(0, before).some(
+/** Has teaching already begun (a lesson question posed and not refused)? */
+function teachingBegan(messages: readonly NeuroplastMessage[]): boolean {
+	const refused = new Set(
+		messages.filter((m) => role(m) === "toolResult" && (m as { isError?: boolean }).isError).map((m) => (m as { toolCallId?: string }).toolCallId),
+	);
+	return messages.some(
 		(m) =>
 			role(m) === "assistant" &&
-			((m as { content?: Array<{ type?: string; name?: string }> }).content ?? []).some(
-				(b) => b.type === "toolCall" && TEACH_QUESTION_TOOLS.includes(b.name ?? ""),
+			((m as { content?: Array<{ type?: string; id?: string; name?: string }> }).content ?? []).some(
+				(b) => b.type === "toolCall" && TEACH_QUESTION_TOOLS.includes(b.name ?? "") && !refused.has(b.id),
 			),
 	);
 }
@@ -114,3 +117,9 @@ export function planAwaitingStart(messages: readonly NeuroplastMessage[], hasTre
 
 export const PLAN_GATE_ERROR =
 	"The learner has not started the lesson yet. Present the plan in a few lines and END YOUR TURN — teaching starts when they press Start learning or reply.";
+
+/** A wake carrying only the warm-up → plan handoff: the lesson's own next
+ *  step, so it never counts as background use of a subscription. */
+export function lessonHandoffOnly(steers: readonly NeuroplastMessage[]): boolean {
+	return steers.length > 0 && steers.every((m) => role(m) === "custom" && (m as NeuroplastMarkerMessage).customType === "probe-handoff");
+}

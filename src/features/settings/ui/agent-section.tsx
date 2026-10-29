@@ -31,7 +31,7 @@
  * grays whole-row (a choice without a key would only BLOCK the other
  * engine's auto-activation).
  *
- * Tools — the owner's final list (2026-09-19): research, demo, visual, pdf.
+ * Tools: research, demo, pdf (the visual figure tool was removed, 2026-10-29).
  * Absent key = enabled in the schema; the UI writes explicit booleans for
  * all four (simpler to reason about, sanitize-equivalent).
  *
@@ -80,7 +80,7 @@ const SEARCH_ENGINES = ["tavily", "brave"] as const;
 
 /** The owner's final toggleable-tool list (confirm with the user before
  *  changing — the Teacher stream settled this 2026-09-19). */
-export const TOGGLE_TOOLS = ["research", "demo", "visual", "pdf"] as const;
+export const TOGGLE_TOOLS = ["research", "demo", "pdf"] as const;
 
 const THINKING_LEVELS: readonly ThinkingLevel[] = ["off", "minimal", "low", "medium", "high", "xhigh", "max"];
 

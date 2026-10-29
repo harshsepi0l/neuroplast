@@ -81,3 +81,61 @@ test("files attached to an answer reach the tutor", () => {
   const out = compactAnswerForModel({ kind: "ask", answers: [], dontKnow: false, questionText: "q", answeredAt: "t", files: ["[Attached PDF: s.pdf — path: /x — read it with the pdf tool.]"] });
   assert.deepEqual(out.attached, ["[Attached PDF: s.pdf — path: /x — read it with the pdf tool.]"]);
 });
+
+test("a lesson question the plan gate refused does not start teaching", async () => {
+  const { phaseAt3Lh } = await import("@/features/learning/core/phases");
+  const done = [user("x"), call("probe_done"), result("probe_done", { ok: true })];
+  const refusedQuiz = call("quiz", { nodeId: "a" });
+  const refusal = { id: `r${++n}`, role: "toolResult", toolCallId: refusedQuiz.content[0].id, toolName: "quiz", isError: true, content: [] };
+  const messages = [...done, ...planned(), refusedQuiz, refusal];
+  assert.equal(planAwaitingStart(messages, true), true);
+  assert.equal(phaseAt3Lh(messages), "plan");
+  assert.equal(phaseAt3Lh([...messages, call("quiz", { nodeId: "a" })]), "teach");
+});
+
+test("the warm-up → plan handoff is never background work", async () => {
+  const { lessonHandoffOnly } = await import("@/features/learning/core/stages");
+  const handoff = { id: "h", role: "custom", customType: "probe-handoff", content: "", display: false, details: {}, timestamp: 0 };
+  const jobResult = { ...handoff, id: "j", customType: "subagent-steer" };
+  assert.equal(lessonHandoffOnly([handoff]), true);
+  assert.equal(lessonHandoffOnly([handoff, jobResult]), false);
+  assert.equal(lessonHandoffOnly([]), false);
+});
+
+test("Grok background use is on unless turned off", async () => {
+  const { connectionView, emptyConnection } = await import("@/features/connections/core/connection");
+  assert.equal(connectionView(emptyConnection("o"), true).allowBackgroundUse, true);
+  assert.equal(connectionView({ ...emptyConnection("o"), allowBackgroundUse: false }, true).allowBackgroundUse, false);
+});
+
+test("read and grep refuse PDFs and binary files with a pointer to the pdf tool", async () => {
+  const { notTextReason } = await import("@/features/learning/server/agent/tools/fs-shared");
+  assert.match(notTextReason("/m/uploads/syllabus.pdf", Buffer.from("%PDF-1.7 ...")), /pdf tool \(path: \/m\/uploads\/syllabus.pdf\)/);
+  assert.match(notTextReason("/m/x.bin", Buffer.from([1, 0, 2])), /binary/);
+  assert.equal(notTextReason("/m/notes.md", Buffer.from("# Week 1")), null);
+});
+
+test("one-line question rows read LaTeX as plain text", async () => {
+  const { plainLine } = await import("@/features/learning/core/answer-summary");
+  assert.equal(plainLine("By definition, \\(P(A \\mid B)\\) equals?"), "By definition, P(A | B) equals?");
+  assert.equal(plainLine("What is \\(P(\\text{even})\\)?"), "What is P(even)?");
+  assert.equal(plainLine("$\\frac{1}{3}$ and **bold**"), "1/3 and bold");
+});
+
+test("skipped warm-up questions fold but do not count as answered", async () => {
+  const { warmupSummary } = await import("@/features/learning/ui/session/chat-logic");
+  const w = warmupSummary([{ role: "assistant", parts: [
+    { type: "tool-probe", toolCallId: "a", state: "output-available", output: { correct: false } },
+    { type: "tool-probe", toolCallId: "b", state: "output-available", output: { dismissed: true } },
+  ] }]);
+  assert.deepEqual([w.answered, [...w.ids]], [1, ["a", "b"]]);
+});
+
+test("a refused lesson question does not mark its plan step current", async () => {
+  const { derivePlanStatusesLh } = await import("@/features/learning/core/plan");
+  const tree = { nodes: [{ id: "a", title: "A" }, { id: "b", title: "B" }], edges: [] };
+  const refusedQuiz = call("quiz", { nodeId: "b" });
+  const refusal = { id: `r${++n}`, role: "toolResult", toolCallId: refusedQuiz.content[0].id, toolName: "quiz", isError: true, content: [] };
+  assert.equal(derivePlanStatusesLh(tree, [refusedQuiz, refusal]).current, null);
+  assert.equal(derivePlanStatusesLh(tree, [refusedQuiz, refusal, call("quiz", { nodeId: "a" })]).current, "a");
+});

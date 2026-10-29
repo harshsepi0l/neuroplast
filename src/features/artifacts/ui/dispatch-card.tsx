@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import { CheckIcon, SettingsIcon, XIcon } from "lucide-react";
+import { SettingsIcon } from "lucide-react";
 import { JobsContext } from "@/features/learning/ui/session/jobs-context";
 import { ChatActionsContext } from "@/features/learning/ui/session/chat-actions-context";
 import { isModelsRefusal, isProviderKeyRefusal } from "@/features/settings/core/settings";
@@ -35,6 +35,9 @@ export function DispatchCard({ toolCallId, kind }: { toolCallId: string; kind: J
 	if (!job || job.status === "running") {
 		return <DispatchActivityCard job={job} label={label} />;
 	}
+	// Settled: the result (or its failure) arrives as its own line just
+	// below — repeating "delivered"/"failed" here only adds noise.
+	if (!isModelsRefusal(job.error) && !isProviderKeyRefusal(job.error)) return null;
 	// BYOK (owner, 2026-09-22): a job refused for missing models is INFO,
 	// not scary-error — gray glyph + "needs model setup" + the deep-link
 	// into the SetupDialog (the same flow the send interception uses).
@@ -47,17 +50,7 @@ export function DispatchCard({ toolCallId, kind }: { toolCallId: string; kind: J
 	if (isProviderKeyRefusal(job.error)) {
 		return <DispatchRefusedCard label={label} line="needs a provider key" button="Add a key" />;
 	}
-	const failed = job.status === "error";
-	return (
-		<div
-			className="flex items-center gap-2 text-xs text-muted-foreground"
-			data-testid="dispatch-settled"
-		>
-			{failed ? <XIcon className="size-3.5 text-red-500" /> : <CheckIcon className="size-3.5" />}
-			<span className="font-medium uppercase tracking-wide">{label}</span>
-			<span>{failed ? "failed" : "delivered"}</span>
-		</div>
-	);
+	return null;
 }
 
 /** The refused card: quiet info tone — nothing red, nothing "failed". */
@@ -90,29 +83,16 @@ function DispatchActivityCard({ job, label }: { job: JobRecord | null; label: st
 	// so no SSR/hydration mismatch.
 	const elapsed =
 		job && job.createdAt ? Math.max(0, Math.round((Date.now() - Date.parse(job.createdAt)) / 1000)) : null;
+	// One quiet line while it works: spinner, what it is, how long, what it's doing.
 	return (
-		<div
-			className="rounded-xl border bg-card p-4 text-card-foreground"
-			data-testid="dispatch-card"
-		>
-			<div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-				{/* The working-state grammar (owner, streaming round 2026-10-01):
-				    the Braille spinner replaces the pulsing dot — one indicator
-				    everywhere. This is the ONLY dispatch-card change; the card's
-				    shape is untouched. */}
-				<BrailleSpinner label={`${label} running`} />
-				{label}
-				{elapsed !== null && <span className="font-normal">· {elapsed}s</span>}
-			</div>
+		<div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground" data-testid="dispatch-card">
+			<BrailleSpinner label={`${label} running`} />
+			<span>{label}</span>
+			{elapsed !== null && <span>· {elapsed}s</span>}
 			{job?.activity && (
-				<div className="mt-1 truncate text-sm text-muted-foreground" data-testid="dispatch-activity-line">
-					{job.activity}
-				</div>
-			)}
-			{!job && (
-				<div className="mt-1 text-sm text-muted-foreground" data-testid="dispatch-pending">
-					Dispatched…
-				</div>
+				<span className="min-w-0 truncate" data-testid="dispatch-activity-line">
+					· {job.activity}
+				</span>
 			)}
 		</div>
 	);

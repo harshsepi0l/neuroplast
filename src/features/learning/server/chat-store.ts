@@ -184,10 +184,11 @@ function saveSettings(id: string, settings: ChatSettings): void {
  * so sidebar order never churns. Same fallback as createChat — the empty
  * string becomes "Untitled session" (the API gate rejects it first; this
  * is the honest floor for any other caller). */
-function renameChat(id: string, title: string): ChatRecord {
+function renameChat(id: string, title: string, byLearner = true): ChatRecord {
 	const record = getChat(id);
 	if (!record) throw new Error(`Chat not found: ${id}`);
 	record.title = title.trim() || "Untitled session";
+	if (byLearner) record.titleByLearner = true;
 	writeChat(record);
 	emit("chats-changed", {});
 	return record;

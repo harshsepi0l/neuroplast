@@ -1,5 +1,7 @@
 "use client";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { knowledgeTreeHref } from "@/features/learning/ui/messages/plan-outline";
 import { Button } from "@/ui/easyui/Button";
 import { useSessionChallenge, type SessionChallengeInfo } from "./session-challenge";
 
@@ -39,6 +41,11 @@ export function StageActions({
 			<Button size="sm" variant="secondary" disabled={disabled} isLoading={busy} onClick={() => void take()}>
 				{challenge ? "Open challenge" : "Skip to challenge"}
 			</Button>
+			{stage === "plan" && (
+				<Link href={knowledgeTreeHref(chatId)} data-testid="stage-tree-link" className="px-2 text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">
+					Knowledge tree
+				</Link>
+			)}
 			{(busy || error) && <span className="text-sm text-muted-foreground">{error || "Building your challenge…"}</span>}
 		</div>
 	);

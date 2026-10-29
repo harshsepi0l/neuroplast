@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { Type } from "typebox";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { serverExecute, type ImageFileResult } from "@/features/learning/server/agent/tool-execute";
-import { resolveSourcePath } from "@/features/learning/server/agent/tools/fs-shared";
+import { notTextReason, resolveSourcePath } from "@/features/learning/server/agent/tools/fs-shared";
 
 /**
  * The read tool — sources v0 (2026-09): a Node port of pi's read semantics
@@ -114,6 +114,8 @@ export const readTool: AgentTool<typeof readInput> = {
 				images: [{ data: buffer.toString("base64"), mimeType: mime }],
 			};
 		}
+		const refusal = notTextReason(absolute, buffer);
+		if (refusal) return refusal;
 		const text = buffer.toString("utf-8");
 		return readTextSlice(text, offset, limit);
 	}),

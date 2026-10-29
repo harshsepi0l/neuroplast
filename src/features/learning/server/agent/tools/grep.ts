@@ -8,6 +8,7 @@ import {
 	formatSize,
 	GREP_MAX_LINE_LENGTH,
 	isBinaryFile,
+	notTextReason,
 	matchGlob,
 	MAX_OUTPUT_BYTES,
 	resolveSourcePath,
@@ -75,6 +76,9 @@ export const grepTool: AgentTool<typeof grepInput> = {
 		let timedOut = false;
 		let aborted = false;
 		if (!isDirectory) {
+			const head = await fs.readFile(searchPath).then((b) => b.subarray(0, 8000)).catch(() => Buffer.alloc(0));
+			const refusal = notTextReason(searchPath, head);
+			if (refusal) return refusal;
 			files.push(searchPath);
 		} else {
 			const result = await walkFiles(

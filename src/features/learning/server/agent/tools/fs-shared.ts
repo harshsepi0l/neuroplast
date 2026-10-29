@@ -195,3 +195,14 @@ export function truncateGrepLine(line: string): { text: string; wasTruncated: bo
 	if (line.length <= GREP_MAX_LINE_LENGTH) return { text: line, wasTruncated: false };
 	return { text: `${line.slice(0, GREP_MAX_LINE_LENGTH)}… [truncated]`, wasTruncated: true };
 }
+
+/** Why a file cannot be read as text, or null when it can. PDFs point at
+ *  the pdf tool; other binary files (a NUL byte early on) are refused —
+ *  raw compressed bytes are noise the model then tries to parse. */
+export function notTextReason(filePath: string, head: Buffer): string | null {
+	if (path.extname(filePath).toLowerCase() === ".pdf" || head.subarray(0, 5).toString("latin1") === "%PDF-") {
+		return `${path.basename(filePath)} is a PDF — its pages are compressed, so read and grep cannot see the text. Read it with the pdf tool (path: ${filePath}).`;
+	}
+	if (head.subarray(0, 8000).includes(0)) return `${path.basename(filePath)} is a binary file and cannot be read as text.`;
+	return null;
+}
