@@ -35,6 +35,7 @@ export function SessionDock({
 	challengeCta,
 	stageActions,
 	queuedSteers,
+	inline = false,
 }: {
 	pending: ReturnType<typeof findPendingToolCall>;
 	/** The pending question's number in the session ("Check 3"). */
@@ -54,6 +55,9 @@ export function SessionDock({
 	chatId: string;
 	/** Only undrained steers (visibleQueuedSteers). */
 	queuedSteers: QueuedSteerLine[];
+	/** Inside a stage section (the Sessions record): no column width or
+	 *  page padding of its own. */
+	inline?: boolean;
 	/** The setup CTA shown while model slots are unset. */
 	setupCta?: React.ReactNode;
 	/** "Take the challenge" — shown above the composer once teaching starts. */
@@ -63,7 +67,7 @@ export function SessionDock({
 }) {
 	const mode = pending ? `question:${pending.toolCallId}` : practice ? `practice:${practice.toolCallId}` : "chat";
 	return (
-		<div data-testid="session-dock" className={`${pending ? COLUMN : DOCK} pb-10 pt-2`} style={{ "--dock-max-h": "none" } as React.CSSProperties}>
+		<div data-testid="session-dock" className={inline ? "pt-2" : `${pending ? COLUMN : DOCK} pb-10 pt-2`} style={{ "--dock-max-h": "none" } as React.CSSProperties}>
 			{setupCta}
 			{!practice && stageActions}
 			{!pending && !practice && challengeCta}

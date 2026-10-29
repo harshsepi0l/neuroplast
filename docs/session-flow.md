@@ -32,8 +32,8 @@ The same session shows in two places (`Chat`'s `space` prop):
   box. No earlier stages, no challenge. A small **Session record** link in
   the top bar opens the record.
 - **Sessions** (`/sessions/<id>`) is the record: every stage section and
-  the Challenge row, with the open question and the composer so the learner
-  can answer or steer from here too, and **Continue learning** back to
+  the Challenge row. The open question and the composer sit inside the
+  current stage's section, so the learner can answer or steer from here too, and **Continue learning** back to
   Learn. The Sessions list opens it. The record never starts a turn on its
   own (no opening send, no auto-continue); stage buttons and loading screens
   stay in Learn.
