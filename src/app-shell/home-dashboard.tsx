@@ -122,8 +122,11 @@ export function HomeDashboard({ sessions, challenge, skills, week, now }: {
 	const router = useRouter();
 	const { catalog } = useModelCatalog();
 	const ready = Boolean(catalog?.defaults && catalog.providers.some((p) => p.id === catalog.defaults?.model.provider && p.keyPresent));
-	// Continue: a session waiting on the learner first, else the newest.
-	const latest = sessions.find((s) => s.pendingQuestion || s.pendingProblem) ?? sessions[0];
+	// Continue: a session waiting on you, else an unfinished challenge,
+	// else the newest session.
+	const waiting = sessions.find((s) => s.pendingQuestion || s.pendingProblem);
+	const openChallenge = challenge && !challenge.submittedAt ? challenge : undefined;
+	const latest = waiting ?? (openChallenge ? undefined : sessions[0]);
 	const today = new Date(now).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 
 	if (!latest && !challenge) {
@@ -157,6 +160,38 @@ export function HomeDashboard({ sessions, challenge, skills, week, now }: {
 
 	const status = latest ? sessionStatus(latest) : null;
 	const delta = challenge?.score !== undefined && challenge.previousScore !== undefined ? challenge.score - challenge.previousScore : undefined;
+	const continueCard = latest && status ? (
+		<div className="flex flex-col gap-3 rounded-2xl border border-border/60 border-l-[3px] bg-card p-6" style={{ borderLeftColor: "var(--brand)" }}>
+			<span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Continue where you left off</span>
+			<div className="text-xl font-semibold">{latest.title}</div>
+			<div className="text-muted-foreground">
+				{latest.kind === "practice" ? "Practice" : "Learn"}
+				{latest.plan && ` · step ${Math.max(latest.plan.reached, 1)} of ${latest.plan.total}`}
+				{" · "}
+				<span className={status.waiting ? "text-foreground" : undefined}>{status.text}</span>
+			</div>
+			{latest.plan && (
+				<div className="h-1.5 overflow-hidden rounded-full bg-border/40" aria-hidden>
+					<div className="h-full rounded-full bg-primary" style={{ width: `${(100 * latest.plan.reached) / latest.plan.total}%` }} />
+				</div>
+			)}
+			<div className="mt-auto pt-1"><Button size="sm" onClick={() => router.push(`/chat/${latest.id}`)}>Resume</Button></div>
+		</div>
+	) : openChallenge ? (
+		<div className="flex flex-col gap-3 rounded-2xl border border-border/60 border-l-[3px] bg-card p-6" style={{ borderLeftColor: "var(--brand)" }}>
+			<span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Continue where you left off</span>
+			<div className="text-xl font-semibold">{openChallenge.topicTitle}</div>
+			<div className="text-muted-foreground">Challenge · in progress</div>
+			<div className="mt-auto pt-1"><Button size="sm" onClick={() => router.push(`/challenge/${openChallenge.id}`)}>Resume challenge</Button></div>
+		</div>
+	) : null;
+
+	// Sections only render when they have something to say; the two
+	// columns collapse to one when only one side has content.
+	const showWeek = week.sessions > 0;
+	const showChallenge = challenge && challenge !== openChallenge;
+	const left = sessions.length > 0 || showWeek;
+	const right = showChallenge || skills.length > 0;
 	return (
 		<div className="h-full overflow-auto px-6 pb-16 pt-10">
 			<div className="mx-auto flex max-w-[68rem] flex-col gap-9">
@@ -165,99 +200,86 @@ export function HomeDashboard({ sessions, challenge, skills, week, now }: {
 					<h1 className="m-0 mt-1.5 text-3xl font-bold tracking-tight">Welcome back</h1>
 				</header>
 
-				<section className="grid gap-5 md:grid-cols-2">
-					{latest && status && (
-						<div className="flex flex-col gap-3 rounded-2xl border border-border/60 border-l-[3px] bg-card p-6" style={{ borderLeftColor: "var(--brand)" }}>
-							<span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Continue where you left off</span>
-							<div className="text-xl font-semibold">{latest.title}</div>
-							<div className="text-muted-foreground">
-								{latest.kind === "practice" ? "Practice" : "Learn"}
-								{latest.plan && ` · step ${Math.max(latest.plan.reached, 1)} of ${latest.plan.total}`}
-								{" · "}
-								<span className={status.waiting ? "text-foreground" : undefined}>{status.text}</span>
-							</div>
-							{latest.plan && (
-								<div className="h-1.5 overflow-hidden rounded-full bg-border/40" aria-hidden>
-									<div className="h-full rounded-full bg-primary" style={{ width: `${(100 * latest.plan.reached) / latest.plan.total}%` }} />
-								</div>
-							)}
-							<div className="mt-1"><Button size="sm" onClick={() => router.push(`/chat/${latest.id}`)}>Resume</Button></div>
-						</div>
-					)}
+				<section className={cn("grid gap-5", continueCard && "md:grid-cols-2")}>
+					{continueCard}
 					<div className="rounded-2xl border border-border/60 bg-card p-6"><StartBox /></div>
 				</section>
 
-				<div className="grid gap-12 md:grid-cols-2">
-					<div className="flex flex-col gap-9">
-						{sessions.length > 0 && (
-							<section aria-labelledby="home-recent">
-								<SectionHead id="home-recent" title="Recent sessions" href="/sessions" link="All sessions" />
-								<ul className="m-0 list-none p-0">
-									{sessions.slice(0, 5).map((s) => {
-										const st = sessionStatus(s);
-										return (
-											<li key={s.id} className="border-t border-border/50 last:border-b">
-												<Link href={`/chat/${s.id}`} className="flex items-center gap-3.5 py-3 hover:text-primary">
-													<span aria-hidden className={cn("size-2 shrink-0 rounded-full", st.waiting ? "bg-primary" : s.answers?.graded ? "bg-[var(--success)]" : "bg-muted-foreground")} />
-													<span className="min-w-0 flex-1 truncate">{s.title}</span>
-													<span className="shrink-0 text-sm text-muted-foreground" suppressHydrationWarning>{st.text} · {relativeDay(s.updatedAt, now)}</span>
-												</Link>
-											</li>
-										);
-									})}
-								</ul>
-							</section>
-						)}
-						<section aria-labelledby="home-week">
-							<SectionHead id="home-week" title="This week" />
-							<div className="grid grid-cols-3 gap-3">
-								<div><div className="text-3xl font-bold">{week.sessions}</div><div className="text-sm text-muted-foreground">{week.sessions === 1 ? "session" : "sessions"}</div></div>
-								<div><div className="text-3xl font-bold">{week.answered}</div><div className="text-sm text-muted-foreground">questions answered</div></div>
-								<div><div className="text-3xl font-bold">{week.graded ? `${Math.round((100 * week.correct) / week.graded)}%` : "—"}</div><div className="text-sm text-muted-foreground">checks right</div></div>
-							</div>
-						</section>
-					</div>
-
-					<div className="flex flex-col gap-9">
-						<section aria-labelledby="home-challenge">
-							<SectionHead id="home-challenge" title="Latest challenge" href="/challenges" link="All challenges" />
-							{challenge ? (
-								<>
-									<div className="flex items-end justify-between gap-4 border-t border-border/50 py-3.5">
-										<div className="min-w-0">
-											<div className="truncate font-semibold">{challenge.topicTitle}</div>
-											<div className="text-sm text-muted-foreground">
-												{challenge.submittedAt ? new Date(challenge.submittedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "In progress"}
-												{delta !== undefined && ` · ${delta > 0 ? `up ${delta}` : delta < 0 ? `down ${-delta}` : "same as"} from ${challenge.previousScore}`}
-											</div>
+				{(left || right) && (
+					<div className={cn("grid gap-12", left && right && "md:grid-cols-2")}>
+						{left && (
+							<div className="flex flex-col gap-9">
+								{sessions.length > 0 && (
+									<section aria-labelledby="home-recent">
+										<SectionHead id="home-recent" title="Recent sessions" href="/sessions" link="All sessions" />
+										<ul className="m-0 list-none p-0">
+											{sessions.slice(0, 5).map((s) => {
+												const st = sessionStatus(s);
+												return (
+													<li key={s.id} className="border-t border-border/50 last:border-b">
+														<Link href={`/chat/${s.id}`} className="flex items-center gap-3.5 py-3 hover:text-primary">
+															<span aria-hidden className={cn("size-2 shrink-0 rounded-full", st.waiting ? "bg-primary" : s.answers?.graded ? "bg-[var(--success)]" : "bg-muted-foreground")} />
+															<span className="min-w-0 flex-1 truncate">{s.title}</span>
+															<span className="shrink-0 text-sm text-muted-foreground" suppressHydrationWarning>{st.text} · {relativeDay(s.updatedAt, now)}</span>
+														</Link>
+													</li>
+												);
+											})}
+										</ul>
+									</section>
+								)}
+								{showWeek && (
+									<section aria-labelledby="home-week">
+										<SectionHead id="home-week" title="This week" />
+										<div className="grid grid-cols-3 gap-3">
+											<div><div className="text-3xl font-bold">{week.sessions}</div><div className="text-sm text-muted-foreground">{week.sessions === 1 ? "session" : "sessions"}</div></div>
+											<div><div className="text-3xl font-bold">{week.answered}</div><div className="text-sm text-muted-foreground">questions answered</div></div>
+											<div><div className="text-3xl font-bold">{week.graded ? `${Math.round((100 * week.correct) / week.graded)}%` : "—"}</div><div className="text-sm text-muted-foreground">checks right</div></div>
 										</div>
-										{challenge.score !== undefined && <div className="text-4xl font-bold leading-none">{challenge.score}<span className="text-base font-medium text-muted-foreground">/100</span></div>}
-									</div>
-									<Button size="sm" variant={challenge.goalMet ? "secondary" : "primary"} onClick={() => router.push(`/challenge/${challenge.id}`)}>
-										{!challenge.submittedAt ? "Resume challenge" : challenge.goalMet ? "View result" : "Train weak skills"}
-									</Button>
-								</>
-							) : (
-								<p className="m-0 border-t border-border/50 py-3.5 text-muted-foreground">Finish a Learn session and take its challenge to see your score here.</p>
-							)}
-						</section>
+									</section>
+								)}
+							</div>
+						)}
 
-						{skills.length > 0 && (
-							<section aria-labelledby="home-skills">
-								<SectionHead id="home-skills" title="Skills" href="/knowledge" link="Knowledge tree" />
-								<ul className="m-0 list-none p-0">
-									{skills.map((skill) => (
-										<li key={skill.id} className="flex items-center gap-3.5 border-t border-border/50 py-3 last:border-b">
-											<span aria-hidden className={cn("size-2 shrink-0 rounded-full", STATE_DOT[skill.state])} />
-											<span className="min-w-0 flex-1 truncate">{skill.name}</span>
-											<span className="shrink-0 text-sm text-muted-foreground">{STATE_LABEL[skill.state]}{skill.latest && ` · ${skill.latest.correct}/${skill.latest.total}`}</span>
-										</li>
-									))}
-								</ul>
-							</section>
+						{right && (
+							<div className="flex flex-col gap-9">
+								{showChallenge && challenge && (
+									<section aria-labelledby="home-challenge">
+										<SectionHead id="home-challenge" title="Latest challenge" href="/challenges" link="All challenges" />
+										<div className="flex items-end justify-between gap-4 border-t border-border/50 py-3.5">
+											<div className="min-w-0">
+												<div className="truncate font-semibold">{challenge.topicTitle}</div>
+												<div className="text-sm text-muted-foreground">
+													{challenge.submittedAt && new Date(challenge.submittedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+													{delta !== undefined && ` · ${delta > 0 ? `up ${delta}` : delta < 0 ? `down ${-delta}` : "same as"} from ${challenge.previousScore}`}
+												</div>
+											</div>
+											{challenge.score !== undefined && <div className="text-4xl font-bold leading-none">{challenge.score}<span className="text-base font-medium text-muted-foreground">/100</span></div>}
+										</div>
+										<Button size="sm" variant={challenge.goalMet ? "secondary" : "primary"} onClick={() => router.push(`/challenge/${challenge.id}`)}>
+											{challenge.goalMet ? "View result" : "Train weak skills"}
+										</Button>
+									</section>
+								)}
+
+								{skills.length > 0 && (
+									<section aria-labelledby="home-skills">
+										<SectionHead id="home-skills" title="Skills" href="/knowledge" link="Knowledge tree" />
+										<ul className="m-0 list-none p-0">
+											{skills.map((skill) => (
+												<li key={skill.id} className="flex items-center gap-3.5 border-t border-border/50 py-3 last:border-b">
+													<span aria-hidden className={cn("size-2 shrink-0 rounded-full", STATE_DOT[skill.state])} />
+													<span className="min-w-0 flex-1 truncate">{skill.name}</span>
+													<span className="shrink-0 text-sm text-muted-foreground">{STATE_LABEL[skill.state]}{skill.latest && ` · ${skill.latest.correct}/${skill.latest.total}`}</span>
+												</li>
+											))}
+										</ul>
+									</section>
+								)}
+							</div>
 						)}
 					</div>
-				</div>
+				)}
 			</div>
 		</div>
 	);
