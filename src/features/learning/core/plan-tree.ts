@@ -128,5 +128,5 @@ export function createTree(nodes: PlanNode[], edges: PlanEdge[]): PlanTree {
 // The per-node mutation ops (addNode/updateNode/removeNode/addEdge/removeEdge/
 // setCurrent/markDone) were deleted with the author-once protocol
 // (2026-09-03) and their dead exports removed with the 2026-09-11 pivot: the
-// tree carries structure ONLY — no progress fields exist to mutate
-//. Restructuring is a plan_init rewrite.
+// tree carries structure ONLY — no progress fields exist to mutate.
+// Restructuring is a plan_init rewrite.

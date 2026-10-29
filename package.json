@@ -11,7 +11,8 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test:challenge": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test": "node --experimental-strip-types --import ./tests/support/register.mjs --test tests/*.test.mjs",
+    "test:challenge": "npm test",
     "lint": "eslint ."
   },
   "dependencies": {
