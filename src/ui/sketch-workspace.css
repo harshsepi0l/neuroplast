@@ -43,7 +43,7 @@
 .workspace .suggestions button:hover { background:var(--brand-wash); }
 .workspace .learning-pane .composer-wrap { max-width:none; padding:28px 0 24px; margin-top:auto; }
 .workspace .learning-pane .composer-box { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 10px; border:2px solid var(--stroke); border-radius:12px 10px 13px 11px; background:var(--surface); box-shadow:none; padding:12px 15px; }
-.workspace .learning-pane .composer-input { grid-column:1; grid-row:1; min-height:42px!important; height:42px; padding:10px 0!important; font-size:13px!important; }
+.workspace .learning-pane .composer-input { grid-column:1; grid-row:1; min-height:42px; height:42px; padding:10px 0; font-size:13px; }
 .workspace .learning-pane .composer-toolbar { display:contents; }
 .workspace .learning-pane .composer-toolbar>.row { grid-row:2; grid-column:1 / -1; }
 .workspace .learning-pane .composer-toolbar>.send-button { grid-row:1; grid-column:2; align-self:center; border:2px solid var(--stroke); transform:rotate(1deg); }
@@ -63,7 +63,7 @@
   .workspace .suggestions { gap:10px; }
   .workspace .suggestions button { font-size:11px; }
   .workspace .learning-pane .composer-caption { font-size:10px; }
-  .workspace .learning-pane .composer-input { min-height:66px!important; height:66px; }
+  .workspace .learning-pane .composer-input { min-height:66px; height:66px; }
 }
 @media(prefers-reduced-motion:reduce) {
   .workspace .nav-item.selected,.workspace .sidebar-plan,.workspace .suggestions button,.workspace .learning-pane .send-button { transform:none; }
