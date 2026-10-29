@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * GET /api/graph/status — the in-flight background extraction runs
  * (vision §1: the pipeline status must be visible on the home graph).
@@ -8,8 +8,8 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * per-chunk jobs, owner 2026-09-28). Titles joined from the chat store;
  * a missing chat record still reports the run.
  */
-import { chatStore } from "@/domains/learning/infrastructure/persistence/chats";
-import { extractionStatuses } from "@/domains/knowledge/infrastructure/agents/extraction";
+import { chatStore } from "@/features/learning/server/chat-store";
+import { extractionStatuses } from "@/features/knowledge/server/extraction";
 
 export const dynamic = "force-dynamic";
 

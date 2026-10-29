@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * PUT /api/graph/positions — the live-physics drag commit. The client
  * anneals a drag to rest and sends the new positions; the server
@@ -10,7 +10,7 @@ import { withRequestOwner } from "@/platform/server/request-context";
  *   PUT → 200 {positions: {...}} with whatever survived sanitizing
  *         (empty object = nothing written).
  */
-import { commitPositions } from "@/domains/knowledge/application/commit-positions";
+import { commitPositions } from "@/features/knowledge/server/commit-positions";
 
 export const dynamic = "force-dynamic";
 

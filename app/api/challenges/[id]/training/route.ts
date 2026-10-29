@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { answerTraining, readChallenge, startTraining, trainingView } from "@/domains/challenges/infrastructure/challenge-store";
-import { errorResponse, jsonBody, requireSameOrigin } from "@/platform/server/http";
-import { AppError } from "@/shared/kernel/errors";
+import { answerTraining, readChallenge, startTraining, trainingView } from "@/features/challenges/server/challenge-store";
+import { errorResponse, jsonBody, requireSameOrigin } from "@/server/http";
+import { AppError } from "@/lib/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

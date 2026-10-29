@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { normalizeMode, isDark, toggleMode, THEME_STORAGE_KEY } from "../src/domains/preferences/domain/theme.ts";
+import { normalizeMode, isDark, toggleMode, THEME_STORAGE_KEY } from "../src/features/settings/core/theme.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -29,7 +29,7 @@ function token(block, name) {
 	return match ? match[1].trim() : null;
 }
 
-const themeCss = () => readFileSync(join(root, "src/shared/ui/theme.css"), "utf8");
+const themeCss = () => readFileSync(join(root, "src/ui/theme.css"), "utf8");
 
 test("mode helpers normalize, default to dark, and toggle", () => {
 	assert.equal(THEME_STORAGE_KEY, "neuroplast:mode");

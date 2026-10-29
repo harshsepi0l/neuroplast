@@ -1,12 +1,12 @@
-import { withRequestOwner } from "@/platform/server/request-context";
-import { chainsForSelection, formatChainLine } from "@/domains/knowledge/domain/chains";
-import { newGraphContextMessage, type GraphContextPick } from "@/domains/learning/domain/native-messages";
-import { compactionInFlight } from "@/domains/learning/application/compaction";
-import { createChat, listChats, titleFromPrompt } from "@/domains/learning/application/chats";
-import { isTurnRunning } from "@/domains/learning/application/turn-liveness";
-import { readSettings as readSettingsRecord } from "@/domains/preferences/infrastructure/persistence/settings";
-import { stores } from "@/platform/server/workspace-stores";
-import type { ChatListItem } from "@/domains/learning/domain/contracts/chat";
+import { withRequestOwner } from "@/server/request-context";
+import { chainsForSelection, formatChainLine } from "@/features/knowledge/core/chains";
+import { newGraphContextMessage, type GraphContextPick } from "@/features/learning/core/native-messages";
+import { compactionInFlight } from "@/features/learning/server/compaction";
+import { createChat, listChats, titleFromPrompt } from "@/features/learning/server/chats";
+import { isTurnRunning } from "@/features/learning/server/turn-liveness";
+import { readSettings as readSettingsRecord } from "@/features/settings/server/settings-store";
+import { stores } from "@/server/workspace-stores";
+import type { ChatListItem } from "@/features/learning/core/chat";
 
 /** The session picker's list: record-derived summaries (phase, pending
  *  question) + live liveness — a running turn marks the session busy

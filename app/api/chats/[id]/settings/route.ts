@@ -1,9 +1,9 @@
-import { withRequestOwner } from "@/platform/server/request-context";
-import { clampChatLevel, validateChatSettings } from "@/domains/connections/application/model-catalog";
-import { effectiveSettings, stores } from "@/platform/server/workspace-stores";
-import { getChat } from "@/domains/learning/application/chats";
-import { parseSettingsBody } from "@/domains/preferences/application/settings-body";
-import type { ChatSettings } from "@/domains/learning/domain/contracts/chat";
+import { withRequestOwner } from "@/server/request-context";
+import { clampChatLevel, validateChatSettings } from "@/features/connections/server/model-catalog";
+import { effectiveSettings, stores } from "@/server/workspace-stores";
+import { getChat } from "@/features/learning/server/chats";
+import { parseSettingsBody } from "@/features/settings/server/settings-body";
+import type { ChatSettings } from "@/features/learning/core/chat";
 
 /**
  * The per-chat model control (model-control wave): replace-whole settings —

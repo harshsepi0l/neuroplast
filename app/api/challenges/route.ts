@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { TOPIC } from "@/domains/challenges/domain/linear-equations";
-import { challengeView, createChallenge, createCustomChallenge, listChallenges, readChallenge } from "@/domains/challenges/infrastructure/challenge-store";
-import { errorResponse, jsonBody, requireSameOrigin } from "@/platform/server/http";
-import { AppError } from "@/shared/kernel/errors";
-import { withRequestOwner } from "@/platform/server/request-context";
+import { TOPIC } from "@/features/challenges/core/linear-equations";
+import { challengeView, createChallenge, createCustomChallenge, listChallenges, readChallenge } from "@/features/challenges/server/challenge-store";
+import { errorResponse, jsonBody, requireSameOrigin } from "@/server/http";
+import { AppError } from "@/lib/errors";
+import { withRequestOwner } from "@/server/request-context";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseCustomForm } from "../src/domains/challenges/domain/custom-quiz.ts";
-import { grade, publicQuestion } from "../src/domains/challenges/domain/linear-equations.ts";
+import { parseCustomForm } from "../src/features/challenges/core/custom-quiz.ts";
+import { grade, publicQuestion } from "../src/features/challenges/core/linear-equations.ts";
 
 function form() {
   const skills = Array.from({ length: 4 }, (_, index) => ({ name: `Skill ${index + 1}`, description: `Understand concept ${index + 1} in this subject.` }));

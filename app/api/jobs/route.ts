@@ -1,6 +1,6 @@
-import { withRequestOwner } from "@/platform/server/request-context";
-import { isTurnRunning } from "@/domains/learning/application/turn-liveness";
-import { listJobs } from "@/domains/artifacts/application/jobs";
+import { withRequestOwner } from "@/server/request-context";
+import { isTurnRunning } from "@/features/learning/server/turn-liveness";
+import { listJobs } from "@/features/artifacts/server/jobs";
 
 export const dynamic = "force-dynamic";
 

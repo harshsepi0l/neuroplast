@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * GET /api/settings — THE user settings record (settings-storage wave,
  * 2026-09-19): the whole delta record at data/settings.json (config.
@@ -15,7 +15,7 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * (core/settings-resolution.ts resolveSettings — browser-safe).
  */
 
-import { settingsStore } from "@/domains/preferences/infrastructure/persistence/settings";
+import { settingsStore } from "@/features/settings/server/settings-store";
 
 export const dynamic = "force-dynamic";
 

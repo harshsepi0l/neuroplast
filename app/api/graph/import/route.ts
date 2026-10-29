@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * POST /api/graph/import — the format-agnostic front door's transport
  * (vision §1, 2026-09-13): raw personal-notes files in, one extraction run
@@ -14,10 +14,10 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * healthy. The dock's chips + graph refetch track progress live through
  * /api/graph/status, as with session runs.
  */
-import { extraction } from "@/domains/learning/application/chat-handler";
-import { NotesImportError } from "@/domains/knowledge/infrastructure/agents/extraction";
-import { ModelsNotConfiguredError, PROVIDER_KEY_MISSING_CODE, ProviderKeyMissingError } from "@/domains/preferences/domain/settings";
-import { type EmissionStats } from "@/domains/knowledge/domain/contracts/graph";
+import { extraction } from "@/features/learning/server/chat-handler";
+import { NotesImportError } from "@/features/knowledge/server/extraction";
+import { ModelsNotConfiguredError, PROVIDER_KEY_MISSING_CODE, ProviderKeyMissingError } from "@/features/settings/core/settings";
+import { type EmissionStats } from "@/features/knowledge/core/graph-contracts";
 
 export const dynamic = "force-dynamic";
 

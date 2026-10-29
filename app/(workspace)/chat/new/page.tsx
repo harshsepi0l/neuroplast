@@ -1,3 +1,3 @@
-import { LearningStart } from "@/domains/learning/presentation/learning-start";
+import { LearningStart } from "@/features/learning/ui/learning-start";
 
 export default function NewSessionPage() { return <LearningStart/>; }

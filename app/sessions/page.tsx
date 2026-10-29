@@ -1,2 +1,2 @@
-import { SessionsPage } from "@/domains/learning/presentation/sessions-page";
+import { SessionsPage } from "@/features/learning/ui/sessions-page";
 export default function Sessions() { return <SessionsPage/>; }

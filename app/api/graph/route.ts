@@ -1,5 +1,5 @@
-import { withRequestOwner } from "@/platform/server/request-context";
-import { graphView } from "@/domains/knowledge/application/graph";
+import { withRequestOwner } from "@/server/request-context";
+import { graphView } from "@/features/knowledge/server/graph";
 
 /**
  * The home graph view's data endpoint (W4; vision §1 "Home page") — thin

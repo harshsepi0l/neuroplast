@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * THE ARTIFACT-UI ROUTE (owner, 2026-10-07): persists the learner's invert
  * switch onto a demo/figure steer message (details.ui.inverted) so it
@@ -10,9 +10,9 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * Guards: 404 unknown chat, 400 for a body that isn't
  * { input: { messageId, inverted } } or targets no demo/visual steer.
  */
-import { setSteerUiInverted, type SteerDetails } from "@/domains/artifacts/domain/contracts/jobs";
-import { getChat } from "@/domains/learning/application/chats";
-import { stores } from "@/platform/server/workspace-stores";
+import { setSteerUiInverted, type SteerDetails } from "@/features/artifacts/core/jobs";
+import { getChat } from "@/features/learning/server/chats";
+import { stores } from "@/server/workspace-stores";
 
 async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
 	const { id } = await ctx.params;

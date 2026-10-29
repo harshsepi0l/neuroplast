@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * GET /api/search — the search engines' status (search wave, 2026-09-20):
  * the honest availability signal the settings UI explains from (the
@@ -10,7 +10,7 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * search API key", or the pinned-engine-key-missing case).
  */
 
-import { searchStatus } from "@/domains/learning/application/search";
+import { searchStatus } from "@/features/learning/server/search";
 
 export const dynamic = "force-dynamic";
 

@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * GET /api/activity — the dock's one poll: every running background
  * process, every view (chat, home, everywhere). Composition only — the
@@ -6,7 +6,7 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * through Pi's catalog and public calculator. See that module's header for why /api/jobs stays
  * chat-scoped and untouched.
  */
-import { activityFeed } from "@/domains/learning/application/observability";
+import { activityFeed } from "@/features/learning/server/observability";
 
 export const dynamic = "force-dynamic";
 

@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * THE REATTACH STREAM (background-turn runner wave, owner ruling
  * 2026-09-25) — and, since CONNECTION DIET B (owner, 2026-10-10), THE
@@ -13,9 +13,9 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * wrapper over the server barrel (the import law); tests drive the seams
  * (turn-runs + ui-stream) directly.
  */
-import { getChat } from "@/domains/learning/application/chats";
-import { runningTurn, settledTurnResponse } from "@/domains/learning/application/turn-runs";
-import { piTurnResponse } from "@/domains/learning/application/pi/ui-stream";
+import { getChat } from "@/features/learning/server/chats";
+import { runningTurn, settledTurnResponse } from "@/features/learning/server/turn-runs";
+import { piTurnResponse } from "@/features/learning/server/pi/ui-stream";
 
 async function handleGET(_req: Request, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
 	const { id } = await ctx.params;

@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * THE SESSION MARKDOWN EXPORT (owner, release polish 2026-10-06): the
  * user-facing export the session-markdown engine was built for — the
@@ -11,8 +11,8 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * the same engine (problem/conclude results render as tool blocks,
  * markers are invisible by the engine's law).
  */
-import { sessionMarkdown } from "@/domains/learning/domain/session-markdown";
-import { getChat } from "@/domains/learning/application/chats";
+import { sessionMarkdown } from "@/features/learning/core/session-markdown";
+import { getChat } from "@/features/learning/server/chats";
 
 /** Filename-safe title (own module scope on purpose: tiny + pure). */
 function slugify(title: string): string {

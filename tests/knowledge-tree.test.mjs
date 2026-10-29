@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildKnowledgeTree } from "../src/domains/challenges/domain/knowledge-tree.ts";
-import { SKILLS } from "../src/domains/challenges/domain/linear-equations.ts";
+import { buildKnowledgeTree } from "../src/features/challenges/core/knowledge-tree.ts";
+import { SKILLS } from "../src/features/challenges/core/linear-equations.ts";
 
 function result(correctBySkill, points, goalMet = false) {
   return {

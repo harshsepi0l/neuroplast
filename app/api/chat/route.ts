@@ -1,5 +1,5 @@
-import { withRequestOwner } from "@/platform/server/request-context";
-import { handleChatRequest } from "@/domains/learning/application/chat-handler";
+import { withRequestOwner } from "@/server/request-context";
+import { handleChatRequest } from "@/features/learning/server/chat-handler";
 
 async function handlePOST(req: Request) {
 	return handleChatRequest(req);

@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * GET /api/keys — the auth page's key list (auth-keys wave, 2026-09-19;
  * providers added by the provider-keys interlude same wave).
@@ -17,7 +17,7 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * file, and `shadowedByEnv` explains why a saved key is not the live one
  * (env always wins).
  */
-import { keyStatuses, providerKeyList } from "@/domains/connections/application/keys";
+import { keyStatuses, providerKeyList } from "@/features/connections/server/keys";
 
 export const dynamic = "force-dynamic";
 

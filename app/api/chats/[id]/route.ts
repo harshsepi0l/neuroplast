@@ -1,10 +1,10 @@
-import { withRequestOwner } from "@/platform/server/request-context";
-import { compactionInFlight } from "@/domains/learning/application/compaction";
-import { deleteChatSession, getChat, sessionCoverage } from "@/domains/learning/application/chats";
-import { isTurnRunning } from "@/domains/learning/application/turn-liveness";
-import { sessionCost } from "@/domains/learning/application/pricing";
-import { stores } from "@/platform/server/workspace-stores";
-import { type ChatDeleteMode } from "@/domains/knowledge/domain/graph-deletion";
+import { withRequestOwner } from "@/server/request-context";
+import { compactionInFlight } from "@/features/learning/server/compaction";
+import { deleteChatSession, getChat, sessionCoverage } from "@/features/learning/server/chats";
+import { isTurnRunning } from "@/features/learning/server/turn-liveness";
+import { sessionCost } from "@/features/learning/server/pricing";
+import { stores } from "@/server/workspace-stores";
+import { type ChatDeleteMode } from "@/features/knowledge/core/graph-deletion";
 
 async function handleGET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;

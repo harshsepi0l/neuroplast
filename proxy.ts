@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { requestOrigin } from "@/platform/server/request-origin";
+import { requestOrigin } from "@/server/request-origin";
 
 /** The current file-backed learning domains share one private workspace. */
 export async function proxy(request: NextRequest) {
