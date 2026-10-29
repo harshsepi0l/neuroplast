@@ -129,16 +129,16 @@ export type ReasoningTriggerProps = ComponentProps<
   getThinkingMessage?: (isStreaming: boolean) => ReactNode;
 };
 
-/* The settled label (owner round, 2026-10-05): static "Agent's thinking" —
+/* The settled label (owner round, 2026-10-05): static "Tutor's thinking" —
    the duration was live-turn state that died on remount anyway ("thought
    for a few seconds"), bookkeeping for information we knowingly lose. The
    label pairs with the user's collapsed "Your thinking" rows — one
    language; motion (spinner + shimmer) stays the working signal. */
 const defaultGetThinkingMessage = (isStreaming: boolean) => {
   if (isStreaming) {
-    return <Shimmer duration={1}>Thinking...</Shimmer>;
+    return <Shimmer duration={1}>Thinking…</Shimmer>;
   }
-  return <p>AGENT’S THINKING</p>;
+  return <p>TUTOR’S THINKING</p>;
 };
 
 export const ReasoningTrigger = memo(

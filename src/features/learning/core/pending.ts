@@ -148,7 +148,24 @@ const ACTIVITY_LABELS: Record<string, string> = {
 	pdf: "Reading a PDF…",
 	plan_init: "Drawing up the plan…",
 	probe_done: "Concluding the assessment…",
+	list_sessions: "Looking over your past sessions…",
+	list_propositions: "Checking what you learned before…",
 };
+
+/** The settled one-liner for a finished background step (the collapsed
+ *  tool card): plain words, not the tool's code name. */
+const DONE_LABELS: Record<string, string> = {
+	read: "Read a file",
+	ls: "Looked in a folder",
+	find: "Looked for files",
+	grep: "Searched your files",
+	list_sessions: "Looked over your past sessions",
+	list_propositions: "Checked what you learned before",
+};
+
+export function toolDoneLabel(tool: string): string {
+	return DONE_LABELS[tool] ?? tool.replace(/_/g, " ");
+}
 
 /** The activity label for ONE running tool (owner, streaming round
  *  2026-10-01): the live tool-input card carries it inline — spinner +

@@ -2,6 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import type { ArtifactPartProps } from "@/features/learning/core/chat";
+import { toolDoneLabel } from "@/features/learning/core/pending";
 
 /**
  * The generic tool-call card (sources v1, 2026-09-19): a quiet, collapsed
@@ -33,12 +34,6 @@ function headlineArg(tool: string, input: unknown): string {
 		return p;
 	}
 	if (typeof inp.pattern === "string") return inp.pattern;
-	// list_propositions: the session id is the call's subject — the
-	// collapsed line reads "list_propositions chat_…". Shown as given
-	// (the id is exactly what list_sessions reported to the model).
-	if (tool === "list_propositions" && typeof inp.session === "string" && inp.session.length > 0) {
-		return inp.session;
-	}
 	return "";
 }
 
@@ -75,16 +70,16 @@ export function ToolCallCard({ part }: ArtifactPartProps) {
 		>
 			<summary className="flex cursor-pointer list-none items-center gap-2 text-xs text-muted-foreground [&::-webkit-details-marker]:hidden">
 				<span className={`font-medium uppercase tracking-wide ${failed ? "text-red-500" : ""}`}>
-					{tool}
+					{toolDoneLabel(tool)}
 				</span>
 				{arg && <span className="truncate">{arg}</span>}
 				<ChevronRight className="size-3 shrink-0 opacity-50 transition-transform group-open:rotate-90" />
 			</summary>
 			<div className="mt-2 space-y-2 rounded-xl border bg-card p-3 text-xs">
-				{p.input != null && (
+				{p.input != null && !(typeof p.input === "object" && Object.keys(p.input as object).length === 0) && (
 					<div>
 						<div className="mb-1 font-medium uppercase tracking-wide text-muted-foreground">
-							Input
+							Asked for
 						</div>
 						<pre className="max-h-32 overflow-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed">
 							{JSON.stringify(p.input, null, 2)}
@@ -103,7 +98,7 @@ export function ToolCallCard({ part }: ArtifactPartProps) {
 				) : out != null ? (
 					<div>
 						<div className="mb-1 font-medium uppercase tracking-wide text-muted-foreground">
-							Output
+							Got back
 						</div>
 						<pre className="max-h-64 overflow-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed">
 							{out}
