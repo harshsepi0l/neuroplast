@@ -207,6 +207,24 @@ demos are tested in a headless Chrome found through `CHROME_PATH`.
 - [Architecture](docs/architecture.md): contexts and boundaries
 - [Challenge direction](docs/challenge-practice-direction.md)
 - [Grok connection design](docs/subscription-sign-in-design.md)
+- [LearnHarness integration](docs/learnharness-integration.md)
 
-Third-party notices live beside the relevant components and in
-[docs/licenses](docs/licenses).
+## License and credits
+
+Neuroplast is licensed under the
+[GNU Affero General Public License, version 3 only](LICENSE)
+(AGPL-3.0-only). If you run a modified copy as a service, you must offer its
+users the source; the sidebar's **Source code** link does this, and
+`NEXT_PUBLIC_NEUROPLAST_SOURCE_URL` points it at your own repository.
+
+Neuroplast is a modified version of
+[LearnHarness](https://github.com/amosblomqvist/learnharness) by Amos
+Blomqvist (AGPL-3.0-only), ported from commit `0795ef1`. Its learning engine,
+agents, knowledge graph and background jobs started there;
+[docs/learnharness-integration.md](docs/learnharness-integration.md) maps
+where each part lives now.
+
+The agents run on [pi](https://github.com/earendil-works/pi) by Mario
+Zechner (MIT), and the compaction cutoff is ported from pi's coding agent.
+UI components come from EasyUI by Suraj Maurya (MIT). The full notices are in
+[NOTICE](NOTICE), [docs/licenses](docs/licenses) and `src/ui/easyui/LICENSE`.

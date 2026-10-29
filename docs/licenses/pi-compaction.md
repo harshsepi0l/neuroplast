@@ -2,10 +2,11 @@
 
 ## Retention
 
-`src/core/compaction.ts` locally ports the cutoff-selection behavior and relevant
+`src/features/learning/core/compaction.ts` locally ports the cutoff-selection behavior and relevant
 message-size heuristic from **@earendil-works/pi-coding-agent 1.4.0**. There is no
-coding-agent dependency. Upgrade this port deliberately; the native golden
-fixtures are in `tests/compaction-native-parity.test.ts`.
+coding-agent dependency. Upgrade this port deliberately; the estimator and
+cutoff rules are tested in `tests/compaction.test.mjs` (the earlier
+native-parity fixtures were not carried over).
 
 Walk backward to the approximately 20,000-token retained-tail budget, then select
 the nearest valid user/assistant boundary at or after the crossing. Never start
@@ -39,7 +40,7 @@ limit means no invented denominator; no percentage display is added.
 
 ## Spending
 
-`src/server/pricing.ts` uses Pi AI's full, key-independent catalog and public
+`src/features/learning/server/pricing.ts` uses Pi AI's full, key-independent catalog and public
 `calculateCost` on a new usage object. The browser receives derived costs, not a
 second calculator/rate table. Totals are estimates using the currently shipped
 catalog, not provider invoices; catalog updates can reprice history.
@@ -63,7 +64,7 @@ metadata). The inspected `dist/core/compaction/compaction.js` SHA-256 is
 
 MIT License
 
-Copyright (c) Mario Zechner
+Copyright (c) 2025 Mario Zechner
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

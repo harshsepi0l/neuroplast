@@ -4,10 +4,12 @@ Neuroplast is one Next.js application organized as a modular monolith. Business
 capabilities determine the structure. A new feature belongs to the context that
 owns its rules and data, rather than a global components, services, or utils folder.
 
-The main learner journey is now a versioned, scored challenge followed by
-targeted recall, discrimination, application, and a parallel retake. The first
-chapter covers linear equations. Existing LearnHarness tutor sessions remain
-readable in Session history while the challenge loop replaces their entry point.
+Two learner journeys share the workspace. A **Learn session** runs a warm-up,
+builds a plan, and teaches it step by step ([session-flow.md](session-flow.md)).
+A **challenge** is a versioned, scored test followed by targeted recall,
+discrimination, application, and a parallel retake; the first chapter covers
+linear equations. Each Learn session can end in a challenge built from its plan.
+The README's harness diagrams show how a session turn runs.
 
 The existing Neuroplast interface is the delivery surface. Reusing the learning
 runtime does not introduce a second application shell, session store, or composer
@@ -18,11 +20,11 @@ new pages and the richer session tools.
 
 | Context | Owns | Collaborates with |
 | --- | --- | --- |
-| Challenges | Topic and skill blueprint, answer-key generation, scored attempts, targeted training, retakes | Learning for legacy history; Connections only for future optional explanations |
+| Challenges | Topic and skill blueprint, answer-key generation, scored attempts, targeted training, retakes | Learning for session challenges built from a plan; Connections for generating session challenges |
 | Learning | Session aggregate, native conversation history, lesson plans, probe/teach transitions, questions, adaptive practice, turn execution, steering, compaction | Connections for model execution; Artifacts for jobs; Knowledge for learning context and extraction; Preferences for effective settings |
 | Knowledge | Knowledge nodes, reasoning chains, evidence, source provenance, extraction coverage, graph positions and projections | Learning session IDs and history; Connections for extraction models |
 | Connections | Provider credentials, subscription lifecycle and consent, model catalog, provider adapters and stream construction | Identity for browser ownership; Preferences for selected models |
-| Artifacts | Job aggregate, lifecycle, research briefs, interactive demos, SVGs, PDFs and artifact renderers | Learning for result delivery; Connections for worker models |
+| Artifacts | Job aggregate, lifecycle, research briefs, interactive demos, PDF reading and artifact renderers (SVG figures remain for older records) | Learning for result delivery; Connections for worker models |
 | Preferences | Versioned workspace settings, model slots and overrides, appearance, keyboard settings, prompt overrides | Connections model identifiers and Learning settings contracts |
 | Identity | Opaque browser session identity and expiration | Connections credential ownership |
 
@@ -91,10 +93,11 @@ states. A skill's current status follows its latest scored attempt; completed
 training cycles and practice counts accumulate across attempts. The former
 notes graph remains accessible at `/knowledge/legacy`.
 
-Legacy tutor sessions create a server session through `/api/chats`. The session view
-then uses `/api/chat` and the existing turn/stream protocol, including tool calls,
-questions, steering, plans, background results, and compaction. The former simple
-`/api/learning/turn` implementation and browser-only session repository are removed.
+Learn sessions are created through `/api/chats`. The learning space
+(`/chat/<id>`) then uses `/api/chat` and the turn/stream protocol, including tool
+calls, questions, stage moves, steering, plans, background results, and
+compaction. Sessions (`/sessions/<id>`) shows the same record read-only, every
+stage plus the session's challenge, and never starts a turn.
 The opening draft moves into the session within the browser tab; attached notes
 are sent in the turn's request body rather than a potentially oversized URL.
 
@@ -106,7 +109,9 @@ knowledge nodes into a Learning session.
 Grok authorization remains in Connections. API handlers establish the browser's
 request context; provider adapters resolve its encrypted credential for each
 dispatch. A connected account contributes model availability to the same catalog
-used by lessons and model pickers. Background subscription use requires consent.
+used by lessons and model pickers. Background use of a Grok subscription is on
+unless the learner turns it off; the warm-up → plan handoff never counts as
+background use.
 Provider API keys are stored with the private workspace and resolved for each
 dispatch. The Connections screen uses the same key and model APIs as Preferences.
 

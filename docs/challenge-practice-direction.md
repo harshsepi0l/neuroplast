@@ -1,5 +1,11 @@
 # Challenge and practice direction
 
+> **Status (October 29, 2026).** This is the direction set on October 25. The
+> challenge loop shipped as described below. The plan to take the tutor out of
+> the main journey was reversed: Learn sessions (warm-up, plan, lesson) are a
+> main journey again, and each session can end in a challenge built from its
+> plan. See [session-flow.md](session-flow.md).
+
 ## Product loop
 
 1. Choose a topic and a goal. Show the skills the challenge covers before it starts.
@@ -37,7 +43,11 @@ valuable practice but does not count as unaided recall.
 | Provider connections and model settings | Generate and explain problems, with a clear fallback when no model is configured. |
 | Accessible UI primitives and workspace shell | Carry the new challenge, score, and skill views. |
 
-## What to remove from the main journey
+## What to remove from the main journey (superseded)
+
+Kept for history. Learn sessions, their plans and background jobs are back in
+the main journey; the skill tree in Knowledge replaced the graph view as
+planned.
 
 | Current part | Replacement |
 | --- | --- |
@@ -76,5 +86,5 @@ questions, free-response recall, targeted training stages, and a linked retake.
 An optional per-problem Excalidraw scratchpad saves drawings in the current
 browser during an attempt.
 Problem explanations are currently template-authored. AI coaching and additional
-topics remain future work. Older tutor sessions remain accessible through
-Session history.
+topics remain future work. Learn sessions build their own challenges from
+their plans.
