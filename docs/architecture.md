@@ -37,32 +37,26 @@ Connections have a revisioned lifecycle independent of any one lesson.
 
 ```text
 app/                           Next.js page and HTTP delivery adapters
-src/domains/
+src/features/
   challenges/
   learning/
   knowledge/
-  connections/
+  connections/                 Includes browser session identity
   artifacts/
-  preferences/
-  identity/
-    domain/                    Context-owned models, rules and contracts
-    application/               Use cases and orchestration where applicable
-    infrastructure/            Persistence, model, filesystem and network adapters
-    presentation/              Context-specific React views and interaction logic
-src/platform/
-  presentation/                One workspace shell and app-wide providers
-  server/                      Request context, configuration and store composition
-  database/                    SQLite lifecycle
-src/shared/
-  kernel/                      Small domain-neutral helpers
-  lib/                         Generic UI utilities and formatting
-  ui/                          EasyUI components, compatibility primitives, theme
+  settings/
+    core/                      Feature-owned models, rules, contracts and ports
+    server/                    Use cases, persistence (*-store.ts), agents, provider adapters
+    ui/                        Feature-specific React views and interaction logic
+src/app-shell/                 One workspace shell and app-wide providers
+src/server/                    Request context, configuration, store composition, SQLite
+src/lib/                       Small domain-neutral helpers and formatting
+src/ui/                        EasyUI components, primitives, shared hooks, theme CSS
 ```
 
-Not every context needs every folder. Internal layer arrangements may remain
-pragmatic; context ownership and explicit contracts are the application-wide rule.
-The `domain/ports.ts` files belong to their respective contexts. Learning no
-longer defines storage interfaces for Graph, Jobs, Settings, and Credentials.
+Not every feature needs every folder. Learning's UI is grouped by surface:
+`session/`, `composer/`, `docks/` and `messages/`. Each feature's
+`core/ports.ts` belongs to that feature. Learning no longer defines storage
+interfaces for Graph, Jobs, Settings, and Credentials.
 
 ## Runtime flows
 
@@ -121,7 +115,7 @@ dispatch. The Connections screen uses the same key and model APIs as Preferences
 Add new learning rules to Learning, graph/evidence rules to Knowledge, and provider
 protocols to Connections. A context exports explicit contracts or operations;
 another context should not reach directly into its storage implementation. Wire
-concrete store adapters in `platform/server/workspace-stores.ts`. App-wide
+concrete store adapters in `src/server/workspace-stores.ts`. App-wide
 presentation composes context views without taking ownership of their rules.
 
 Domain models remain independent of Next.js, React, persistence adapters, and

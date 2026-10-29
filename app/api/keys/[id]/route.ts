@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * PUT /api/keys/:id — save one key; DELETE — remove it (auth-keys wave,
  * 2026-09-19). `id` is the env-var/file key name (OPENROUTER_API_KEY, …).
@@ -16,8 +16,8 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * MODEL-PROVIDER env vars (provider-keys interlude); anything else is 404
  * — unknown file vars are preserved, not editable.
  */
-import { isWritableAuthKey } from "@/domains/connections/application/keys";
-import { deleteKey, saveKey } from "@/domains/connections/application/keys";
+import { isWritableAuthKey } from "@/features/connections/server/keys";
+import { deleteKey, saveKey } from "@/features/connections/server/keys";
 
 export const dynamic = "force-dynamic";
 

@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * THE NOTIFICATION CHANNEL ROUTE (push-architecture slice 1, 2026-10-02):
  * one SSE connection per open window over the core event bus — the
@@ -7,7 +7,7 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * server seam (events-stream.ts); the framework route stays a thin
  * wrapper (the import law; tests drive the seam directly).
  */
-import { eventsResponse } from "@/domains/learning/application/events-stream";
+import { eventsResponse } from "@/features/learning/server/events-stream";
 
 export const dynamic = "force-dynamic";
 

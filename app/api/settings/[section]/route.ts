@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * PUT /api/settings/[section] — section-scoped record writes
  * (settings-storage wave, 2026-09-19). One PUT replaces ONE section
@@ -30,14 +30,14 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * lands here.
  */
 
-import type { AgentSettings, ModelsSettings } from "@/domains/preferences/domain/settings";
-import type { ChatSettings } from "@/domains/learning/domain/contracts/chat";
-import { SETTINGS_SECTIONS, type SettingsBodyResult } from "@/domains/preferences/application/settings-body";
-import { allSegmentPaths } from "@/domains/learning/infrastructure/agent/prompt-segments";
-import { clampChatLevel, clampModelsLevels, validateChatSettings, validateModelsSettings } from "@/domains/connections/application/model-catalog";
-import { effectiveSettings } from "@/platform/server/workspace-stores";
-import { promptOverrides } from "@/domains/preferences/infrastructure/persistence/prompt-overrides";
-import { readSettings as readSettingsRecord, writeSettings as writeSettingsRecord } from "@/domains/preferences/infrastructure/persistence/settings";
+import type { AgentSettings, ModelsSettings } from "@/features/settings/core/settings";
+import type { ChatSettings } from "@/features/learning/core/chat";
+import { SETTINGS_SECTIONS, type SettingsBodyResult } from "@/features/settings/server/settings-body";
+import { allSegmentPaths } from "@/features/learning/server/agent/prompt-segments";
+import { clampChatLevel, clampModelsLevels, validateChatSettings, validateModelsSettings } from "@/features/connections/server/model-catalog";
+import { effectiveSettings } from "@/server/workspace-stores";
+import { promptOverrides } from "@/features/settings/server/prompt-overrides-store";
+import { readSettings as readSettingsRecord, writeSettings as writeSettingsRecord } from "@/features/settings/server/settings-store";
 
 export const dynamic = "force-dynamic";
 

@@ -1,5 +1,5 @@
-import { withRequestOwner } from "@/platform/server/request-context";
-import { deleteGraphNode } from "@/domains/knowledge/application/graph";
+import { withRequestOwner } from "@/server/request-context";
+import { deleteGraphNode } from "@/features/knowledge/server/graph";
 
 /**
  * DELETE /api/graph/nodes/[id] — single-node deletion, FULL DEATH (owner

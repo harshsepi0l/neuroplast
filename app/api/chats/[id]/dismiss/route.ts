@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * THE SILENT DISMISSAL ROUTE (owner design 2026-10-03, "A2"): ESC-abort
  * from a pending question writes the dismissed toolResult to the record
@@ -20,12 +20,12 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * ESC-discard now doubles as the turn abort's bookkeeper (the client
  * fires both).
  */
-import { ChatInputError, dismissAppends, parseDismissInput } from "@/domains/learning/domain/input-events";
-import { emit } from "@/domains/learning/domain/events";
-import { getChat } from "@/domains/learning/application/chats";
-import { isTurnRunning } from "@/domains/learning/application/turn-liveness";
-import { parkDismissal } from "@/domains/learning/application/dismissal-park";
-import { stores } from "@/platform/server/workspace-stores";
+import { ChatInputError, dismissAppends, parseDismissInput } from "@/features/learning/core/input-events";
+import { emit } from "@/features/learning/core/events";
+import { getChat } from "@/features/learning/server/chats";
+import { isTurnRunning } from "@/features/learning/server/turn-liveness";
+import { parkDismissal } from "@/features/learning/server/dismissal-park";
+import { stores } from "@/server/workspace-stores";
 
 async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
 	const { id } = await ctx.params;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { SKILLS, challengeQuestions, grade, publicQuestion, trainingQuestion } from "../src/domains/challenges/domain/linear-equations.ts";
+import { SKILLS, challengeQuestions, grade, publicQuestion, trainingQuestion } from "../src/features/challenges/core/linear-equations.ts";
 
 function evaluate(expression, x) {
   const compact = expression.replaceAll("−", "-").replaceAll(" ", "");

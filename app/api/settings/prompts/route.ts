@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * GET /api/settings/prompts — the system-prompt segment view
  * (settings-storage wave, 2026-09-19): the effective prompt segments for
@@ -17,8 +17,8 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * PUT/DELETE /api/settings/prompts/[...segment].
  */
 
-import { effectivePromptSegments } from "@/domains/learning/infrastructure/agent/prompt-segments";
-import { readSettings as readSettingsRecord } from "@/domains/preferences/infrastructure/persistence/settings";
+import { effectivePromptSegments } from "@/features/learning/server/agent/prompt-segments";
+import { readSettings as readSettingsRecord } from "@/features/settings/server/settings-store";
 
 export const dynamic = "force-dynamic";
 

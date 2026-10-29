@@ -1,5 +1,5 @@
-import { withRequestOwner } from "@/platform/server/request-context";
-import { modelCatalog, refreshConnectionCatalog } from "@/domains/connections/application/model-catalog";
+import { withRequestOwner } from "@/server/request-context";
+import { modelCatalog, refreshConnectionCatalog } from "@/features/connections/server/model-catalog";
 
 /**
  * The model picker's data (model-control wave): pi-ai's configured-provider

@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { browserOwner } from "@/domains/identity/infrastructure/browser-session";
-import { services } from "@/platform/server/container";
-import { errorResponse, jsonBody, requireSameOrigin } from "@/platform/server/http";
-import { AppError } from "@/shared/kernel/errors";
-import { runWithRequestOwner } from "@/platform/server/request-context";
-import { piModels } from "@/domains/connections/infrastructure/runtime/models";
-import { readSettings, writeSettings } from "@/domains/preferences/infrastructure/persistence/settings";
+import { browserOwner } from "@/features/connections/server/browser-session";
+import { services } from "@/server/container";
+import { errorResponse, jsonBody, requireSameOrigin } from "@/server/http";
+import { AppError } from "@/lib/errors";
+import { runWithRequestOwner } from "@/server/request-context";
+import { piModels } from "@/features/connections/server/runtime/models";
+import { readSettings, writeSettings } from "@/features/settings/server/settings-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

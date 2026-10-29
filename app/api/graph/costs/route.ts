@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * GET /api/graph/costs — the graph view's cost pill (2026-09 graph cost
  * metrics wave): what the graph PIPELINE cost, folded read-time from the
@@ -11,7 +11,7 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * Scope (user-decided): the graph pipeline ONLY — teaching turns and
  * sub-agent jobs have their own cost channels elsewhere.
  */
-import { graphCosts } from "@/domains/knowledge/application/graph";
+import { graphCosts } from "@/features/knowledge/server/graph";
 
 export const dynamic = "force-dynamic";
 

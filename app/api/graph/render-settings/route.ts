@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * GET/PUT /api/graph/render-settings — server persistence for the graph
  * view's rendering controls (node/edge/arrow/label sizes, the label-zoom
@@ -13,7 +13,7 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * Every body is passed through sanitizeRenderSettings (src/core) before
  * touching disk: garbage clamps or falls back to defaults, never throws.
  */
-import { readRenderSettings, writeRenderSettings } from "@/domains/knowledge/infrastructure/persistence/render-settings";
+import { readRenderSettings, writeRenderSettings } from "@/features/knowledge/server/render-settings-store";
 
 export const dynamic = "force-dynamic";
 

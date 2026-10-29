@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * PUT/DELETE /api/settings/prompts/[...segment] — the override TEXT for
  * one prompt segment (settings-storage wave, 2026-09-19).
@@ -26,10 +26,10 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * (PUT /api/settings/agent) — file presence alone is never the override.
  */
 
-import { allSegmentPaths } from "@/domains/learning/infrastructure/agent/prompt-segments";
-import { isValidSegmentPath } from "@/domains/learning/domain/prompt-segments";
-import { promptOverrides } from "@/domains/preferences/infrastructure/persistence/prompt-overrides";
-import { readSettings as readSettingsRecord, writeSettings as writeSettingsRecord } from "@/domains/preferences/infrastructure/persistence/settings";
+import { allSegmentPaths } from "@/features/learning/server/agent/prompt-segments";
+import { isValidSegmentPath } from "@/features/learning/core/prompt-segments";
+import { promptOverrides } from "@/features/settings/server/prompt-overrides-store";
+import { readSettings as readSettingsRecord, writeSettings as writeSettingsRecord } from "@/features/settings/server/settings-store";
 
 export const dynamic = "force-dynamic";
 

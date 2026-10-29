@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 // POST /api/chats/[id]/steer — the composer's mid-turn steering rail
 // (owner arc 2026-10-03). The learner's message for a RUNNING turn rides
 // pi's steering queue: drained at the next response boundary INSIDE the
@@ -11,10 +11,10 @@ import { withRequestOwner } from "@/platform/server/request-context";
 // back to a plain text send (the settle race). Stranding safety: the
 // registry copy survives a question termination or abort and rides the
 // chat's next run.
-import { ChatInputError, parseUserSteerInput } from "@/domains/learning/domain/input-events";
-import { newUserSteer } from "@/domains/learning/domain/native-messages";
-import { getChat } from "@/domains/learning/application/chats";
-import { steerLiveChat } from "@/domains/artifacts/application/jobs";
+import { ChatInputError, parseUserSteerInput } from "@/features/learning/core/input-events";
+import { newUserSteer } from "@/features/learning/core/native-messages";
+import { getChat } from "@/features/learning/server/chats";
+import { steerLiveChat } from "@/features/artifacts/server/jobs";
 
 async function handlePOST(request: Request, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
 	const { id } = await ctx.params;

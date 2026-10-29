@@ -15,12 +15,12 @@ private desktop subscription transport are outside the web app's runtime.
 
 | Upstream | Neuroplast owner | Integration |
 | --- | --- | --- |
-| `src/agent`, `src/server/chat-handler.ts`, `src/core` learning rules | `src/domains/learning` | Native session history, probe and teach turns, practice, tools, compaction, steering |
-| `src/store/chats.ts` | `src/domains/learning/infrastructure/persistence` | One server-owned session store for Learn, Sessions, and chat routes |
-| Graph and extraction code | `src/domains/knowledge` | Persistent propositions, chains, notes import, graph views |
-| Background agents and job store | `src/domains/artifacts` | Research, visual, demo, PDF jobs and delivery into sessions |
-| Model catalog, keys, subscription adapters | `src/domains/connections` | Provider keys and model selection; web Grok connection has its own browser-owned credential service |
-| Settings code | `src/domains/preferences` | Workspace settings and per-session model pins |
+| `src/agent`, `src/server/chat-handler.ts`, `src/core` learning rules | `src/features/learning` | Native session history, probe and teach turns, practice, tools, compaction, steering |
+| `src/store/chats.ts` | `src/features/learning/server/chat-store.ts` | One server-owned session store for Learn, Sessions, and chat routes |
+| Graph and extraction code | `src/features/knowledge` | Persistent propositions, chains, notes import, graph views |
+| Background agents and job store | `src/features/artifacts` | Research, visual, demo, PDF jobs and delivery into sessions |
+| Model catalog, keys, subscription adapters | `src/features/connections` | Provider keys and model selection; web Grok connection has its own browser-owned credential service |
+| Settings code | `src/features/settings` | Workspace settings and per-session model pins |
 | `app/api` | `app/api` | The same lesson, session, graph, job, and settings protocol through the Neuroplast shell |
 
 The Grok connection's **Tutoring model** choice now updates the strong model

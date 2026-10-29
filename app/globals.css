@@ -1,7 +1,7 @@
 @import "tailwindcss";
-@import "../src/shared/ui/learning-tools.css";
-@import "../src/shared/ui/theme.css";
-@import "../src/shared/ui/sketch-workspace.css";
+@import "../src/ui/learning-tools.css";
+@import "../src/ui/theme.css";
+@import "../src/ui/sketch-workspace.css";
 @custom-variant dark (&:is(.dark *));
 * { box-sizing:border-box; }
 body { margin:0; background-color:var(--bg); background-image:radial-gradient(var(--dot) 1px,transparent 1.2px); background-size:22px 22px; color:var(--text-primary); font-family:var(--font-sans3); font-size:14px; }

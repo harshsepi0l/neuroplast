@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * POST /api/activity/abort — the dock's END/ABORT control, uniform across
  * process kinds (user-decided contract): body {kind: "job"|"extraction"|"turn", id}
@@ -18,9 +18,9 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * Extraction abort is idempotent by design (aborting with nothing in
  * flight is success — the blob is gone either way) -> 200.
  */
-import { abortExtraction } from "@/domains/knowledge/infrastructure/agents/extraction";
-import { abortJob } from "@/domains/artifacts/application/jobs";
-import { abortTurn } from "@/domains/learning/application/turn-runs";
+import { abortExtraction } from "@/features/knowledge/server/extraction";
+import { abortJob } from "@/features/artifacts/server/jobs";
+import { abortTurn } from "@/features/learning/server/turn-runs";
 
 async function handlePOST(req: Request) {
 	let body: unknown;

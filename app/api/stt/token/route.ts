@@ -1,4 +1,4 @@
-import { withRequestOwner } from "@/platform/server/request-context";
+import { withRequestOwner } from "@/server/request-context";
 /**
  * POST-less BYOK mint: the renderer never holds the real Deepgram key.
  *
@@ -14,7 +14,7 @@ import { withRequestOwner } from "@/platform/server/request-context";
  * /auth/grant (their docs, token-based auth FAQ) — plain read/transcribe
  * keys return FORBIDDEN here.
  */
-import { keyValue } from "@/domains/connections/application/keys";
+import { keyValue } from "@/features/connections/server/keys";
 
 async function handleGET() {
 	const key = keyValue("DEEPGRAM_API_KEY");

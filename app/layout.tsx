@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { WorkspaceProviders } from "@/platform/presentation/workspace-providers";
+import { WorkspaceProviders } from "@/app-shell/workspace-providers";
 
 export const metadata: Metadata = {
 	title: "neuroplast",

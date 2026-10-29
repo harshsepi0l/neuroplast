@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
-import { Chat } from "@/domains/learning/presentation/tutoring/chat";
-import { slotsConfigured } from "@/domains/preferences/domain/settings";
-import { compactionInFlight } from "@/domains/learning/application/compaction";
-import { getChat } from "@/domains/learning/application/chats";
-import { isTurnRunning } from "@/domains/learning/application/turn-liveness";
-import { readSettings as readSettingsRecord } from "@/domains/preferences/infrastructure/persistence/settings";
+import { Chat } from "@/features/learning/ui/session/chat";
+import { slotsConfigured } from "@/features/settings/core/settings";
+import { compactionInFlight } from "@/features/learning/server/compaction";
+import { getChat } from "@/features/learning/server/chats";
+import { isTurnRunning } from "@/features/learning/server/turn-liveness";
+import { readSettings as readSettingsRecord } from "@/features/settings/server/settings-store";
 
 export const dynamic = "force-dynamic";
 

@@ -1,3 +1,3 @@
-import { NewChallenge } from "@/domains/challenges/presentation/new-challenge";
+import { NewChallenge } from "@/features/challenges/ui/new-challenge";
 
 export default function NewChallengePage() { return <NewChallenge/>; }
