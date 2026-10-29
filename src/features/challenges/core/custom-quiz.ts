@@ -59,3 +59,19 @@ export function parseCustomForm(raw: unknown, topicId: string): CustomForm {
     practice: form.practice.map((item, index) => itemToQuestion(item, skills[item.skillIndex].id, `p${index + 1}`, item.stage === "application" ? "application" : "recall", item.stage)),
   };
 }
+
+/**
+ * The quiz request for a challenge on a Learn session: the session's
+ * topic plus what its plan covered, within the 500-character request
+ * limit. Steps are dropped from the end when they do not fit.
+ */
+export function sessionChallengeRequest(title: string, planSteps: readonly string[]): string {
+  const head = `Test me on what I just learned: ${title.trim() || "this topic"}.`;
+  let request = head;
+  const steps = planSteps.map(step => step.trim()).filter(Boolean);
+  for (let count = steps.length; count > 0; count--) {
+    const candidate = `${head} It covered: ${steps.slice(0, count).join("; ")}.`;
+    if (candidate.length <= 500) { request = candidate; break; }
+  }
+  return request.slice(0, 500);
+}

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseCustomForm } from "../src/features/challenges/core/custom-quiz.ts";
+import { parseCustomForm, sessionChallengeRequest } from "../src/features/challenges/core/custom-quiz.ts";
 import { grade, publicQuestion } from "../src/features/challenges/core/linear-equations.ts";
 
 function form() {
@@ -47,4 +47,13 @@ test("custom quiz validation rejects ungradeable choices and duplicate prompts",
   const duplicate = form();
   duplicate.practice[0].prompt = duplicate.questions[0].prompt;
   assert.throws(() => parseCustomForm(duplicate, "topic_custom"), /repeats a question/);
+});
+
+test("a session challenge request names the topic and the plan, within 500 characters", () => {
+  assert.equal(sessionChallengeRequest("Two-step equations", ["Undo in order", "Inverse operations"]),
+    "Test me on what I just learned: Two-step equations. It covered: Undo in order; Inverse operations.");
+  assert.equal(sessionChallengeRequest("Bayes", []), "Test me on what I just learned: Bayes.");
+  const long = sessionChallengeRequest("Topic", Array.from({ length: 40 }, (_, i) => `A fairly long plan step number ${i}`));
+  assert.ok(long.length <= 500);
+  assert.ok(long.endsWith("."));
 });

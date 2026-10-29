@@ -58,6 +58,7 @@ import { SessionDock } from "./session-dock";
 import { PrintButton, printedOn } from "@/ui/print/print-button";
 import { questionNumbers } from "@/features/learning/core/answer-summary";
 import { QUESTION_TOOLS } from "@/features/learning/core/pending";
+import { SessionChallenge, type SessionChallengeInfo } from "./session-challenge";
 
 const isQuestionPart = (type: string) => type.startsWith("tool-") && (QUESTION_TOOLS as readonly string[]).includes(type.slice("tool-".length));
 
@@ -94,6 +95,7 @@ export function Chat({
 	initiallyCompacting = false,
 	initialConfigured = false,
 	kind = "teach",
+	challenge,
 }: {
 	chatId: string;
 	title: string;
@@ -102,6 +104,8 @@ export function Chat({
 	 *  renders no phase chip (no probe→teach arc applies) and a Practice
 	 *  tag rides the header instead. */
 	kind?: "teach" | "practice";
+	/** The challenge made from this session, if any. */
+	challenge?: SessionChallengeInfo;
 	initialPrompt?: string;
 	/** A teacher turn is running server-side but attached to no client
 	 * (navigated away mid-turn, returned while in flight). */
@@ -1309,6 +1313,11 @@ export function Chat({
 					contextTokens={contextTokens}
 					pricing={pricing}
 					queuedSteers={visibleQueuedSteers(steerQueue, nativeMessages)}
+					challengeCta={
+						kind === "teach" && phases.at(-1) === "teach" && !busy && !compacting ? (
+							<SessionChallenge chatId={chatId} challenge={challenge} />
+						) : undefined
+					}
 					setupCta={
 						zeroKeys ? (
 							<ZeroKeysPill onOpen={() => setSetupOpen(true)} />

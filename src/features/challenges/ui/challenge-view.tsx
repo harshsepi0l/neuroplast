@@ -86,6 +86,7 @@ export function ChallengeView({ initial }: { initial: ChallengeDto }) {
       </section>
       <div className="challenge-actions">{misses.length > 0 && <Button onClick={() => void train()} isLoading={busy} rightIcon={<ArrowRight size={16}/>}>{view.training?.ready ? "Review training" : "Train weak skills"}</Button>}
         <Button variant={misses.length ? "secondary" : "primary"} onClick={() => void retake()} disabled={busy} leftIcon={<RotateCcw size={16}/>}>Retake boss</Button>
+        {view.sessionId && <Button variant="ghost" onClick={() => router.push(`/chat/${view.sessionId}`)}>Back to the session</Button>}
         <Button variant="ghost" onClick={() => router.push("/knowledge")}>View knowledge tree</Button>
         <PrintButton prepare={renderDrawingsForPrint}/></div>
       {error && <p role="alert" className="error-banner">{error}</p>}

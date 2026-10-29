@@ -22,6 +22,8 @@ export interface ChallengeView {
   createdAt: string;
   previousId?: string;
   previousScore?: number;
+  /** The Learn session this challenge tests. */
+  sessionId?: string;
   submittedAt?: string;
   questions: PublicQuestion[];
   responses: Record<string, string>;
@@ -51,6 +53,10 @@ export interface ChallengeSummary {
   createdAt: string;
   submittedAt?: string;
   score?: number;
+  /** The score of the attempt this one retakes. */
+  previousScore?: number;
   goalMet?: boolean;
   trainingReady: boolean;
+  /** The Learn session this challenge tests. */
+  sessionId?: string;
 }
