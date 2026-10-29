@@ -20,7 +20,6 @@ import { SubagentSteerCard } from "@/features/learning/ui/messages/steer-card";
 import { Composer } from "@/features/learning/ui/composer/composer";
 import { useEnterSubmits } from "@/features/learning/ui/composer/enter-submits";
 import { blurAfterPointerClick } from "@/features/learning/ui/session/focus-hygiene";
-import { DictationBar, joinDictation, useDictation } from "@/features/learning/ui/composer/dictation";
 import { useFieldCycle } from "@/features/learning/ui/composer/field-cycle";
 import { JobsContext } from "@/features/learning/ui/session/jobs-context";
 import { useChatJobs } from "./use-chat-jobs";
@@ -397,10 +396,8 @@ export function Chat({
 	const phases = useMemo(() => phaseTimeline(messages), [messages]);
 
 	const [text, setText] = useState("");
-	/* The composer's value MIRROR ("nothing gets lost" round, owner
-	 * 2026-10-01): a dictation flush lands via setState, which a closure
-	 * waiting through `await finish()` cannot observe in time. Kept
-	 * current at every write site via applyText. */
+	/* The composer's value mirror, kept current at every write site via
+	 * applyText — the send paths read it. */
 	const textRef = useRef("");
 	const applyText = useCallback((v: string) => {
 		textRef.current = v;
@@ -474,11 +471,8 @@ export function Chat({
 		// (setMessages/clearError are stable per useChat instance — the
 		//  dep pair [error, chatId] is what the flow actually keys on.)
 	}, [error, chatId]);
-	// Voice dictation (STT wave, 2026-09-17): finals append at the end of
-	// the current text (the page owns the separator, dictate-flush style);
-	// interims ghost in the stats bar's middle slot next to the meter.
 	// TAB CYCLES THE CHAT'S FIELDS (owner, keyboard round 2026-10-06):
-	// reading-thinking → the active dock's field → the composer, in
+	// the active dock's field → the composer, in
 	// visual order, forward-only with wrap; Tab from anywhere else
 	// focuses the first live field (navigate IN). Gathered from live
 	// DOM at event time — the docks mount and unmount, refs would go
@@ -486,43 +480,19 @@ export function Chat({
 	const cycleChatFields = useCallback((): readonly HTMLElement[] => {
 		const pick = (sel: string) => Array.from(document.querySelectorAll<HTMLElement>(sel));
 		return [
-			...pick('[data-testid="reading-thinking-field"] textarea'),
 			...pick('[data-testid="question-dock"] textarea'),
 			...pick('[data-testid="practice-dock"] textarea'),
 			...pick('[data-testid="composer"] textarea'),
 		];
 	}, []);
 	useFieldCycle(cycleChatFields);
-	const dictation = useDictation({
-		// Ref-first (see textRef): the join is computed from the mirror so a
-		// send resuming after `await finish()` reads the dictated tail.
-		append: (t) => applyText(joinDictation(textRef.current, t)),
-	});
-	/* When a dictation run ends, the bare composer takes focus (owner
-	 * 2026-10-01) — the hands are already on the keyboard from the stop.
-	 * Falling edge of `active` only (idle→idle never focuses), and ONLY the
-	 * composer: with a question pending the Composer is unmounted, the ref
-	 * is null, and the thinking field is left alone by design. */
-	const dictationWasActiveRef = useRef(false);
 	const composerInputRef = useRef<HTMLTextAreaElement>(null);
-	useEffect(() => {
-		if (dictation.active) {
-			dictationWasActiveRef.current = true;
-		} else if (dictationWasActiveRef.current) {
-			dictationWasActiveRef.current = false;
-			composerInputRef.current?.focus();
-		}
-	}, [dictation.active]);
 
 	// Jobs never gate the composer (contracts.ts "THE ASYNC PROTOCOL" §4): job
 	// tools resolve with an ack mid-turn, so the learner can interject while
 	// sub-agents run — a feature, not a race: the wake pipeline queues steers
 	// until the current turn ends. Only a QUESTION pending or a turn in
 	// flight (client or server-side wake turn) gates sending.
-	// A LIVE dictation also makes the composer sendable (owner 2026-10-01):
-	// the spoken text is deferred in the run's buffer — Enter must be able
-	// to trigger the finish-first send (see onSend), not be gated out by an
-	// empty textarea. If nothing was said, the send is a harmless no-op.
 	// Steering (2026-10-03): a turn in flight no longer gates the composer —
 	// Enter while a turn runs STEERS it (the quiet queue above the composer);
 	// a pending question still owns the interaction (the dock replaces the
@@ -534,7 +504,7 @@ export function Chat({
 	// affordance).
 	const [compacting, setCompacting] = useState(initiallyCompacting);
 	const canSend =
-		(text.trim().length > 0 || dictation.active) && !pending && !activeProblem && !compacting;
+		text.trim().length > 0 && !pending && !activeProblem && !compacting;
 
 	/* THE PRACTICE PAUSE (owner round 16): between problems — practice
 	 * kind, nothing active, nothing in flight, and at least one problem
@@ -871,15 +841,7 @@ export function Chat({
 
 	const onSend = () => {
 		if (pending || compacting) return;
-		/* FINISH DICTATION FIRST (owner, 2026-10-01): a learner who keeps
-		 * talking right through Enter must not lose the tail — stop the run,
-		 * let the last finals land in the composer, then send the REF value
-		 * (the flush lands via setState, invisible to this closure). */
-		if (!dictation.active) {
-			doSteerOrSend();
-			return;
-		}
-		void dictation.finish().then(doSteerOrSend);
+		doSteerOrSend();
 	};
 	const doSend = () => {
 		if (busy || pending || compacting) return;
@@ -1336,8 +1298,6 @@ export function Chat({
 					turns={turns}
 					contextTokens={contextTokens}
 					pricing={pricing}
-					dictationSlot={<DictationBar dictation={dictation} />}
-					dictationCancel={dictation.cancel}
 					queuedSteers={visibleQueuedSteers(steerQueue, nativeMessages)}
 					setupCta={
 						zeroKeys ? (
@@ -1370,7 +1330,6 @@ export function Chat({
 							onSend={onSend}
 							onStop={abortInFlightTurn}
 							canSend={canSend}
-							onEscape={dictation.active ? dictation.cancel : undefined}
 							// The pause affordance (owner round 16): the placeholder
 							// IS the hint — empty state, exactly where Enter-on-empty
 							// applies.
