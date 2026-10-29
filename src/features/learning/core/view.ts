@@ -419,6 +419,15 @@ function projectMarker(marker: NeuroplastMarkerMessage, out: NeuroplastViewMessa
 			});
 			return;
 		}
+		case "stage": {
+			// The learner moved the session on by hand: a compact line.
+			out.push({
+				id: marker.id,
+				role: "user",
+				parts: [{ type: "data-stage", id: `st_${marker.id}`, data: marker.details }],
+			});
+			return;
+		}
 		case "problem-dismissed":
 			// UI-only (the ask-style dismissal): the synthesized conclude
 			// pair — which rides the NEXT input — carries the record's face.

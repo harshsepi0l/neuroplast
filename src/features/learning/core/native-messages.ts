@@ -44,6 +44,7 @@ import {
 } from "@/features/learning/core/chat";
 import { compactAnswerForModel, type QuestionAnswerData } from "@/features/learning/core/question-core";
 import { activeCompactionOf, keptIndexFor } from "@/features/learning/core/compaction";
+import { STAGE_TEXT, type StageAction } from "@/features/learning/core/stages";
 
 /** The hard-invariant wording for an aborted turn's unanswered calls —
  *  carried over verbatim from the pre-native era so the model's view
@@ -74,6 +75,7 @@ export interface NeuroplastMarkerMessage {
 		| "practice-thinking"
 		| "practice-next"
 		| "problem-dismissed"
+		| "stage"
 		| "compaction";
 	/** The model-facing text ("" for plan blocks — UI-only). */
 	content: string;
@@ -269,6 +271,20 @@ export function newNextMessage(): NeuroplastMarkerMessage {
 		content: NEXT_PROBLEM_TEXT,
 		display: true,
 		details: {},
+		timestamp: Date.now(),
+	};
+}
+
+/** The learner moving the session on by hand (skip the warm-up, start
+ *  the lesson): the model reads STAGE_TEXT; the transcript shows a line. */
+export function newStageMessage(action: StageAction): NeuroplastMarkerMessage {
+	return {
+		id: newMessageId(),
+		role: "custom",
+		customType: "stage",
+		content: STAGE_TEXT[action],
+		display: true,
+		details: { action },
 		timestamp: Date.now(),
 	};
 }
@@ -683,7 +699,7 @@ export function nativeInputCause(message: AgentMessage, history: readonly AgentM
 	if (message.role === "system" || message.role === "assistant") return "neutral";
 	if (message.role === "custom") {
 		if (["probe-handoff", "subagent-steer", "subagent-abort"].includes(message.customType)) return "automatic";
-		if (["practice-thinking", "practice-next"].includes(message.customType)) return "learner";
+		if (["practice-thinking", "practice-next", "stage"].includes(message.customType)) return "learner";
 		return ["graph-context", "plan-block", "problem-dismissed", "compaction"].includes(message.customType) ? "neutral" : "unrecognizable";
 	}
 	if (message.role === "toolResult") {

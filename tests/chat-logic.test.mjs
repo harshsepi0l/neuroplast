@@ -65,6 +65,17 @@ test("the warm-up counts answered probe questions and right answers", async () =
   assert.equal(lastPartIsReasoning([{ role: "assistant", parts: [{ type: "text" }, { type: "reasoning" }] }]), true);
 });
 
+test("goal questions before probe_done fold with the warm-up but carry no score", async () => {
+  const { warmupSummary } = await import("@/features/learning/ui/session/chat-logic");
+  const w = warmupSummary([{ role: "assistant", parts: [
+    { type: "tool-ask_user_question", toolCallId: "g", state: "output-available", output: {} },
+    { type: "tool-probe", toolCallId: "a", state: "output-available", output: { correct: true } },
+    { type: "tool-probe_done", toolCallId: "pd", state: "output-available", output: {} },
+    { type: "tool-ask_user_question", toolCallId: "later", state: "output-available", output: {} },
+  ] }]);
+  assert.deepEqual([w.first, w.answered, w.correct, [...w.ids]], ["g", 1, 1, ["g", "a"]]);
+});
+
 test("leaked question-tool JSON is removed from lesson text; other JSON stays", async () => {
   const { stripLeakedToolArgs } = await import("@/features/learning/ui/session/chat-logic");
   const leaked = '{ "type": "predict", "question": "Sick or false positive?", "options": [ { "label": "Sick" } ], "correctAnswer": "false" }';

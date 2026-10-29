@@ -9,6 +9,7 @@ import type { QuestionAnswerData } from "@/features/learning/core/question-core"
 import type { SessionPricing } from "@/features/learning/core/prices";
 import { findPendingToolCall } from "@/features/learning/core/pending";
 import { COLUMN, DOCK } from "./chat-layout";
+import { AttachButton, AttachmentChips, type Attachments } from "@/features/learning/ui/composer/attach";
 
 /**
  * The end of the lesson page: the open question, the practice problem, or
@@ -33,6 +34,8 @@ export function SessionDock({
 	chatId,
 	setupCta,
 	challengeCta,
+	stageActions,
+	attachments,
 	queuedSteers,
 }: {
 	pending: ReturnType<typeof findPendingToolCall>;
@@ -57,11 +60,16 @@ export function SessionDock({
 	setupCta?: React.ReactNode;
 	/** "Take the challenge" — shown above the composer once teaching starts. */
 	challengeCta?: React.ReactNode;
+	/** Skip / start buttons for the warm-up and plan stages. */
+	stageActions?: React.ReactNode;
+	/** The paperclip under an open question: files ride the answer. */
+	attachments?: Attachments;
 }) {
 	const mode = pending ? `question:${pending.toolCallId}` : practice ? `practice:${practice.toolCallId}` : "chat";
 	return (
 		<div data-testid="session-dock" className={`${pending ? COLUMN : DOCK} pb-10 pt-2`} style={{ "--dock-max-h": "none" } as React.CSSProperties}>
 			{setupCta}
+			{!practice && stageActions}
 			{!pending && !practice && challengeCta}
 			<QueuedSteersBody steers={queuedSteers} />
 			{/* A pending question sits in the page with no box around it (the
@@ -94,6 +102,12 @@ export function SessionDock({
 					)}
 				</div>
 			</div>
+			{pending && attachments && (
+				<div data-testid="answer-attach" className="mt-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground print:hidden">
+					<AttachButton attachments={attachments} label="Attach file" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 hover:bg-accent hover:text-foreground disabled:opacity-40" />
+					<AttachmentChips attachments={attachments} />
+				</div>
+			)}
 			{/* The open question stands alone, like the rest of the page;
 			    the stats and model row return with the composer. */}
 			{!pending && <StatsBar turns={turns} contextTokens={contextTokens} pricing={pricing} chatId={chatId} />}

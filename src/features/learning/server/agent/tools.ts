@@ -1,4 +1,5 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
+import { PLAN_GATE_ERROR, planAwaitingStart } from "@/features/learning/core/stages";
 import { invalidInputResult, questionResult } from "@/features/learning/server/agent/tool-execute";
 import {
 	askInputSchema,
@@ -231,6 +232,8 @@ export function teachExplainToolFor(
 			const problems = [...explainInputProblems(input)];
 			const nodeIdProblemText = nodeIdProblem(ctx, input.nodeId);
 			if (nodeIdProblemText) problems.push(nodeIdProblemText);
+			const gate = planGateProblem(ctx);
+			if (gate) problems.push(gate);
 			if (problems.length > 0) return invalidInputResult("explain", problems);
 			return questionResult();
 		},
@@ -348,6 +351,14 @@ export function createProberTools(
 
 // ─── the teacher's question tools (quiz carries the position field) ──────────
 
+/** The plan gate: no lesson question while the first plan waits for the
+ *  learner's go-ahead (Start learning, a reply, or an answered ask). */
+function planGateProblem(ctx: Pick<PlanToolContext, "chatId" | "chatStore">): string | null {
+	const record = ctx.chatStore.getChat(ctx.chatId);
+	if (!record) return null;
+	return planAwaitingStart(record.messages, (record.tree?.nodes.length ?? 0) > 0) ? PLAN_GATE_ERROR : null;
+}
+
 /** The nodeId-against-live-tree check the teacher's quiz chains after the
  *  shared authoring contract (the old superRefine, verbatim). */
 function nodeIdProblem(ctx: Pick<PlanToolContext, "chatId" | "chatStore">, nodeId: string): string | null {
@@ -383,6 +394,8 @@ export function teachQuizToolFor(ctx: Pick<PlanToolContext, "chatId" | "chatStor
 			const problems = [...quizInputProblems(input)];
 			const nodeIdProblemText = nodeIdProblem(ctx, input.nodeId);
 			if (nodeIdProblemText) problems.push(nodeIdProblemText);
+			const gate = planGateProblem(ctx);
+			if (gate) problems.push(gate);
 			if (problems.length > 0) return invalidInputResult("quiz", problems);
 			return questionResult();
 		},

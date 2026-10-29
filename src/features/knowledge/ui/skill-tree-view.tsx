@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/ui/easyui/Button";
 import { cn } from "@/lib/utils";
 import { startSession } from "@/features/learning/ui/learning-start";
+import { useSessionChallenge } from "@/features/learning/ui/session/session-challenge";
 import type { SkillTreeNode, SkillTreeStatus, SkillTreeTopic } from "@/features/knowledge/core/skill-trees";
 
 const STATUS_LABEL: Record<SkillTreeStatus, string> = {
@@ -146,6 +147,18 @@ function LayeredTree({ topic, selected, onSelect }: { topic: SkillTreeTopic; sel
 	);
 }
 
+/** Straight to a challenge on a Learn topic — no lesson needed. Opens the
+ *  session's challenge when one exists, builds it otherwise. */
+function TopicChallenge({ sessionId }: { sessionId: string }) {
+	const { take, busy, error } = useSessionChallenge(sessionId);
+	return (
+		<div className="flex w-full items-center gap-3">
+			<Button size="sm" variant="secondary" isLoading={busy} onClick={() => void take()}>Take the challenge</Button>
+			{(busy || error) && <span className="text-sm text-muted-foreground">{error || "Building your challenge…"}</span>}
+		</div>
+	);
+}
+
 function Detail({ topic, node }: { topic: SkillTreeTopic; node: SkillTreeNode }) {
 	const router = useRouter();
 	const [busy, setBusy] = useState(false);
@@ -274,6 +287,7 @@ export function SkillTreeView({ topics }: { topics: SkillTreeTopic[] }) {
 							<div className="mb-5 flex flex-wrap items-baseline justify-between gap-2.5">
 								<h2 id="tree-title" className="m-0 text-xl font-bold">{topic.title}</h2>
 								<span className="text-sm text-muted-foreground">{solid} of {topic.nodes.length} {topic.kind === "learn" ? "steps" : "skills"} solid · {topic.statusLine}</span>
+								{topic.kind === "learn" && topic.sessionId && <TopicChallenge key={topic.sessionId} sessionId={topic.sessionId} />}
 							</div>
 							{topic.branching ? (
 								<LayeredTree topic={topic} selected={nodeId} onSelect={(id) => setSelected((s) => ({ ...s, [topic.key]: id }))} />

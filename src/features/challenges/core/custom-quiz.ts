@@ -66,7 +66,7 @@ export function parseCustomForm(raw: unknown, topicId: string): CustomForm {
  * limit. Steps are dropped from the end when they do not fit.
  */
 export function sessionChallengeRequest(title: string, planSteps: readonly string[]): string {
-  const head = `Test me on what I just learned: ${title.trim() || "this topic"}.`;
+  const head = `Test me on ${title.trim() || "this topic"}.`;
   let request = head;
   const steps = planSteps.map(step => step.trim()).filter(Boolean);
   for (let count = steps.length; count > 0; count--) {

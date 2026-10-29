@@ -27,12 +27,15 @@
 
 import type { QuestionAnswerData } from "@/features/learning/core/question-core";
 import type { NeuroplastMessage } from "@/features/learning/core/native-messages";
+import { planAwaitingStart, type StageAction } from "@/features/learning/core/stages";
 import {
 	activeProblemOf,
 	concludedByDismissalPair,
 	danglingQuestionOf,
 	newAnswerResult,
+	hasProbeDone,
 	newNextMessage,
+	newStageMessage,
 	newProblemDismissedMarker,
 	newThinkingMessage,
 	newUserMessage,
@@ -54,7 +57,9 @@ export type ChatInput =
 	 *  explicit go-ahead during the between-problems pause — the Next
 	 *  chip or Enter on an empty composer. Practice sessions only, and
 	 *  only with nothing active (mid-problem input rides the dock). */
-	| { type: "next" };
+	| { type: "next" }
+	/** The stage buttons: skip the warm-up, or start the lesson once the plan is shown. */
+	| { type: "stage"; action: StageAction };
 
 /** A wake-pipeline steer delivery — same turn composition, server-origin.
  *  Wave C (2026-09-26): the idle wake carries EVERY queued marker as its
@@ -180,6 +185,9 @@ export function parseChatInput(input: unknown): ChatInput {
 			return { type: "thinking", problemCallId: i.problemCallId, text: i.text };
 		case "next":
 			return { type: "next" };
+		case "stage":
+			if (i.action !== "skip-warmup" && i.action !== "start-learning") throw new ChatInputError("stage input requires a known action");
+			return { type: "stage", action: i.action };
 		default:
 			throw new ChatInputError(`unknown input type: ${String(i.type)}`);
 	}
@@ -195,7 +203,7 @@ export function parseChatInput(input: unknown): ChatInput {
  * double-answering.
  */
 export function inputAppends(
-	record: { messages: NeuroplastMessage[]; kind?: string },
+	record: { messages: NeuroplastMessage[]; kind?: string; tree?: { nodes: readonly unknown[] } },
 	input: ChatInput,
 ): NeuroplastMessage[] {
 	switch (input.type) {
@@ -229,6 +237,17 @@ export function inputAppends(
 				throw new ChatInputError("next input requires no active problem");
 			}
 			return [...dismissalConclusion(record), newNextMessage()];
+		}
+		case "stage": {
+			if (record.kind === "practice") throw new ChatInputError("stage input is a Learn-session affordance");
+			if (danglingQuestionOf(record.messages)) throw new ChatInputError("stage input requires no open question");
+			if (input.action === "skip-warmup" && hasProbeDone(record.messages)) {
+				throw new ChatInputError("the warm-up is already over");
+			}
+			if (input.action === "start-learning" && !planAwaitingStart(record.messages, (record.tree?.nodes.length ?? 0) > 0)) {
+				throw new ChatInputError("there is no plan waiting to start");
+			}
+			return [...dismissalConclusion(record), newStageMessage(input.action)];
 		}
 	}
 }

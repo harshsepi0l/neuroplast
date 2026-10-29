@@ -51,8 +51,8 @@ test("custom quiz validation rejects ungradeable choices and duplicate prompts",
 
 test("a session challenge request names the topic and the plan, within 500 characters", () => {
   assert.equal(sessionChallengeRequest("Two-step equations", ["Undo in order", "Inverse operations"]),
-    "Test me on what I just learned: Two-step equations. It covered: Undo in order; Inverse operations.");
-  assert.equal(sessionChallengeRequest("Bayes", []), "Test me on what I just learned: Bayes.");
+    "Test me on Two-step equations. It covered: Undo in order; Inverse operations.");
+  assert.equal(sessionChallengeRequest("Bayes", []), "Test me on Bayes.");
   const long = sessionChallengeRequest("Topic", Array.from({ length: 40 }, (_, i) => `A fairly long plan step number ${i}`));
   assert.ok(long.length <= 500);
   assert.ok(long.endsWith("."));

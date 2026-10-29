@@ -15,7 +15,8 @@ export interface SessionChallengeInfo {
  * composer offers a scored challenge on what the session covered. One
  * challenge per session; once it exists the line opens it instead.
  */
-export function SessionChallenge({ chatId, challenge }: { chatId: string; challenge?: SessionChallengeInfo }) {
+/** Open this session's challenge, building it first when there is none. */
+export function useSessionChallenge(chatId: string, challenge?: SessionChallengeInfo) {
 	const router = useRouter();
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
@@ -40,6 +41,11 @@ export function SessionChallenge({ chatId, challenge }: { chatId: string; challe
 			setBusy(false);
 		}
 	}
+	return { take, busy, error };
+}
+
+export function SessionChallenge({ chatId, challenge }: { chatId: string; challenge?: SessionChallengeInfo }) {
+	const { take, busy, error } = useSessionChallenge(chatId, challenge);
 	return (
 		<div data-testid="session-challenge" className="mb-3 flex flex-wrap items-center justify-between gap-3 border-y border-border/50 py-3 print:hidden">
 			<div className="min-w-0">

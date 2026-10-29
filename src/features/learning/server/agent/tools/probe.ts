@@ -3,6 +3,7 @@ import { serverExecute } from "@/features/learning/server/agent/tool-execute";
 import { probeDoneInputSchema, PROBE_DONE_ACK_TEXT } from "@/features/learning/core/probe";
 import { danglingQuestionOf, hasProbeDone, type NeuroplastMessage } from "@/features/learning/core/native-messages";
 import type { ChatStore } from "@/features/learning/core/ports";
+import { warmupBlocker } from "@/features/learning/core/stages";
 import { buildProbeHandoffSteer, type SteerMessage } from "@/features/artifacts/core/jobs";
 
 /** What the probe_done tool closes over. */
@@ -76,6 +77,12 @@ export function probeDoneTool(ctx: ProbeDoneContext): Record<string, AgentTool<a
 				if (probeConcluded(record.messages)) {
 					return { ok: false, error: "The probe is already concluded — probe_done fires exactly once." };
 				}
+				// The warm-up floor: a weak prober concluding after three questions
+				// (and asking for the syllabus in its sign-off) planned a lesson
+				// blind. Refused until the goal and enough of the edge are known —
+				// unless the learner pressed Skip.
+				const blocker = warmupBlocker(record.messages);
+				if (blocker) return { ok: false, error: blocker };
 				try {
 					ctx.deliver(buildProbeHandoffSteer(ctx.chatId));
 				} catch (err) {
