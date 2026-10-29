@@ -79,7 +79,13 @@ export function appearanceVars(a: ReturnType<typeof resolveAppearance>): Record<
 	const vars: Record<string, string> = {};
 	if (a.background !== null) Object.assign(vars, derivedPalette(a.background));
 	if (a.fontFamily !== null) {
-		vars["--font-prose"] = `"${a.fontFamily}", var(--font-sans3), ui-sans-serif, system-ui, sans-serif`;
+		// The picked font is the app's MAIN face, not just the transcript's:
+		// --font-sans3 is what body text, headings and page titles across
+		// Learn, Challenges, Knowledge and Sessions read. Small mono labels
+		// and code keep their own face (--font-jetbrains / font-mono).
+		const family = `"${a.fontFamily}", ui-sans-serif, system-ui, sans-serif`;
+		vars["--font-sans3"] = family;
+		vars["--font-prose"] = family;
 	}
 	// The ONE documented reading-size variable (typography round 4): prose,
 	// inputs, and session titles all read it, so one setProperty moves them.

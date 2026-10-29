@@ -281,8 +281,9 @@ export interface AppearanceSettings {
 	/** The one user-chosen color; everything else derives per-mode in code.
 	 *  null = the mode's default background. */
 	background?: string | null;
-	/** The main reading font (everything that is Source Sans 3 today), by
-	 *  name — user-chosen from installed fonts. null = Source Sans 3. */
+	/** The main font, by
+	 *  name — user-chosen from installed fonts; it becomes the app's main
+	 *  face. null = the factory Cascadia Mono. */
 	fontFamily?: string | null;
 	/** Reading font size in px (12–24, default 16). Headings render as
 	 *  multiples of this, so one knob scales the document coherently. */
@@ -641,3 +642,6 @@ export function sanitizeUserSettings(raw: unknown): UserSettings | null {
 	}
 	return out;
 }
+
+/** The factory main font (Settings shows it as the default row). */
+export const DEFAULT_READING_FONT = "Cascadia Mono";
