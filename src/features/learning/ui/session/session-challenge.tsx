@@ -1,8 +1,6 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/ui/easyui/Button";
 
 /** The session's challenge, when one was made (from the chat page). */
 export interface SessionChallengeInfo {
@@ -10,11 +8,6 @@ export interface SessionChallengeInfo {
 	score?: number;
 }
 
-/**
- * Learn → challenge: once the session is teaching, a quiet line above the
- * composer offers a scored challenge on what the session covered. One
- * challenge per session; once it exists the line opens it instead.
- */
 /** Open this session's challenge, building it first when there is none. */
 export function useSessionChallenge(chatId: string, challenge?: SessionChallengeInfo) {
 	const router = useRouter();
@@ -42,25 +35,4 @@ export function useSessionChallenge(chatId: string, challenge?: SessionChallenge
 		}
 	}
 	return { take, busy, error };
-}
-
-export function SessionChallenge({ chatId, challenge }: { chatId: string; challenge?: SessionChallengeInfo }) {
-	const { take, busy, error } = useSessionChallenge(chatId, challenge);
-	return (
-		<div data-testid="session-challenge" className="mb-3 flex flex-wrap items-center justify-between gap-3 border-y border-border/50 py-3 print:hidden">
-			<div className="min-w-0">
-				<div className="font-semibold">
-					{challenge ? (challenge.score === undefined ? "Your challenge is in progress" : `Your challenge: ${challenge.score}/100`) : "Ready to test it?"}
-				</div>
-				<div className="text-sm text-muted-foreground">
-					{busy
-						? "Building ten questions from this session. This takes about a minute."
-						: error || (challenge ? "Train what you missed, then retake it." : "Ten scored questions on what this session covered.")}
-				</div>
-			</div>
-			<Button size="sm" variant={challenge ? "secondary" : "primary"} isLoading={busy} rightIcon={<ArrowRight size={15} />} onClick={() => void take()}>
-				{challenge ? "Open challenge" : "Take the challenge"}
-			</Button>
-		</div>
-	);
 }
