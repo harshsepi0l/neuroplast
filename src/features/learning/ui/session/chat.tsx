@@ -98,7 +98,8 @@ export function Chat({
 	/** Where the session is shown. "learn" (Learn, /chat/<id>) is the
 	 *  learning space: once the lesson starts it shows only the lesson.
 	 *  "record" (Sessions, /sessions/<id>) is the whole session, every stage
-	 *  and the challenge, read-only. */
+	 *  and the challenge, with the question and composer; it never starts a
+	 *  turn on its own (no opening send, no auto-continue). */
 	space?: "learn" | "record";	initialPrompt?: string;
 	/** A teacher turn is running server-side but attached to no client
 	 * (navigated away mid-turn, returned while in flight). */
@@ -319,7 +320,7 @@ export function Chat({
 	useEffect(() => {
 		if (mountContinuation.current) return;
 		mountContinuation.current = true;
-		// The record (Sessions) only shows the session; turns start in Learn.
+		// The record (Sessions) never starts a turn on its own.
 		if (space === "learn" && !turnInFlight && status === "ready" && needsContinuation(initialMessages)) {
 			void send({ type: "continue" });
 		}
@@ -511,8 +512,10 @@ export function Chat({
 	// Files picked with the paperclip ride the next send as path lines.
 	const attachments = useAttachments();
 	const sentFilesRef = useRef<typeof attachments.files>([]);
+	// An open question does not lock the composer: sending skips the
+	// question first (doSend), so the learner can always steer.
 	const canSend =
-		(text.trim().length > 0 || attachments.files.length > 0) && !attachments.uploading && !pending && !activeProblem && !compacting;
+		(text.trim().length > 0 || attachments.files.length > 0) && !attachments.uploading && !activeProblem && !compacting;
 	// The stage buttons: skip the warm-up (before probe_done), start the
 	// lesson (the first plan waiting on the learner).
 	const awaitingStart = kind === "teach" && planAwaitingStart(nativeMessages, false);
@@ -879,7 +882,7 @@ const setupOpenRef = useRef(setupOpen);
 	});
 
 	const onSend = () => {
-		if (pending || compacting) return;
+		if (compacting) return;
 		doSteerOrSend();
 	};
 	/** The typed text plus any attached files' path lines; clears both. */
@@ -892,12 +895,22 @@ const setupOpenRef = useRef(setupOpen);
 		return withAttachments(t || "Here is my material.", files);
 	};
 	const doSend = () => {
-		if (busy || pending || compacting) return;
+		if (busy || compacting) return;
 		const t = takeMessage();
 		if (!t) return;
 		draftRef.current = t; // the refusal flow's preserve-and-replay seam
 		applyText("");
-		void send({ type: "text", text: t });
+		// A message with a question open steers away from it: the question
+		// is recorded as skipped (a tool call needs its result), then the
+		// message starts the next turn.
+		const open = pendingRef.current;
+		void (async () => {
+			if (open) {
+				const question = (open.input as { question?: string } | null)?.question ?? "";
+				await dismissQuestion(open.toolCallId, dismissedAnswer(toolQuestionKind(open.tool), question));
+			}
+			void send({ type: "text", text: t });
+		})();
 	};
 
 	/* STEER VS SEND (owner arc 2026-10-03): a send while a turn runs steers
@@ -910,7 +923,7 @@ const setupOpenRef = useRef(setupOpen);
 	 * time the send's POST resolved, so the steer lands. Idle takes the
 	 * plain send; a raced settle 409s and falls back to exactly that. */
 	const doSteerOrSend = () => {
-		if (pending || compacting) return;
+		if (compacting) return;
 		if (busy) {
 			const t = takeMessage();
 			if (!t) return;
@@ -1112,6 +1125,78 @@ const setupOpenRef = useRef(setupOpen);
 								</Fragment>
 		);
 
+	// The dock: the open question (or practice problem) and the composer.
+	// Learn shows it at the end of the page; the Sessions record shows it
+	// inside the current stage's section, where the lesson is.
+	const dock = (
+						<SessionDock
+			inline={kind === "teach" && space === "record"}
+					pending={pending}
+					questionNumber={pending ? questionNo.get(pending.toolCallId) : undefined}
+					practice={activeProblem}
+					compactionRunning={compacting}
+					onSubmitThinking={submitThinking}
+					chatId={chatId}
+					phase={phases.at(-1) ?? "probe"}
+					turns={turns}
+					contextTokens={contextTokens}
+					pricing={pricing}
+					queuedSteers={visibleQueuedSteers(steerQueue, nativeMessages)}
+					setupCta={
+						zeroKeys ? (
+							<ZeroKeysPill onOpen={() => setSetupOpen(true)} />
+						) : (
+							!configured && (
+								<div className="pointer-events-auto mb-2 flex justify-center">
+									<button
+										type="button"
+										data-testid="setup-cta"
+										onClick={() => setSetupOpen(true)}
+										className="rounded-sm border border-border bg-card px-3 py-1.5 font-ui text-xs text-foreground transition-colors hover:border-muted-foreground/50 hover:bg-accent cursor-pointer"
+									>
+										Set up your models
+									</button>
+								</div>
+							)
+						)
+					}
+					composer={
+						<Composer
+							// Stop aborts ANY in-flight turn (stream-reattach wave): the
+							// square renders while a reattached/wake turn runs too — the
+							// abort channel kills it server-side; stop() alone would
+							// only detach our view.
+							busy={busy}
+							value={text}
+							onChange={applyText}
+							inputRef={composerInputRef}
+							onSend={onSend}
+							onStop={abortInFlightTurn}
+							canSend={canSend}
+							// The pause affordance (owner round 16): the placeholder
+							// IS the hint — empty state, exactly where Enter-on-empty
+							// applies.
+							nextProblem={nextReady}
+							attachments={attachments}
+							onNext={sendNext}
+							placeholder={nextReady ? "Ask anything, or press Enter for the next one." : pending ? "Or tell the tutor something else (skips this question)…" : undefined}
+						/>
+					}
+					onSubmitAnswer={(output) => {
+						if (!pending) return;
+						// THE ANSWER IS THE QUESTION CALL'S TOOL RESULT (fork 1, owner
+						// 2026-09-26): one input event, one turn — the hook appends
+						// the optimistic graded result (the AnsweredCard shows at
+						// once) and the server's write-ahead persists it before the
+						// turn; the teacher's reaction streams below it. Dismissals
+						// ride the same callback (QuestionAnswerData.dismissed).
+						const files = output.dismissed ? [] : attachments.files.map(attachmentLine);
+						attachments.clear();
+						submitAnswer(pending.tool, pending.toolCallId, files.length > 0 ? { ...output, files } : output);
+					}}
+					/>
+	);
+
 	return (
 		<ChatActionsContext.Provider
 			value={{
@@ -1308,6 +1393,7 @@ const setupOpenRef = useRef(setupOpen);
 											>
 												{(stage === "plan" || (stage === "learn" && !openStages.plan)) && <PlanOutline messages={messages} chatId={chatId} />}
 												{messages.map((m, mi) => (stages[mi] === stage ? renderMessage(m, mi) : null))}
+												{status === "current" && space === "record" && dock}
 												{loadingStage === stage && space === "learn" && (
 													<StageLoading stage={stage} busy={busy} onRetry={(t) => void send({ type: "text", text: t })} />
 												)}
@@ -1345,7 +1431,7 @@ const setupOpenRef = useRef(setupOpen);
 									<Shimmer duration={1}>COMPACTING CONTEXT…</Shimmer>
 								</span>
 							)}
-								{!loadingStage && (status === "submitted" || turnInFlight || (status === "streaming" && !showThinking && lastPartIsReasoning(messages))) && (
+								{!(loadingStage && space === "learn") && (status === "submitted" || turnInFlight || (status === "streaming" && !showThinking && lastPartIsReasoning(messages))) && (
 								<div role="status" className="flex items-center gap-2.5 py-1 text-muted-foreground">
 									<BrailleSpinner label="Working" />
 									<Shimmer duration={1}>{workingLabel(phases.at(-1) ?? "probe", kind)}</Shimmer>
@@ -1358,74 +1444,7 @@ const setupOpenRef = useRef(setupOpen);
 							)}
 						</div>
 
-						{space === "learn" && (
-						<SessionDock
-					pending={pending}
-					questionNumber={pending ? questionNo.get(pending.toolCallId) : undefined}
-					practice={activeProblem}
-					compactionRunning={compacting}
-					onSubmitThinking={submitThinking}
-					chatId={chatId}
-					phase={phases.at(-1) ?? "probe"}
-					turns={turns}
-					contextTokens={contextTokens}
-					pricing={pricing}
-					queuedSteers={visibleQueuedSteers(steerQueue, nativeMessages)}
-					setupCta={
-						zeroKeys ? (
-							<ZeroKeysPill onOpen={() => setSetupOpen(true)} />
-						) : (
-							!configured && (
-								<div className="pointer-events-auto mb-2 flex justify-center">
-									<button
-										type="button"
-										data-testid="setup-cta"
-										onClick={() => setSetupOpen(true)}
-										className="rounded-sm border border-border bg-card px-3 py-1.5 font-ui text-xs text-foreground transition-colors hover:border-muted-foreground/50 hover:bg-accent cursor-pointer"
-									>
-										Set up your models
-									</button>
-								</div>
-							)
-						)
-					}
-					composer={
-						<Composer
-							// Stop aborts ANY in-flight turn (stream-reattach wave): the
-							// square renders while a reattached/wake turn runs too — the
-							// abort channel kills it server-side; stop() alone would
-							// only detach our view.
-							busy={busy}
-							value={text}
-							onChange={applyText}
-							inputRef={composerInputRef}
-							onSend={onSend}
-							onStop={abortInFlightTurn}
-							canSend={canSend}
-							// The pause affordance (owner round 16): the placeholder
-							// IS the hint — empty state, exactly where Enter-on-empty
-							// applies.
-							nextProblem={nextReady}
-							attachments={attachments}
-							onNext={sendNext}
-							placeholder={nextReady ? "Ask anything, or press Enter for the next one." : undefined}
-						/>
-					}
-					onSubmitAnswer={(output) => {
-						if (!pending) return;
-						// THE ANSWER IS THE QUESTION CALL'S TOOL RESULT (fork 1, owner
-						// 2026-09-26): one input event, one turn — the hook appends
-						// the optimistic graded result (the AnsweredCard shows at
-						// once) and the server's write-ahead persists it before the
-						// turn; the teacher's reaction streams below it. Dismissals
-						// ride the same callback (QuestionAnswerData.dismissed).
-						const files = output.dismissed ? [] : attachments.files.map(attachmentLine);
-						attachments.clear();
-						submitAnswer(pending.tool, pending.toolCallId, files.length > 0 ? { ...output, files } : output);
-					}}
-					attachments={attachments}
-				/>
-						)}
+						{!(kind === "teach" && space === "record") && dock}
 					</ConversationContent>
 					<ConversationScrollButton className="print:hidden" />
 				</Conversation>

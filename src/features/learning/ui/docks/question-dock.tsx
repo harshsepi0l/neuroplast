@@ -87,10 +87,6 @@ export function QuestionDock({
 	// ("recall") is explain-shaped. Old records keep the teach names.
 	const canonical =
 		toolName === "probe" ? "quiz" : toolName === "recall" ? "explain" : toolName;
-	// The chip's display name carries the tool's OWN name (owner
-	// 2026-10-09): probe-phase questions label Probe/Recall in the
-	// composer; teach tools keep the standing labels.
-	const toolLabel = toolName === "probe" ? "Probe" : toolName === "recall" ? "Recall" : undefined;
 	// Parse, don't cast (src/features/learning/core/tool-parts.ts): the model authored this
 	// input, and only the schema the tool declared vouches for its shape.
 	// The dock mounts on input-available parts (already validated at the
@@ -114,13 +110,6 @@ export function QuestionDock({
 					question={parsed.question}
 					onExpand={onExpand}
 					variant={reveal ? "reveal" : "collapsed"}
-					toolLabel={toolLabel}
-					label={
-						(canonical === "quiz" || canonical === "explain") &&
-						normalizeQuizType((parsed as { type?: unknown }).type) === "predict"
-							? "Prediction"
-							: undefined
-					}
 				/>
 			)}
 			<div className={expanded ? "dock-variant" : "invisible h-0 overflow-hidden"}>
@@ -157,12 +146,10 @@ function teaserText(q: string): string {
  *  a distinct, more inviting affordance, because it asks the learner to start
  *  something, not to resume something. */
 export function QuestionDockBar({
-	toolName,
 	question,
 	onExpand,
 	variant = "collapsed",
 	label,
-	toolLabel,
 }: {
 	toolName: "quiz" | "ask_user_question" | "explain";
 	question: string;
@@ -172,9 +159,6 @@ export function QuestionDockBar({
 	 *  predict-type quiz minimizes by scroll — predictions never use the
 	 *  reveal variant, but the scroll-collapse strip can still hide them. */
 	label?: string;
-	/** The chip's TOOL display name (owner 2026-10-09): probe-phase calls
-	 *  label Probe/Recall — the phase boundary visible in the composer. */
-	toolLabel?: string;
 }) {
 	if (variant === "reveal") {
 		return (
@@ -205,9 +189,7 @@ export function QuestionDockBar({
 			className="dock-variant flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm transition-colors hover:bg-accent/40"
 		>
 			<span className="shrink-0 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-				{label ??
-							toolLabel ??
-							(toolName === "quiz" ? "Check" : toolName === "explain" ? "Explain" : "Question")}
+				{label ?? "Question"}
 			</span>
 			<span className="min-w-0 flex-1 truncate text-muted-foreground">{teaserText(question)}</span>
 			<span className="flex shrink-0 items-center gap-1 text-xs font-medium">
@@ -486,18 +468,8 @@ function QuestionDockForm({
 			?.scrollIntoView({ block: "nearest" });
 	}, [kbdIdx]);
 
-	const label =
-		toolName === "probe"
-			? "Probe"
-			: toolName === "recall"
-				? "Recall"
-				: kind === "quiz"
-					? qd.questionType === "predict"
-						? "Prediction"
-						: "Check"
-					: kind === "explain"
-						? "Explain"
-						: "Question";
+	// One label for every question, matching the answered cards ("Question 3").
+	const label = "Question";
 	const answered = sel.selected.size > 0 || sel.otherSelected;
 	const rowClass = (selected: boolean, walked: boolean) =>
 		cn(

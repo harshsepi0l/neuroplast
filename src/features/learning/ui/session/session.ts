@@ -67,9 +67,10 @@ export function useChatSession({ chatId, initialMessages, initiallyInFlight }: U
 	// RSC fetches included) — the multi-session navigation freeze. Aborting
 	// costs nothing: navigating back replays the compacted log + live tail.
 	useEffect(() => {
+		model.mount();
 		if (initiallyInFlight) void model.resumeStream(false);
 		return () => {
-			model.stop();
+			model.release();
 		};
 	}, [initiallyInFlight, model]);
 

@@ -32,8 +32,11 @@ The same session shows in two places (`Chat`'s `space` prop):
   box. No earlier stages, no challenge. A small **Session record** link in
   the top bar opens the record.
 - **Sessions** (`/sessions/<id>`) is the record: every stage section and
-  the Challenge row, read-only, with **Continue learning** back to Learn.
-  The Sessions list opens it. The record never starts a turn.
+  the Challenge row. The open question and the composer sit inside the
+  current stage's section, so the learner can answer or steer from here too, and **Continue learning** back to
+  Learn. The Sessions list opens it. The record never starts a turn on its
+  own (no opening send, no auto-continue); stage buttons and loading screens
+  stay in Learn.
 
 ## The record: one section per stage
 
@@ -135,7 +138,7 @@ One challenge per session, built from the session title and plan steps
 | A stalled loading screen | Retry | sends a plain message to move the session on |
 | A finished section | Show · Hide | unfolds or folds it |
 | Knowledge, Learn topic | Take the challenge | builds or opens the challenge, without opening the session |
-| Under an open question | Attach file | the file rides the answer |
+| Under an open question | the composer | a message skips the question (recorded as dismissed) and starts the next turn; its paperclip's files ride the answer or the message |
 
 Stage moves are a `{ type: "stage", action }` chat input; the server
 validates them (`inputAppends`): Learn sessions only, no open question,
