@@ -8,6 +8,14 @@ import { useModelCatalog } from "./composer/model-picker";
 import { useDraft } from "./draft-context";
 import { stageOpeningMessage } from "./opening-message";
 import type { LessonMode } from "../core/lesson";
+/** Creates a Learn or Practice session that opens with `text`; returns its id. */
+export async function startSession(text: string, mode: LessonMode, picks: unknown[] = []): Promise<string> {
+  const response = await fetch("/api/chats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: text.split("\n")[0], ...(mode === "practice" ? { kind: "practice", graphContext: { propositions: picks } } : {}) }) });
+  const body = await response.json(); if (!response.ok || !body.id) throw new Error(body.error || "Your session could not be started.");
+  stageOpeningMessage(body.id, text);
+  return body.id;
+}
+
 const suggestions = ["Understand a difficult topic", "Practice something new", "Explore an idea"];
 
 export function LearningStart({ initialMode = "learn" }: { initialMode?: LessonMode }) {
@@ -20,10 +28,7 @@ export function LearningStart({ initialMode = "learn" }: { initialMode?: LessonM
     if (!ready) { router.push("/connections"); return false; }
     setBusy(true); setError("");
     try {
-      const response = await fetch("/api/chats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: text.split("\n")[0], ...(mode === "practice" ? { kind: "practice", graphContext: { propositions: draft.picks } } : {}) }) });
-      const body = await response.json(); if (!response.ok || !body.id) throw new Error(body.error || "Your session could not be started.");
-      stageOpeningMessage(body.id, text);
-      router.push(`/chat/${body.id}`); return true;
+      router.push(`/chat/${await startSession(text, mode, draft.picks)}`); return true;
     } catch (failure) { setError((failure as Error).message); setBusy(false); return false; }
   }
   return <div className="learning-pane">

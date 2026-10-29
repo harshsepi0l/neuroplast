@@ -10,7 +10,7 @@ import { useModelCatalog } from "@/features/learning/ui/composer/model-picker";
 
 export function WorkspaceHeader({ title, modelLabel, modelReady, showModel = true }: { title: string; modelLabel: string; modelReady: boolean; showModel?: boolean }) {
   const router = useRouter();
-  return <header className="topbar"><div className="row gap-3"><SidebarToggle/><Link href="/" className="breadcrumb">Home</Link><ChevronRight size={12}/><span className="topbar-title">{title}</span></div>
+  return <header className="topbar"><div className="row gap-3"><SidebarToggle/>{title === "Home" ? <span className="topbar-title">Home</span> : <><Link href="/" className="breadcrumb">Home</Link><ChevronRight size={12}/><span className="topbar-title">{title}</span></>}</div>
     {showModel && <Button variant="ghost" size="sm" onClick={() => router.push("/connections")} className="model-badge"><span className={`connection-dot ${modelReady ? "online" : ""}`}/>{modelLabel}<ChevronDown size={12}/></Button>}
   </header>;
 }
@@ -30,7 +30,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
     { href: "/sessions", label: "Sessions", icon: MessageSquare, active: pathname === "/sessions" },
   ];
   const activeChat = pathname.startsWith("/chat/") && pathname !== "/chat/new";
-  const title = pathname === "/connections" ? "Connections" : pathname === "/sessions" ? "Sessions" : pathname.startsWith("/challenge/") ? "Challenge" : pathname === "/challenges/new" ? "New challenge" : pathname === "/challenges" ? "Challenges" : pathname === "/knowledge/legacy" ? "Notes graph" : pathname.startsWith("/knowledge") ? "Knowledge" : pathname === "/practice" ? "Practice" : pathname === "/settings" ? "Settings" : "Learn";
+  const title = pathname === "/connections" ? "Connections" : pathname === "/sessions" ? "Sessions" : pathname.startsWith("/challenge/") ? "Challenge" : pathname === "/challenges/new" ? "New challenge" : pathname === "/challenges" ? "Challenges" : pathname === "/knowledge/legacy" ? "Notes graph" : pathname.startsWith("/knowledge") ? "Knowledge" : pathname === "/practice" ? "Practice" : pathname === "/settings" ? "Settings" : pathname === "/" ? "Home" : "Learn";
   const recentSession = sessions[0];
   return <div className={`workspace integrated-workspace ${open ? "navigation-open" : "navigation-closed"}`}>
     {open && <button className="mobile-scrim" aria-label="Close navigation" onClick={toggle}/>}
