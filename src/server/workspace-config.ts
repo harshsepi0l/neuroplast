@@ -1,5 +1,4 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 /** Repository root (this file is at <root>/config.ts). */
 export const ROOT = path.resolve(process.cwd());

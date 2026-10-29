@@ -6,7 +6,7 @@ import { piEngineFor, type PiEngine, type ThinkingLevel } from "@/features/conne
 import { providerEventObserver, type ProviderEventObserver } from "@/features/connections/server/runtime/provider-events";
 import type { PdfResult, PdfToolInput } from "@/features/artifacts/core/jobs";
 import { getHeadless, type HeadlessApi } from "@/features/artifacts/server/agents/headless";
-import { pdfExtract, pdfInfo, pdfProbe, pdfSearch, type PdfSearchHit } from "@/features/artifacts/server/agents/pdf-ops";
+import { pdfExtract, pdfInfo, pdfProbe, pdfSearch } from "@/features/artifacts/server/agents/pdf-ops";
 
 /**
  * The pdf-reader sub-agent (sources v0, 2026-09): reads a learner-provided
@@ -72,7 +72,7 @@ export interface PdfReaderOptions {
 	chatId?: string;
 }
 
-export interface PdfReaderInput extends PdfToolInput {}
+export type PdfReaderInput = PdfToolInput;
 
 /** The wire declarations (pi-ai Tool, TypeBox parameters). This loop owns
  *  execution itself — pdf_info/pdf_extract run via the plain pdfInfoText/

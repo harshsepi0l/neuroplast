@@ -3,7 +3,6 @@ import { clampChatLevel, validateChatSettings } from "@/features/connections/ser
 import { effectiveSettings, stores } from "@/server/workspace-stores";
 import { getChat } from "@/features/learning/server/chats";
 import { parseSettingsBody } from "@/features/settings/server/settings-body";
-import type { ChatSettings } from "@/features/learning/core/chat";
 
 /**
  * The per-chat model control (model-control wave): replace-whole settings —

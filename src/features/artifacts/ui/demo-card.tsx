@@ -238,7 +238,7 @@ function DemoFrame({
 }
 
 export function DemoErrorChip({
-	title,
+	title: _title,
 	message,
 	onSend,
 }: {

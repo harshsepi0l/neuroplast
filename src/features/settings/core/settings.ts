@@ -30,7 +30,6 @@
 import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 import { AUTH_PROVIDER_KEYS } from "@/features/connections/core/auth-keys";
 import type { ModelRole } from "@/features/connections/core/model-role";
-import type { ChatSettings } from "@/features/learning/core/chat";
 import type { SearchEngineId } from "@/features/learning/core/search";
 
 /** The schema version this code understands. Bump ONLY for breaking shape

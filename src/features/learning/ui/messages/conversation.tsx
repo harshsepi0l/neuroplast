@@ -2,7 +2,7 @@
 
 import { Button } from "@/ui/easyui/Button";
 import { cn } from "@/lib/utils";
-import type { NeuroplastViewMessage, NeuroplastViewPart } from "@/features/learning/core/view";
+import type { NeuroplastViewMessage } from "@/features/learning/core/view";
 import { ArrowDownIcon, DownloadIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { useCallback } from "react";

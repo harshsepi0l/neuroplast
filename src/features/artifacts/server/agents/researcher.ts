@@ -1,4 +1,3 @@
-import type { AgentTool } from "@earendil-works/pi-agent-core";
 import type { Usage } from "@earendil-works/pi-ai";
 import { createWebTools } from "@/features/learning/server/agent/tools/web";
 import { createPdfReadTools } from "@/features/learning/server/agent/tools/pdf-read";

@@ -4,7 +4,6 @@ import { ArrowRightIcon, ArrowUpIcon, SquareIcon } from "lucide-react";
 import { Button } from "@/ui/easyui/Button";
 import { Textarea } from "@/ui/easyui/Form";
 import { cn } from "@/lib/utils";
-import { Hint } from "@/ui/primitives/hint";
 
 /**
  * The chat composer — content row ONLY (the persistent rounded shell lives in

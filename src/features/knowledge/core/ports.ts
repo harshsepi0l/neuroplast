@@ -1,5 +1,5 @@
 /** Persistence contracts owned by the knowledge domain. */
-import type { ChatRecord, ExtractionRunUsage } from "@/features/learning/core/chat";
+import type { ExtractionRunUsage } from "@/features/learning/core/chat";
 import type { GraphChain, GraphNode, Position, CoverageEntry, SessionCheckpoint, NotesSource } from "@/features/knowledge/core/graph-contracts";
 
 export interface GraphStore {

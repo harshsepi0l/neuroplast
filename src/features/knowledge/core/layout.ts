@@ -32,7 +32,7 @@ import {
 	type SimulationLinkDatum,
 	type SimulationNodeDatum,
 } from "d3-force";
-import type { GraphEdge, GraphNode, Position } from "@/features/knowledge/core/graph-contracts";
+import type { GraphNode, Position } from "@/features/knowledge/core/graph-contracts";
 import { seededRandom } from "@/features/learning/core/question-core";
 
 /** A node the d3 simulation mutates (x/y/vx/vy; fx/fy = pinned). */

@@ -16,7 +16,7 @@ import type { ChatRecord, ChatSettings, ChatSummary, ExtractionRunUsage, TurnUsa
 import type { PlanTree } from "@/features/learning/core/plan";
 import { CURRENT_CHAT_VERSION } from "@/features/learning/core/chat";
 import type { NeuroplastMessage } from "@/features/learning/core/native-messages";
-import { activeProblemOf, danglingQuestionOf } from "@/features/learning/core/native-messages";
+import { danglingQuestionOf } from "@/features/learning/core/native-messages";
 import { phaseAt3Lh } from "@/features/learning/core/phases";
 
 function chatFile(id: string): string {

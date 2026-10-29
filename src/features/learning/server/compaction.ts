@@ -30,7 +30,7 @@
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import type { Usage } from "@earendil-works/pi-ai";
 import { activeCompactionOf, buildCompactionPrompt, compactionCutIndex, COMPACTION_RESERVE_TOKENS, estimateContextTokens, estimateTokens, newCompactionMarker, planTreeToText, serializeForSummary, type CompactionDetails } from "@/features/learning/core/compaction";
-import { toLlmMessages, type NeuroplastMessage, type NeuroplastMarkerMessage } from "@/features/learning/core/native-messages";
+import { toLlmMessages, type NeuroplastMessage } from "@/features/learning/core/native-messages";
 import { emit } from "@/features/learning/core/events";
 import type { ChatStore } from "@/features/learning/core/ports";
 import type { PiEngine } from "@/features/connections/server/runtime/models";

@@ -1,7 +1,6 @@
 import { Type } from "typebox";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { serverExecute } from "@/features/learning/server/agent/tool-execute";
-import type { PlanToolResult, PlanTree } from "@/features/learning/core/plan";
 import type { ChatStore } from "@/features/learning/core/ports";
 import { createTree, PlanTreeError } from "@/features/learning/core/plan-tree";
 import { parseMermaidPlan } from "@/features/learning/server/agent/tools/mermaid-plan";

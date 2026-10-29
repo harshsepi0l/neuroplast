@@ -1,6 +1,5 @@
-import { Type } from "typebox";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import { invalidInputResult, questionResult, serverExecute } from "@/features/learning/server/agent/tool-execute";
+import { invalidInputResult, questionResult } from "@/features/learning/server/agent/tool-execute";
 import {
 	askInputSchema,
 	askOptionProblems,

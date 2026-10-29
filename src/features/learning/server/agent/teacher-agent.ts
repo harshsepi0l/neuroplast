@@ -3,14 +3,12 @@ import type { AgentEvent, AgentMessage, AgentTool } from "@earendil-works/pi-age
 import { invalidInputResult, questionResult } from "@/features/learning/server/agent/tool-execute";
 import { providerEventObserver } from "@/features/connections/server/runtime/provider-events";
 import type { Usage } from "@earendil-works/pi-ai";
-import { PATHS } from "@/server/workspace-config";
 import { APP_IDENTITY, piEngineFor, type PiEngine } from "@/features/connections/server/runtime/models";
 import { effectivePromptSegments } from "@/features/learning/server/agent/prompt-segments";
 import {
 	askUserQuestionTool,
 	createProberTools,
 	createTeacherTools,
-	type ProbeDoneContext,
 	type ProberToolContext,
 	type TeacherToolContext,
 } from "@/features/learning/server/agent/tools";
