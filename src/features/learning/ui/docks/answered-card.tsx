@@ -20,7 +20,7 @@ import { parseAskInput, parseQuizInput } from "@/features/learning/core/tool-par
  * client — the card reveals his answer, the committed correct answer, and
  * the explanation, with NO verdict chips (owner ruling 2026-09-27).
  */
-export function AnsweredCard({ answer, input }: { answer: QuestionAnswerData; input?: unknown }) {
+export function AnsweredCard({ answer, input, number }: { answer: QuestionAnswerData; input?: unknown; number?: number }) {
 	// Answered questions fold to one line (the quiet worksheet): the label,
 	// a ✓/✗ mark, what was answered. Show opens the full record; print
 	// always includes it.
@@ -29,7 +29,7 @@ export function AnsweredCard({ answer, input }: { answer: QuestionAnswerData; in
 	return (
 		<div data-testid="answered-card" className="my-1">
 			<div className="flex items-center gap-3 border-y border-border/50 py-2.5">
-				<span className="shrink-0 font-mono text-xs font-medium uppercase tracking-wide text-muted-foreground">{answerLabel(answer)}</span>
+				<span className="shrink-0 font-mono text-xs font-medium uppercase tracking-wide text-muted-foreground">{answerLabel(answer)}{number !== undefined && ` ${number}`}</span>
 				{verdict && (
 					<span
 						aria-label={verdict === "correct" ? "Correct" : verdict === "incorrect" ? "Incorrect" : "Didn't know"}
@@ -43,7 +43,7 @@ export function AnsweredCard({ answer, input }: { answer: QuestionAnswerData; in
 						{verdict === "correct" ? "✓" : verdict === "incorrect" ? "✗" : "?"}
 					</span>
 				)}
-				<span className="min-w-0 flex-1 truncate">{answerSummary(answer)}</span>
+				<span className="min-w-0 flex-1 truncate text-[calc(var(--neuroplast-prose-size)*0.95)]">{answerSummary(answer)}</span>
 				<button
 					type="button"
 					aria-expanded={open}

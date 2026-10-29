@@ -12,10 +12,10 @@ import { parseAskInput, parseQuizInput, parseExplainInput } from "@/features/lea
 import { type Phase3 } from "@/features/learning/core/phases";
 
 
-/** The confidence choices (indices into CONFIDENCE_STOPS: 30/50/70/90%). */
+/** The confidence choices (indices into CONFIDENCE_STOPS: 30/70/90%).
+ *  None is picked at first; an untouched answer sends 50, as before. */
 const CONFIDENCE_PILLS: readonly { idx: number; label: string }[] = [
 	{ idx: 1, label: "Guessing" },
-	{ idx: 2, label: "Unsure" },
 	{ idx: 3, label: "Fairly sure" },
 	{ idx: 4, label: "Certain" },
 ];
@@ -54,6 +54,8 @@ export interface QuestionDockProps {
 	reveal?: boolean;
 	onExpand: () => void;
 	onSubmit: (output: QuestionAnswerData) => void;
+	/** The question's number in the session — the label reads "Check 3". */
+	number?: number;
 	/** The keyboard machine (wave B) is armed only while the dock is
 	 *  expanded — the collapsed bar keeps its native Enter-to-expand. */
 	active?: boolean;
@@ -75,6 +77,7 @@ export function QuestionDock({
 	reveal = false,
 	onExpand,
 	onSubmit,
+	number,
 	phase = "probe",
 	compactionRunning = false,
 }: QuestionDockProps) {
@@ -128,6 +131,7 @@ export function QuestionDock({
 					phase={phase}
 					active={expanded}
 					onSubmit={onSubmit}
+					number={number}
 					compactionRunning={compactionRunning}
 				/>
 			</div>
@@ -221,6 +225,7 @@ function QuestionDockForm({
 	phase = "probe",
 	active,
 	onSubmit,
+	number,
 	compactionRunning = false,
 }: Omit<QuestionDockProps, "expanded" | "onExpand" | "reveal">) {
 	const kind = toolQuestionKind(toolName);
@@ -456,7 +461,7 @@ function QuestionDockForm({
 				e.preventDefault();
 				setConfIdx((i) => {
 					const at = CONFIDENCE_PILLS.findIndex((p) => p.idx === i);
-					const next = Math.min(CONFIDENCE_PILLS.length - 1, Math.max(0, (at < 0 ? 1 : at) + (e.key === "ArrowRight" ? 1 : -1)));
+					const next = at < 0 ? 1 : Math.min(CONFIDENCE_PILLS.length - 1, Math.max(0, at + (e.key === "ArrowRight" ? 1 : -1)));
 					return CONFIDENCE_PILLS[next]!.idx;
 				});
 			} else if (e.key === " ") {
@@ -496,7 +501,7 @@ function QuestionDockForm({
 	const answered = sel.selected.size > 0 || sel.otherSelected;
 	const rowClass = (selected: boolean, walked: boolean) =>
 		cn(
-			"flex w-full items-center gap-3.5 rounded-lg px-3 py-2.5 text-left outline-none transition-colors",
+			"flex min-h-12 w-full items-center gap-3.5 rounded-lg px-3 py-2 text-left outline-none transition-colors",
 			selected ? "bg-primary/15" : "hover:bg-accent/60",
 			walked && !selected && "bg-accent/60",
 		);
@@ -508,13 +513,14 @@ function QuestionDockForm({
 	const letter = (i: number) => String.fromCharCode(65 + i);
 
 	return (
-		<div ref={rootRef} data-testid="question-dock" className="border-l-[3px] border-primary py-1 pl-5">
+		<div ref={rootRef} data-testid="question-dock" className="border-l-[3px] py-1 pl-5" style={{ borderLeftColor: "var(--brand)" }}>
 			<div data-session-find-root="">
 				<div className="mb-2 font-mono text-xs font-medium uppercase tracking-wide text-muted-foreground">
 					{label}
+					{number !== undefined && ` ${number}`}
 					{qd.mode === "multi-select" && " · select all that apply"}
 				</div>
-				<div className="mb-3 text-lg font-semibold leading-snug">
+				<div className="mb-3 font-semibold leading-snug [&_*]:text-[calc(var(--neuroplast-prose-size)*1.3)]">
 					<MessageResponse>{qd.question}</MessageResponse>
 				</div>
 				{qd.context && (
@@ -539,7 +545,7 @@ function QuestionDockForm({
 								>
 									<span aria-hidden className={badgeClass(isSel)}>{letter(i)}</span>
 									<span className="min-w-0">
-										<MessageResponse>{opt.label}</MessageResponse>
+										<MessageResponse className="[&_*]:text-[calc(var(--neuroplast-prose-size)*1.06)]">{opt.label}</MessageResponse>
 										{kind !== "quiz" && opt.description && (
 											// QUIZ options render NO description (owner ruling
 											// 2026-09-26): the model used them to telegraph

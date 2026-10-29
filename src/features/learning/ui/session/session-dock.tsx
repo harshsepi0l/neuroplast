@@ -8,7 +8,7 @@ import type { Phase3 } from "@/features/learning/core/phases";
 import type { QuestionAnswerData } from "@/features/learning/core/question-core";
 import type { SessionPricing } from "@/features/learning/core/prices";
 import { findPendingToolCall } from "@/features/learning/core/pending";
-import { DOCK } from "./chat-layout";
+import { COLUMN, DOCK } from "./chat-layout";
 
 /**
  * The end of the lesson page: the open question, the practice problem, or
@@ -20,6 +20,7 @@ import { DOCK } from "./chat-layout";
  */
 export function SessionDock({
 	pending,
+	questionNumber,
 	practice,
 	compactionRunning,
 	onSubmitThinking,
@@ -34,6 +35,8 @@ export function SessionDock({
 	queuedSteers,
 }: {
 	pending: ReturnType<typeof findPendingToolCall>;
+	/** The pending question's number in the session ("Check 3"). */
+	questionNumber?: number;
 	/** The active practice problem: owns the slot like a pending question. */
 	practice: { toolCallId: string; input: unknown } | null;
 	/** Compaction running for this chat — the docks' submit gate. */
@@ -54,7 +57,7 @@ export function SessionDock({
 }) {
 	const mode = pending ? `question:${pending.toolCallId}` : practice ? `practice:${practice.toolCallId}` : "chat";
 	return (
-		<div data-testid="session-dock" className={`${DOCK} pb-10 pt-2`} style={{ "--dock-max-h": "none" } as React.CSSProperties}>
+		<div data-testid="session-dock" className={`${pending ? COLUMN : DOCK} pb-10 pt-2`} style={{ "--dock-max-h": "none" } as React.CSSProperties}>
 			{setupCta}
 			<QueuedSteersBody steers={queuedSteers} />
 			{/* A pending question sits in the page with no box around it (the
@@ -67,6 +70,7 @@ export function SessionDock({
 							toolCallId={pending.toolCallId}
 							input={pending.input as never}
 							expanded
+							number={questionNumber}
 							phase={phase}
 							onExpand={() => {}}
 							onSubmit={onSubmitAnswer}
@@ -86,7 +90,9 @@ export function SessionDock({
 					)}
 				</div>
 			</div>
-			<StatsBar turns={turns} contextTokens={contextTokens} pricing={pricing} chatId={chatId} />
+			{/* The open question stands alone, like the rest of the page;
+			    the stats and model row return with the composer. */}
+			{!pending && <StatsBar turns={turns} contextTokens={contextTokens} pricing={pricing} chatId={chatId} />}
 		</div>
 	);
 }
