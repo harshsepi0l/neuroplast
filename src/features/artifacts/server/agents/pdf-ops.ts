@@ -1,6 +1,5 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 
 /**
  * PDF plumbing for the pdf-reader sub-agent — sources v0 (2026-09): Node

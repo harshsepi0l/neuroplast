@@ -630,7 +630,6 @@ export function DictationBar({ dictation }: { dictation: Dictation }) {
 	 *  error keeps the old behavior (click = retry, which clears). */
 	const keyless = error === DICTATION_KEYLESS;
 	const [levels, setLevels] = useState<number[]>(() => new Array(METER_CELLS).fill(0));
-	const recording = phase === "recording" || phase === "stopping";
 	/** Adaptive cell count (owner round 2): derived from the meter's
 	 *  measured width — narrow rows show fewer bars instead of
 	 *  overflowing under neighbors. */

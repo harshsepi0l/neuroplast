@@ -35,7 +35,6 @@ function connectionModel(provider: string, id: string): Model<Api> | undefined {
 	return provider === "chatgpt" ? chatGPTModel(id) : nativeSubscriptionId(provider) ? nativeSubscriptionModel(provider, id) : piModels().getModel(provider, id);
 }
 function connectionProviderIds(): string[] { return [...piModels().getProviders().map((p) => p.id), "chatgpt", ...NATIVE_SUBSCRIPTIONS.map((p) => p.logicalId)]; }
-import { settingsStore } from "@/features/settings/server/settings-store";
 import { effectiveSettings } from "@/server/workspace-stores";
 import { keyValue } from "@/features/connections/server/keys";
 import type { ChatSettings } from "@/features/learning/core/chat";

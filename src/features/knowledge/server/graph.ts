@@ -4,7 +4,6 @@ import type { GraphSnapshot } from "@/features/knowledge/core/graph-contracts";
 import type { GraphCostSummary } from "@/features/learning/core/cost-summary";
 import { graphCostSummary } from "@/features/learning/core/cost-summary";
 import { graphSnapshot } from "@/features/knowledge/core/graph";
-import { birthSessionPartition } from "@/features/knowledge/core/session-clusters";
 import {
 	deleteNodeTraces,
 	type NodeDeletionStats,

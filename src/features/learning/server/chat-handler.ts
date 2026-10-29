@@ -24,7 +24,6 @@ import {
 	setJobRespawn,
 	setTurnRunner,
 	settleSteers,
-	steerLiveChat,
 	unregisterLiveAgent,
 } from "@/features/artifacts/server/jobs";
 import { runPiTurn } from "@/features/learning/server/pi/ui-stream";
@@ -39,7 +38,7 @@ import {
 	resolveConversationSpec,
 	resolveRoleSpec,
 } from "@/features/settings/core/settings-resolution";
-import { modelsNotConfigured, providerKeyMissing as providerKeyMissingEnvelope, type ProviderKeyMissing } from "@/features/settings/core/settings";
+import { modelsNotConfigured, providerKeyMissing as providerKeyMissingEnvelope } from "@/features/settings/core/settings";
 import { beginTurn, endTurn } from "@/features/learning/server/turn-liveness";
 import { applyParkedDismissal } from "@/features/learning/server/dismissal-park";
 import { registerTurn, unregisterTurn } from "@/features/learning/server/turn-runs";

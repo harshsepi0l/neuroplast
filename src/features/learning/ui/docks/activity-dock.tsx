@@ -2,7 +2,6 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIcon, BotIcon, FileTextIcon, PenToolIcon, PlayIcon, SearchIcon, SquareIcon, WaypointsIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { CallUsage } from "@/features/learning/core/chat";
 import type { JobKind, JobRecord } from "@/features/artifacts/core/jobs";
 import { isModelsRefusal, isProviderKeyRefusal } from "@/features/settings/core/settings";

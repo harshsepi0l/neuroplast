@@ -47,7 +47,7 @@ import { type ProviderKeyInfo } from "@/features/connections/ui/keys-section";
 import { ProviderMenuList } from "@/features/settings/ui/model-menu";
 import { ChatGPTBackgroundAccess } from "@/features/connections/ui/chatgpt-connection";
 import { NativeSubscriptionBackgroundAccess, SubscriptionConnections } from "@/features/connections/ui/subscription-connections";
-import { defaultOrderLevel, populateLevel, THINKING_LABEL } from "@/features/learning/ui/composer/thinking-default";
+import { populateLevel, THINKING_LABEL } from "@/features/learning/ui/composer/thinking-default";
 import { ThinkingMenuList } from "@/features/settings/ui/model-menu";
 import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 

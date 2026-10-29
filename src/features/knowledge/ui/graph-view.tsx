@@ -80,7 +80,7 @@ import { MenuShell } from "@/app-shell/menu-shell";
 import { DeleteNodeDialog } from "@/features/learning/ui/session/delete-node-dialog";
 import { ChainTableOverlay } from "@/features/knowledge/ui/chain-table";
 import { Hint } from "@/ui/primitives/hint";
-import { ARROW_LENGTH_LADDER, CHARGE_RANGE, CLUSTER_LABEL_SIZE_LADDER, CLUSTER_PULL_RANGE, DEPTH_BASE_RADIUS_RANGE, DEPTH_SPACING_RANGE, DEPTH_STRENGTH_RANGE, DEFAULT_RENDER_SETTINGS, EDGE_WIDTH_LADDER, GRAVITY_RANGE, LABEL_SIZE_LADDER, LABEL_ZOOM_LADDER, LINK_DISTANCE_RANGE, LINK_STRENGTH_RANGE, NODE_SIZE_LADDER, REGION_BITMAP_OPTIONS, REGION_BLUR_LADDER, fromLadderPosition, snapToLadder, toLadderPosition, REGION_DILATION_LADDER, REGION_EDGE_ALPHA_LADDER, VELOCITY_DECAY_RANGE, fromOffSliderPosition, fromSliderPosition, labelZoomDisplay, sanitizeRenderSettings, toOffSliderPosition, toSliderPosition } from "@/features/knowledge/core/render-settings";
+import { ARROW_LENGTH_LADDER, CHARGE_RANGE, CLUSTER_LABEL_SIZE_LADDER, CLUSTER_PULL_RANGE, DEPTH_BASE_RADIUS_RANGE, DEPTH_SPACING_RANGE, DEPTH_STRENGTH_RANGE, DEFAULT_RENDER_SETTINGS, EDGE_WIDTH_LADDER, GRAVITY_RANGE, LABEL_SIZE_LADDER, LABEL_ZOOM_LADDER, LINK_DISTANCE_RANGE, LINK_STRENGTH_RANGE, NODE_SIZE_LADDER, REGION_BITMAP_OPTIONS, REGION_BLUR_LADDER, fromLadderPosition, toLadderPosition, REGION_DILATION_LADDER, REGION_EDGE_ALPHA_LADDER, VELOCITY_DECAY_RANGE, fromOffSliderPosition, fromSliderPosition, labelZoomDisplay, sanitizeRenderSettings, toOffSliderPosition, toSliderPosition } from "@/features/knowledge/core/render-settings";
 
 /** The uniform node look (no state classes — canvas wants hex, not oklch):
  *  the accent color, until the state model lands. */

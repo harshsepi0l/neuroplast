@@ -1,9 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { visibleQueuedSteers } from "@/features/learning/ui/session/session-core";
 import { Hint } from "@/ui/primitives/hint";
 import { useStickToBottomContext } from "use-stick-to-bottom";
-import { Conversation, ConversationScrollButton } from "@/features/learning/ui/messages/conversation";
+import { ConversationScrollButton } from "@/features/learning/ui/messages/conversation";
 import { dockStateKey } from "@/features/learning/ui/docks/dock-state-key";
 import { QueuedSteersBody, type QueuedSteerLine } from "@/features/learning/ui/composer/queued-steers";
 import { finishDictation } from "@/features/learning/ui/composer/dictation";
@@ -17,7 +16,7 @@ import type { SessionPricing } from "@/features/learning/core/prices";
 import { findPendingToolCall } from "@/features/learning/core/pending";
 import { ReadingThinkingField } from "@/features/learning/ui/messages/reading-thinking";
 import { probeArrivalExpanded, revealArrival, shouldStampGeometryMute } from "./chat-logic";
-import { COLLAPSE_DIST, COLUMN, DOCK, DOCK_W, EXPAND_DIST, GRADIENT_H, MARGIN_GAP, MARGIN_MIN_W, useIsoLayoutEffect } from "./chat-layout";
+import { COLLAPSE_DIST, DOCK, DOCK_W, EXPAND_DIST, GRADIENT_H, MARGIN_GAP, MARGIN_MIN_W, useIsoLayoutEffect } from "./chat-layout";
 
 /**
  * The floating blob: ONE persistent shell, OVERLAID at the bottom of the

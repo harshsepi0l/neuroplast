@@ -1,8 +1,7 @@
 import * as fs from "node:fs";
-import { createRequire } from "node:module";
 import * as os from "node:os";
 import * as path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 import { standardFontsDir } from "@/features/artifacts/server/agents/pdf-ops";
 
 /**

@@ -55,7 +55,7 @@ import { select } from "d3-selection";
 import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from "d3-zoom";
 import type { Simulation, SimulationLinkDatum } from "d3-force";
 import { clusterHue, type Pt } from "@/features/knowledge/ui/cluster-geometry";
-import { CHARGE_STRENGTH, CLUSTER_PULL_STRENGTH, createGraphSimulation, INCREMENTAL_GRAVITY, LINK_DISTANCE, type DepthAnchorMode, type LayoutNode } from "@/features/knowledge/core/layout";
+import { createGraphSimulation, type LayoutNode } from "@/features/knowledge/core/layout";
 import { DEFAULT_PHYSICS_TUNING, DEFAULT_REGION_TUNING, sanitizePhysicsTuning, sanitizeRegionTuning, type PhysicsTuning, type RegionTuning, type GraphRenderSettings } from "@/features/knowledge/core/render-settings";
 import { type Position } from "@/features/knowledge/core/graph-contracts";
 
@@ -208,7 +208,7 @@ export function wrapRegionLabel(
 	}
 	// The remainder rides as the last line: plain if it fits, ellipsized
 	// down to the width if not.
-	let rest = pending.join(" ");
+	const rest = pending.join(" ");
 	if (!rest) return lines;
 	if (measure(rest) <= maxWidth) {
 		lines.push(rest);

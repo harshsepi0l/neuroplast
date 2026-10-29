@@ -1,8 +1,7 @@
 import * as crypto from "node:crypto";
 import type { Usage } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import { Type, type Static, type TSchema } from "typebox";
-import { toToolResult } from "@/features/learning/server/agent/tool-execute";
+import { Type, type Static } from "typebox";
 import type { ModelRole } from "@/server/workspace-config";
 import {
 	FACTORY_SETTINGS,
@@ -13,12 +12,10 @@ import {
 	type ProviderKeyMissing,
 } from "@/features/settings/core/settings";
 import type { PiEngine } from "@/features/connections/server/runtime/models";
-import { runSubagent } from "@/features/artifacts/server/agents/pi-run";
 import { withBgLlmSlot } from "@/features/artifacts/server/agents/bg-llm-semaphore";
 import type { AuditVerdicts, SessionFindings } from "@/features/knowledge/core/graph-contracts";
 import type { CallUsage, ChatRecord, ExtractionRunUsage, ExtractionStageUsage } from "@/features/learning/core/chat";
 import { getGraph, mergeFindings, type DerivedGraph, type EmissionStats, type GraphDeps } from "@/features/knowledge/core/graph";
-import type { GraphStore } from "@/features/knowledge/core/ports";
 import { emit } from "@/features/learning/core/events";
 import { settleGraphLayout } from "@/features/knowledge/core/layout-settle";
 import { batchRuns, coverageOf, messageViewLines } from "@/features/knowledge/core/coverage";
@@ -255,7 +252,6 @@ const auditSchema = Type.Object({
 // stay exactly as they were): one base findings type for both doors,
 // the anchor riding as an optional field.
 type NotesFindings = SessionFindings;
-type NotesAuditResult = AuditVerdicts;
 
 // ── the submit seam (owner, 2026-09-28; redesigned 2026-09-30) ──
 //
