@@ -53,7 +53,7 @@ export function TopBar({
 	return (
 		<header
 			onMouseDown={onMouseDown}
-			className={`${drag ? "neuroplast-drag " : ""}neuroplast-wco-gutter flex h-15 select-none items-center gap-3 border-b border-border px-3`}
+			className={`${drag ? "neuroplast-drag " : ""}neuroplast-wco-gutter flex h-15 select-none items-center gap-3 border-b border-border px-3 print:hidden`}
 		>
 			<SidebarToggle />
 			{children}

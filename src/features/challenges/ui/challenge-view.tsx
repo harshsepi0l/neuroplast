@@ -8,6 +8,8 @@ import type { ChallengeView as ChallengeDto } from "../core/contracts";
 import { challengeRequest } from "./challenge-api";
 import { QuestionInput, QuestionPrompt } from "./question-input";
 import { ProblemScratchpad } from "./problem-scratchpad";
+import { renderDrawingsForPrint, scratchpadKey } from "./print-drawings";
+import { PrintButton, printedOn } from "@/ui/print/print-button";
 
 /** The boss challenge as one page: every question stacked, answered in any order, each saved as it is given. */
 export function ChallengeView({ initial }: { initial: ChallengeDto }) {
@@ -71,8 +73,10 @@ export function ChallengeView({ initial }: { initial: ChallengeDto }) {
   if (view.result) {
     const result = view.result;
     const misses = result.items.filter(item => !item.correct);
+    const optionLabel = (questionId: string, value: string) => view.questions.find(question => question.id === questionId)?.options?.find(option => option.value === value)?.label ?? value;
     return <div className="challenge-page"><div className="challenge-container">
       <button className="challenge-back" onClick={() => router.push("/challenges")}><ArrowLeft size={15}/> All challenges</button>
+      <p className="print-only print-header" suppressHydrationWarning><strong>neuroplast</strong> · Boss challenge · {view.topic.title} · Printed {printedOn()}</p>
       <div className="challenge-eyebrow"><Sparkles size={15}/> {result.goalMet ? "BOSS CLEARED" : "CHALLENGE COMPLETE"}</div>
       <div className="challenge-score-hero"><div><h1>{result.goalMet ? "You beat the boss." : "Now you know what to train."}</h1><p>{view.topic.title} · {result.correct} of {result.total} correct</p></div><strong>{result.points}<small>/100</small></strong></div>
       {view.previousScore !== undefined && <p className="challenge-delta">Previous challenge: {view.previousScore}/100 · {result.points > view.previousScore ? `Up ${result.points - view.previousScore} points` : result.points < view.previousScore ? `Down ${view.previousScore - result.points} points` : "Same score"}</p>}
@@ -82,17 +86,22 @@ export function ChallengeView({ initial }: { initial: ChallengeDto }) {
       </section>
       <div className="challenge-actions">{misses.length > 0 && <Button onClick={() => void train()} isLoading={busy} rightIcon={<ArrowRight size={16}/>}>{view.training?.ready ? "Review training" : "Train weak skills"}</Button>}
         <Button variant={misses.length ? "secondary" : "primary"} onClick={() => void retake()} disabled={busy} leftIcon={<RotateCcw size={16}/>}>Retake boss</Button>
-        <Button variant="ghost" onClick={() => router.push("/knowledge")}>View knowledge tree</Button></div>
+        <Button variant="ghost" onClick={() => router.push("/knowledge")}>View knowledge tree</Button>
+        <PrintButton prepare={renderDrawingsForPrint}/></div>
       {error && <p role="alert" className="error-banner">{error}</p>}
-      {misses.length > 0 && <section className="challenge-review"><div className="challenge-section-heading"><h2>Review missed questions</h2></div>
-        {misses.map(item => { const original = view.questions.find(question => question.id === item.questionId)!; const answerLabel = original.options?.find(option => option.value === item.answer)?.label ?? item.answer;
-          return <div className="challenge-review-item" key={item.questionId}><span className="challenge-tag">{view.skills.find(skill => skill.id === item.skillId)?.name} · {item.mode}</span><QuestionPrompt text={original.prompt}/><p>Your answer: {original.options?.find(option => option.value === item.response)?.label ?? item.response}</p><p><b>Answer: {answerLabel}.</b> {item.explanation}</p></div>; })}</section>}
+      <section className="challenge-review"><div className="challenge-section-heading"><h2>All questions</h2><span>{misses.length ? `${misses.length} missed` : "No misses"}</span></div>
+        {result.items.map((item, index) => { const original = view.questions.find(question => question.id === item.questionId)!;
+          return <div className="challenge-review-item" key={item.questionId}><span className="challenge-tag">{index + 1} · {view.skills.find(skill => skill.id === item.skillId)?.name} · {item.mode} · {item.correct ? "Correct" : "Missed"}</span><QuestionPrompt text={original.prompt}/>
+            <p>Your answer: {optionLabel(item.questionId, item.response)} {item.correct ? "✓" : "✗"}</p>
+            {!item.correct && <p><b>Answer: {optionLabel(item.questionId, item.answer)}.</b> {item.explanation}</p>}
+            <div className="print-only print-drawing" data-print-drawing={scratchpadKey(view.id, item.questionId)}/></div>; })}</section>
     </div></div>;
   }
   const answered = view.questions.filter(question => drafts[question.id]?.trim()).length;
   const remaining = view.questions.length - answered;
   return <div className="challenge-page"><div className="challenge-container challenge-taking">
     <button className="challenge-back" onClick={() => router.push("/challenges")}><ArrowLeft size={15}/> Save and leave</button>
+    <p className="print-only print-header" suppressHydrationWarning><strong>neuroplast</strong> · Boss challenge · {view.topic.title} · Printed {printedOn()} · Name: ______________________</p>
     <div className="challenge-eyebrow">BOSS CHALLENGE · {view.topic.title.toUpperCase()}</div>
     <h1 className="challenge-training-title">{view.questions.length} questions, one page.</h1>
     <p className="challenge-intro">Answer in any order. Each answer saves as you go. No hints; answers are revealed with your score.</p>
@@ -101,6 +110,7 @@ export function ChallengeView({ initial }: { initial: ChallengeDto }) {
       <nav className="challenge-sheet-chips" aria-label="Jump to question">
         {view.questions.map((question, index) => <button key={question.id} type="button" className={drafts[question.id]?.trim() ? "answered" : ""} aria-label={`Question ${index + 1}${drafts[question.id]?.trim() ? ", answered" : ""}`} onClick={() => jump(question.id)}>{index + 1}</button>)}
       </nav>
+      <PrintButton label="Print" prepare={renderDrawingsForPrint}/>
     </div>
     <ol className="challenge-sheet" aria-label="Questions">
       {view.questions.map((question, index) => <li key={question.id} id={`question-${question.id}`} className={`challenge-sheet-item${drafts[question.id]?.trim() ? " answered" : ""}`}>

@@ -9,6 +9,7 @@ import { SettingsDialogProvider } from "@/features/settings/ui/settings-dialog";
 import { ConnectionProvider } from "@/features/connections/ui/connection-context";
 import { SessionProvider } from "@/features/learning/ui/session-context";
 import { DraftProvider } from "@/features/learning/ui/draft-context";
+import { PrintTheme } from "@/ui/print/print-theme";
 export function WorkspaceProviders({ children }: { children: React.ReactNode }) {
-  return <ServerEventsProvider><AppearanceProvider><SidebarProvider><ActivityProvider><SettingsDialogProvider><ConnectionProvider><SessionProvider><DraftProvider><WorkspaceShell>{children}</WorkspaceShell><KeyboardShortcuts/></DraftProvider></SessionProvider></ConnectionProvider></SettingsDialogProvider></ActivityProvider></SidebarProvider></AppearanceProvider></ServerEventsProvider>;
+  return <ServerEventsProvider><AppearanceProvider><SidebarProvider><ActivityProvider><SettingsDialogProvider><ConnectionProvider><SessionProvider><DraftProvider><WorkspaceShell>{children}</WorkspaceShell><KeyboardShortcuts/><PrintTheme/></DraftProvider></SessionProvider></ConnectionProvider></SettingsDialogProvider></ActivityProvider></SidebarProvider></AppearanceProvider></ServerEventsProvider>;
 }

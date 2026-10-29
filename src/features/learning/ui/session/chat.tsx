@@ -56,6 +56,7 @@ import { COLUMN } from "./chat-layout";
 import { ChatActionsContext } from "./chat-actions-context";
 import { escAbortTarget, initialPromptOwed, isSubagentSteer, parseModelsRefusal, parseProviderKeyRefusal } from "./chat-logic";
 import { SessionDock } from "./session-dock";
+import { PrintButton, printedOn } from "@/ui/print/print-button";
 
 /** The quiet system line (custom-message scheme rendering): centered, muted,
  *  small — the transcript's voice for events that are not speech (wake
@@ -934,8 +935,8 @@ export function Chat({
 		    chip) spans from the left sidebar's edge to the panel's edge. The
 		    dock overlays the column bottom (outside the scroller); a spacer in
 		    the transcript reserves its height. */}
-		<div className="integrated-session flex h-full min-h-0">
-			<div className="flex min-w-0 flex-1 flex-col">
+		<div data-print-flow className="integrated-session flex h-full min-h-0">
+			<div data-print-flow className="flex min-w-0 flex-1 flex-col">
 				{/* The top bar is its own block (owner, top-fade round 4): in flow
 				    above the scroller on the plain page background — no gradient. Its
 				    bottom outline (border-b border-border) matches the one that
@@ -1010,9 +1011,10 @@ export function Chat({
 							<div className="min-w-4 flex-1" aria-hidden="true" />
 					</>
 					)}
-					{/* The plan chip (owner, plan-placement round): session-level
-					    structure beside the phase chip — access to the full-DAG popup
-					    at every width; the marginalia is the wide-screen glance view. */}
+					<PrintButton label="Print" className="neuroplast-no-drag shrink-0" />
+					{/* The plan chip: session-level structure beside the phase
+					    chip — opens the full diagram; the outline at the top of
+					    the page is the glance view. */}
 					{planTree && (
 						<Hint label="Open the full plan" side="bottom">
 <button
@@ -1055,11 +1057,12 @@ export function Chat({
 				</TopBar>
 
 				<SessionFind scopeRef={sessionFindScopeRef} scrollContextRef={scrollContextRef} />
-				<div ref={sessionFindScopeRef} className="relative flex min-h-0 flex-1">
-				<Conversation className="h-full min-w-0 flex-1" initial="instant" contextRef={scrollContextRef}>
+				<div data-print-flow ref={sessionFindScopeRef} className="relative flex min-h-0 flex-1">
+				<Conversation data-print-flow className="h-full min-w-0 flex-1" initial="instant" contextRef={scrollContextRef}>
 					<SessionMessageNavigation />
 					<ConversationContent className="min-h-full gap-0 p-0">
 						<div data-session-find-root="" className={`${COLUMN} flex flex-1 flex-col gap-4 pt-4`}>
+							<p className="print-only print-header" suppressHydrationWarning><strong>{titleText}</strong> · Learn session · Printed {printedOn()}</p>
 							<PlanOutline messages={messages} onOpen={() => setPlanOpen(true)} />
 							{messages.length === 0 && !busy && (
 								<ConversationEmptyState
@@ -1388,7 +1391,7 @@ export function Chat({
 					}}
 				/>
 					</ConversationContent>
-					<ConversationScrollButton />
+					<ConversationScrollButton className="print:hidden" />
 				</Conversation>
 
 				{/* The session-scoped focuses (chrome-melt wave, 2026-09-19): mounted

@@ -1,0 +1,38 @@
+/* Print / Save as PDF for Learn sessions and challenges.
+ *
+ * The workspace is an app shell of fixed-height scroll panes; on paper the
+ * page must be one long document instead. Panes marked data-print-flow
+ * (and the challenge page) drop their height and overflow so the browser
+ * paginates the whole transcript. Chrome (sidebar, top bars, inputs that
+ * only work on screen) hides; .print-only blocks (headers, drawings) show.
+ * PrintTheme (print-theme.tsx) switches dark mode off while printing. */
+.print-only { display:none; }
+
+@media print {
+	@page { margin:16mm 14mm; }
+	html, body { height:auto !important; overflow:visible !important; background:#fff !important; }
+	.workspace, .main-pane, .integrated-content, .challenge-page, [data-print-flow] {
+		display:block !important; height:auto !important; min-height:0 !important; max-height:none !important;
+		overflow:visible !important; position:static !important;
+	}
+	/* use-stick-to-bottom's inner scroller carries inline sizing. */
+	[data-print-flow] > div { height:auto !important; overflow:visible !important; }
+	.workspace { background:none !important; }
+	.sidebar, .topbar, .mobile-scrim, .neuroplast-print-hide, .scratchpad-toggle, .scratchpad-panel,
+	.challenge-back, .challenge-actions, .challenge-sheet-chips, .error-banner, [data-testid="session-dock"] { display:none !important; }
+	.print-only { display:block !important; }
+	/* Open dialogs (and their backdrops) never print over the page. */
+	[aria-modal="true"], :has(> [aria-modal="true"]) { display:none !important; }
+	.challenge-score-hero>strong, .challenge-eyebrow, .challenge-delta, .challenge-question-meta { color:var(--text-primary) !important; }
+	.challenge-page { padding:0 !important; }
+	.challenge-container { width:auto !important; max-width:none !important; }
+	.challenge-sheet-bar { position:static !important; }
+	.training-log-current, .challenge-topic, .knowledge-map { box-shadow:none !important; }
+	.challenge-sheet-item, .challenge-review-item, .challenge-skill-row, .challenge-mode-results>div,
+	[data-testid="answered-card"], [data-testid="plan-outline"] { break-inside:avoid; }
+	h1, h2, h3 { break-after:avoid; }
+	.print-drawing svg { display:block; max-width:100%; max-height:9cm; height:auto; margin-top:8px; }
+}
+
+.print-header { margin:0 0 18px; padding-bottom:10px; border-bottom:2px solid var(--border); font-size:11px; color:var(--text-secondary); }
+.print-header strong { color:var(--text-primary); }
