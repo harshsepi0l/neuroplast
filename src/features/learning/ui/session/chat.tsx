@@ -56,6 +56,10 @@ import { ChatActionsContext } from "./chat-actions-context";
 import { escAbortTarget, initialPromptOwed, isSubagentSteer, parseModelsRefusal, parseProviderKeyRefusal } from "./chat-logic";
 import { SessionDock } from "./session-dock";
 import { PrintButton, printedOn } from "@/ui/print/print-button";
+import { questionNumbers } from "@/features/learning/core/answer-summary";
+import { QUESTION_TOOLS } from "@/features/learning/core/pending";
+
+const isQuestionPart = (type: string) => type.startsWith("tool-") && (QUESTION_TOOLS as readonly string[]).includes(type.slice("tool-".length));
 
 /** The quiet system line (custom-message scheme rendering): centered, muted,
  *  small — the transcript's voice for events that are not speech (wake
@@ -394,6 +398,8 @@ export function Chat({
 	// color-coded dotted divider at each boundary; the header chip reads the
 	// session's current phase.
 	const phases = useMemo(() => phaseTimeline(messages), [messages]);
+	// "Check 3": every question numbered in the order it was asked.
+	const questionNo = useMemo(() => questionNumbers(messages), [messages]);
 
 	const [text, setText] = useState("");
 	/* The composer's value mirror, kept current at every write site via
@@ -1196,6 +1202,9 @@ export function Chat({
 													case "step-start":
 														if (teachBoundary)
 															return <PhaseDivider key={`teach-step-${pi}`} phase="teach" />;
+														// No hairline right after an answered question: its
+														// one-line record already ends in a rule.
+														if (pi > 0 && m.parts[pi - 1]?.state === "output-available" && isQuestionPart(m.parts[pi - 1]!.type)) return null;
 														return pi > 0 ? <Separator key={pi} className="my-3" /> : null;
 													case "data-plan-block":
 														// The plan in the chat (wave 4): a frozen snapshot
@@ -1216,7 +1225,7 @@ export function Chat({
 														// transcript; answered ones render as graded records.
 														if (part.state === "output-available") {
 															return (
-																<AnsweredCard key={pi} answer={part.output as QuestionAnswerData} input={part.input} />
+																<AnsweredCard key={pi} answer={part.output as QuestionAnswerData} input={part.input} number={part.toolCallId ? questionNo.get(part.toolCallId) : undefined} />
 															);
 														}
 														return null;
@@ -1290,6 +1299,7 @@ export function Chat({
 
 						<SessionDock
 					pending={pending}
+					questionNumber={pending ? questionNo.get(pending.toolCallId) : undefined}
 					practice={activeProblem}
 					compactionRunning={compacting}
 					onSubmitThinking={submitThinking}

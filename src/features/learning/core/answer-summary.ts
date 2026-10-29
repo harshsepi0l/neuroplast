@@ -1,4 +1,5 @@
 import type { QuestionAnswerData } from "./question-core";
+import { QUESTION_TOOLS } from "./pending";
 
 /** The card's label: the tool's own name first (probe-phase calls read
  *  Probe/Recall), else by kind. Old records without `tool` use the kind. */
@@ -42,4 +43,21 @@ export function answerSummary(answer: QuestionAnswerData, maxText = 120): string
 	}
 	if (answer.kind === "quiz" && typeof answer.confidence === "number") parts.push(confidenceWord(answer.confidence));
 	return parts.join(" · ");
+}
+
+/** Numbers every question in the transcript (answered or pending) in
+ *  the order it was asked: toolCallId → 1, 2, 3… so a card can read
+ *  "Check 3". Errored calls the model retried are not counted. */
+export function questionNumbers(
+	messages: readonly { parts: readonly { type: string; toolCallId?: string; state?: string }[] }[],
+): Map<string, number> {
+	const numbers = new Map<string, number>();
+	for (const m of messages) {
+		for (const part of m.parts) {
+			if (!part.type.startsWith("tool-") || !part.toolCallId || part.state === "output-error") continue;
+			if (!(QUESTION_TOOLS as readonly string[]).includes(part.type.slice("tool-".length))) continue;
+			if (!numbers.has(part.toolCallId)) numbers.set(part.toolCallId, numbers.size + 1);
+		}
+	}
+	return numbers;
 }

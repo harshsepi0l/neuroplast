@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { answerLabel, answerSummary, answerVerdict, confidenceWord } from "@/features/learning/core/answer-summary";
+import { answerLabel, answerSummary, answerVerdict, confidenceWord, questionNumbers } from "@/features/learning/core/answer-summary";
 
 const quiz = (over = {}) => ({
   kind: "quiz", tool: "quiz", questionType: "check", questionText: "Solve 5 − 2x = 17.",
@@ -41,4 +41,13 @@ test("labels follow the tool name, then the kind", () => {
   assert.equal(confidenceWord(30), "guessing");
   assert.equal(confidenceWord(50), "unsure");
   assert.equal(confidenceWord(100), "certain");
+});
+
+test("questions are numbered in the order they were asked, skipping retried errors", () => {
+  const numbers = questionNumbers([
+    { parts: [{ type: "text" }, { type: "tool-plan_init", toolCallId: "p" }, { type: "tool-probe", toolCallId: "a", state: "output-available" }] },
+    { parts: [{ type: "tool-quiz", toolCallId: "bad", state: "output-error" }, { type: "tool-quiz", toolCallId: "b", state: "output-available" }] },
+    { parts: [{ type: "tool-explain", toolCallId: "c", state: "input-available" }] },
+  ]);
+  assert.deepEqual([...numbers], [["a", 1], ["b", 2], ["c", 3]]);
 });
