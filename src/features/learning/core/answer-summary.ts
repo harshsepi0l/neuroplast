@@ -70,6 +70,8 @@ const LATEX_SYMBOLS: Record<string, string> = {
  *  markers turned into readable characters (\(P(A \mid B)\) → P(A | B)). */
 export function plainLine(text: string): string {
 	return text
+		// Money keeps its dollar sign: `\$10` and a bare `$10` both read $10.
+		.replace(/\\?\$(?=\d[\d,]*(?:\.\d+)?(?:[kKMB]|bn)?(?:$|[\s.,;:!?)\]'"—–-]))/g, "\u0000")
 		.replace(/\\[()[\]]/g, "")
 		.replace(/\\(?:text|mathrm|mathbf|operatorname)\{([^}]*)\}/g, "$1")
 		.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "$1/$2")
@@ -77,5 +79,6 @@ export function plainLine(text: string): string {
 		.replace(/[{}$]/g, "")
 		.replace(/[*_`]/g, "")
 		.replace(/\s+/g, " ")
+		.replace(/\u0000/g, "$")
 		.trim();
 }

@@ -153,6 +153,32 @@ function findInlineDollarCloseEscapeAware(text: string, from: number): number {
 	return -1;
 }
 
+/** A `$` that reads as an amount of money: digits (with , or . groups and
+ *  an optional k/M/B) followed by a space, punctuation or the end — `$10`,
+ *  `$3.50.`, `$2M,` — but not `$5$` or `$2x$`. */
+const CURRENCY_RE = /^\$\d[\d,]*(?:\.\d+)?(?:[kKMB]|bn)?(?=$|[\s.,;:!?)\]'"—–-])/;
+
+function isCurrency(text: string, i: number): boolean {
+	return CURRENCY_RE.test(text.slice(i, i + 32));
+}
+
+/** The closer of an inline `$` math span, or -1 when the `$` opens none.
+ *  Pandoc's rules on top of the escape-aware scan: the opener is followed
+ *  by a non-space, a closer is preceded by a non-space and not followed by
+ *  a digit, and a span never crosses a blank line. An unpaired `$` is a
+ *  literal dollar. */
+function findInlineDollarClose(text: string, i: number): number {
+	const first = text[i + 1];
+	if (first === undefined || /\s/.test(first)) return -1;
+	for (let from = i + 1; ;) {
+		const closeAt = findInlineDollarCloseEscapeAware(text, from);
+		if (closeAt === -1) return -1;
+		if (text.slice(i, closeAt).includes("\n\n")) return -1;
+		if (!/\s/.test(text[closeAt - 1]!) && !/\d/.test(text[closeAt + 1] ?? "")) return closeAt;
+		from = closeAt + 1;
+	}
+}
+
 /** Replace `\$` (odd-backslash dollars) inside a math span with the
  *  dollar-free `\text{\textdollar}` — KaTeX-safe in math mode (bare
  *  `\textdollar` is text-mode-only there). Even-backslash dollars (`\\$`,
@@ -260,16 +286,18 @@ export function transformMathDelimiters(markdown: string): string {
 		if (ch === "$" && !isEscaped(markdown, i)) {
 			const run = dollarRun(markdown, i);
 			if (run === 1) {
-				const closeAt = findInlineDollarCloseEscapeAware(markdown, i + 1);
-				if (closeAt !== -1) {
-					const content = markdown.slice(i + 1, closeAt);
-					const replaced = replaceEscapedDollars(content);
-					if (replaced !== content) {
-						out.push(`$${replaced}$`);
-						i = closeAt + 1;
-						continue;
-					}
+				// Money, not math (2026-10-29): "$10 if heads and $0 if tails"
+				// otherwise renders "10 if heads and " as one italic formula.
+				const closeAt = isCurrency(markdown, i) ? -1 : findInlineDollarClose(markdown, i);
+				if (closeAt === -1) {
+					out.push("\\$");
+					i += 1;
+					continue;
 				}
+				// Copy the whole span so its closer is never read as an opener.
+				out.push(`$${replaceEscapedDollars(markdown.slice(i + 1, closeAt))}$`);
+				i = closeAt + 1;
+				continue;
 			} else {
 				out.push(markdown.slice(i, i + run));
 				i += run;
