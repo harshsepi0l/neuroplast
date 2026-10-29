@@ -9,7 +9,6 @@ import type { QuestionAnswerData } from "@/features/learning/core/question-core"
 import type { SessionPricing } from "@/features/learning/core/prices";
 import { findPendingToolCall } from "@/features/learning/core/pending";
 import { COLUMN, DOCK } from "./chat-layout";
-import { AttachButton, AttachmentChips, type Attachments } from "@/features/learning/ui/composer/attach";
 
 /**
  * The end of the lesson page: the open question, the practice problem, or
@@ -35,7 +34,6 @@ export function SessionDock({
 	setupCta,
 	challengeCta,
 	stageActions,
-	attachments,
 	queuedSteers,
 }: {
 	pending: ReturnType<typeof findPendingToolCall>;
@@ -62,8 +60,6 @@ export function SessionDock({
 	challengeCta?: React.ReactNode;
 	/** Skip / start buttons for the warm-up and plan stages. */
 	stageActions?: React.ReactNode;
-	/** The paperclip under an open question: files ride the answer. */
-	attachments?: Attachments;
 }) {
 	const mode = pending ? `question:${pending.toolCallId}` : practice ? `practice:${practice.toolCallId}` : "chat";
 	return (
@@ -102,10 +98,11 @@ export function SessionDock({
 					)}
 				</div>
 			</div>
-			{pending && attachments && (
-				<div data-testid="answer-attach" className="mt-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground print:hidden">
-					<AttachButton attachments={attachments} label="Attach file" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 hover:bg-accent hover:text-foreground disabled:opacity-40" />
-					<AttachmentChips attachments={attachments} />
+			{/* The composer stays under an open question, so the learner can
+			    always steer; its paperclip also covers files for the answer. */}
+			{pending && (
+				<div data-testid="steer-composer" className="mt-4 overflow-hidden rounded-2xl border bg-card print:hidden">
+					{composer}
 				</div>
 			)}
 			{/* The open question stands alone, like the rest of the page;

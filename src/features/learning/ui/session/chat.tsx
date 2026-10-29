@@ -98,7 +98,8 @@ export function Chat({
 	/** Where the session is shown. "learn" (Learn, /chat/<id>) is the
 	 *  learning space: once the lesson starts it shows only the lesson.
 	 *  "record" (Sessions, /sessions/<id>) is the whole session, every stage
-	 *  and the challenge, read-only. */
+	 *  and the challenge, with the question and composer; it never starts a
+	 *  turn on its own (no opening send, no auto-continue). */
 	space?: "learn" | "record";	initialPrompt?: string;
 	/** A teacher turn is running server-side but attached to no client
 	 * (navigated away mid-turn, returned while in flight). */
@@ -319,7 +320,7 @@ export function Chat({
 	useEffect(() => {
 		if (mountContinuation.current) return;
 		mountContinuation.current = true;
-		// The record (Sessions) only shows the session; turns start in Learn.
+		// The record (Sessions) never starts a turn on its own.
 		if (space === "learn" && !turnInFlight && status === "ready" && needsContinuation(initialMessages)) {
 			void send({ type: "continue" });
 		}
@@ -511,8 +512,10 @@ export function Chat({
 	// Files picked with the paperclip ride the next send as path lines.
 	const attachments = useAttachments();
 	const sentFilesRef = useRef<typeof attachments.files>([]);
+	// An open question does not lock the composer: sending skips the
+	// question first (doSend), so the learner can always steer.
 	const canSend =
-		(text.trim().length > 0 || attachments.files.length > 0) && !attachments.uploading && !pending && !activeProblem && !compacting;
+		(text.trim().length > 0 || attachments.files.length > 0) && !attachments.uploading && !activeProblem && !compacting;
 	// The stage buttons: skip the warm-up (before probe_done), start the
 	// lesson (the first plan waiting on the learner).
 	const awaitingStart = kind === "teach" && planAwaitingStart(nativeMessages, false);
@@ -879,7 +882,7 @@ const setupOpenRef = useRef(setupOpen);
 	});
 
 	const onSend = () => {
-		if (pending || compacting) return;
+		if (compacting) return;
 		doSteerOrSend();
 	};
 	/** The typed text plus any attached files' path lines; clears both. */
@@ -892,12 +895,22 @@ const setupOpenRef = useRef(setupOpen);
 		return withAttachments(t || "Here is my material.", files);
 	};
 	const doSend = () => {
-		if (busy || pending || compacting) return;
+		if (busy || compacting) return;
 		const t = takeMessage();
 		if (!t) return;
 		draftRef.current = t; // the refusal flow's preserve-and-replay seam
 		applyText("");
-		void send({ type: "text", text: t });
+		// A message with a question open steers away from it: the question
+		// is recorded as skipped (a tool call needs its result), then the
+		// message starts the next turn.
+		const open = pendingRef.current;
+		void (async () => {
+			if (open) {
+				const question = (open.input as { question?: string } | null)?.question ?? "";
+				await dismissQuestion(open.toolCallId, dismissedAnswer(toolQuestionKind(open.tool), question));
+			}
+			void send({ type: "text", text: t });
+		})();
 	};
 
 	/* STEER VS SEND (owner arc 2026-10-03): a send while a turn runs steers
@@ -910,7 +923,7 @@ const setupOpenRef = useRef(setupOpen);
 	 * time the send's POST resolved, so the steer lands. Idle takes the
 	 * plain send; a raced settle 409s and falls back to exactly that. */
 	const doSteerOrSend = () => {
-		if (pending || compacting) return;
+		if (compacting) return;
 		if (busy) {
 			const t = takeMessage();
 			if (!t) return;
@@ -1345,7 +1358,7 @@ const setupOpenRef = useRef(setupOpen);
 									<Shimmer duration={1}>COMPACTING CONTEXT…</Shimmer>
 								</span>
 							)}
-								{!loadingStage && (status === "submitted" || turnInFlight || (status === "streaming" && !showThinking && lastPartIsReasoning(messages))) && (
+								{!(loadingStage && space === "learn") && (status === "submitted" || turnInFlight || (status === "streaming" && !showThinking && lastPartIsReasoning(messages))) && (
 								<div role="status" className="flex items-center gap-2.5 py-1 text-muted-foreground">
 									<BrailleSpinner label="Working" />
 									<Shimmer duration={1}>{workingLabel(phases.at(-1) ?? "probe", kind)}</Shimmer>
@@ -1358,7 +1371,6 @@ const setupOpenRef = useRef(setupOpen);
 							)}
 						</div>
 
-						{space === "learn" && (
 						<SessionDock
 					pending={pending}
 					questionNumber={pending ? questionNo.get(pending.toolCallId) : undefined}
@@ -1408,7 +1420,7 @@ const setupOpenRef = useRef(setupOpen);
 							nextProblem={nextReady}
 							attachments={attachments}
 							onNext={sendNext}
-							placeholder={nextReady ? "Ask anything, or press Enter for the next one." : undefined}
+							placeholder={nextReady ? "Ask anything, or press Enter for the next one." : pending ? "Or tell the tutor something else (skips this question)…" : undefined}
 						/>
 					}
 					onSubmitAnswer={(output) => {
@@ -1423,9 +1435,7 @@ const setupOpenRef = useRef(setupOpen);
 						attachments.clear();
 						submitAnswer(pending.tool, pending.toolCallId, files.length > 0 ? { ...output, files } : output);
 					}}
-					attachments={attachments}
-				/>
-						)}
+					/>
 					</ConversationContent>
 					<ConversationScrollButton className="print:hidden" />
 				</Conversation>
