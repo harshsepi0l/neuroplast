@@ -148,7 +148,18 @@ const ACTIVITY_LABELS: Record<string, string> = {
 	pdf: "Reading a PDF…",
 	plan_init: "Drawing up the plan…",
 	probe_done: "Concluding the assessment…",
+	list_sessions: "Looking over your past sessions…",
+	list_propositions: "Checking what you learned before…",
 };
+
+/** The tutor's background legwork: reading the learner's files and
+ *  looking over past sessions. These steps never render in the
+ *  transcript, live or settled. */
+export const BACKGROUND_TOOLS: readonly string[] = ["read", "ls", "find", "grep", "list_sessions", "list_propositions"];
+
+export function isBackgroundTool(tool: string): boolean {
+	return BACKGROUND_TOOLS.includes(tool);
+}
 
 /** The activity label for ONE running tool (owner, streaming round
  *  2026-10-01): the live tool-input card carries it inline — spinner +

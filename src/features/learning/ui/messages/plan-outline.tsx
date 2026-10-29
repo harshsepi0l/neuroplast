@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useMemo } from "react";
 import { CheckIcon } from "lucide-react";
 import { derivedNodeStatus, derivePlanStatuses } from "@/features/learning/core/plan";
@@ -8,9 +9,9 @@ import { cn } from "@/lib/utils";
 /**
  * The lesson plan as a numbered outline at the top of the page: visited
  * steps checked, the current one marked, upcoming ones dashed. Statuses
- * derive from the transcript like the diagram's. Click → the full plan.
+ * derive from the transcript. The full skill tree lives in Knowledge.
  */
-export function PlanOutline({ messages, onOpen }: { messages: readonly PopupMessage[]; onOpen: () => void }) {
+export function PlanOutline({ messages }: { messages: readonly PopupMessage[] }) {
 	const tree = useMemo(() => latestTree(messages), [messages]);
 	const statuses = useMemo(
 		() => (tree ? derivePlanStatuses(tree, messages as Parameters<typeof derivePlanStatuses>[1]) : null),
@@ -22,9 +23,9 @@ export function PlanOutline({ messages, onOpen }: { messages: readonly PopupMess
 		<nav aria-label="Lesson plan" data-testid="plan-outline" className="neuroplast-print-keep rounded-2xl border bg-card px-5 py-4">
 			<div className="mb-2 flex items-center justify-between font-ui text-xs font-medium uppercase tracking-wide text-muted-foreground">
 				<span>Plan</span>
-				<button type="button" onClick={onOpen} className="neuroplast-print-hide cursor-pointer normal-case tracking-normal hover:text-foreground">
-					Open the full plan
-				</button>
+				<Link href="/knowledge" className="neuroplast-print-hide normal-case tracking-normal hover:text-foreground">
+					See it in Knowledge
+				</Link>
 			</div>
 			<ol className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
 				{ordered.map((node, i) => {

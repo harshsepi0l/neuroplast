@@ -31,12 +31,9 @@ export function LiveToolCard({ part }: ArtifactPartProps) {
 	const p = part as StreamingToolPart;
 	const tool = p.type.replace(/^tool-/, "");
 	const inp = (p.input ?? {}) as Record<string, unknown>;
-	// The headline argument (ToolCallCard's rule, shown as given): path for
-	// read/ls, pattern for find/grep, session for list_propositions.
-	let arg = "";
-	if (typeof inp.path === "string" && inp.path) arg = inp.path;
-	else if (typeof inp.pattern === "string" && inp.pattern) arg = inp.pattern;
-	else if (typeof inp.session === "string" && inp.session) arg = inp.session;
+	// The headline argument, shown as given (a PDF's path, say). Background
+	// steps never get a live card (chat.tsx, isBackgroundTool).
+	const arg = typeof inp.path === "string" ? inp.path : "";
 
 	const hasInput = p.input != null && Object.keys(inp).length > 0;
 

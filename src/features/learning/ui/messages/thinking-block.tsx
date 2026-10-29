@@ -95,7 +95,7 @@ export function ThinkingBlock({
 		   rounds, 2026-10-05): the heading sits INSIDE the rail, and the
 		   rail's full width (border + padding) is exactly THREE CHARACTERS of
 		   the mono heading font — 'YOUR THINKING' is three chars shorter
-		   than 'AGENT'S THINKING', so with the user row offset by the rail
+		   than 'TUTOR'S THINKING', so with the user row offset by the rail
 		   and the agent row flush, the chevrons line up vertically. Three
 		   (not one, owner round 5): the wider gap reads better than the
 		   cramped single-char rail. The heading

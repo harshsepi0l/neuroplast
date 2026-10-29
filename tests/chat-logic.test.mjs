@@ -43,3 +43,32 @@ test("provider-key refusals match only the real envelope", () => {
   assert.equal(parseProviderKeyRefusal("provider_key_missing"), false);
 });
 
+
+test("a re-sent message shows once; different messages both show", async () => {
+  const { repeatedUserMessage } = await import("@/features/learning/ui/session/chat-logic");
+  const u = (text) => ({ role: "user", parts: [{ type: "text", text }] });
+  const msgs = [u("bayes"), u("bayes"), { role: "assistant", parts: [] }, u("bayes"), u("other")];
+  assert.deepEqual(msgs.map((_, i) => repeatedUserMessage(msgs, i)), [false, true, false, false, false]);
+});
+
+test("the warm-up counts answered probe questions and right answers", async () => {
+  const { warmupSummary, workingLabel, lastPartIsReasoning } = await import("@/features/learning/ui/session/chat-logic");
+  const w = warmupSummary([{ role: "assistant", parts: [
+    { type: "tool-probe", toolCallId: "a", state: "output-available", output: { correct: true } },
+    { type: "tool-recall", toolCallId: "b", state: "output-available", output: {} },
+    { type: "tool-probe", toolCallId: "c", state: "input-available" },
+    { type: "tool-quiz", toolCallId: "d", state: "output-available", output: { correct: true } },
+  ] }]);
+  assert.deepEqual([w.first, w.answered, w.correct, [...w.ids]], ["a", 2, 1, ["a", "b"]]);
+  assert.equal(workingLabel("probe", "teach"), "Picking your next question…");
+  assert.equal(workingLabel("teach", "teach"), "Writing the next step…");
+  assert.equal(lastPartIsReasoning([{ role: "assistant", parts: [{ type: "text" }, { type: "reasoning" }] }]), true);
+});
+
+test("leaked question-tool JSON is removed from lesson text; other JSON stays", async () => {
+  const { stripLeakedToolArgs } = await import("@/features/learning/ui/session/chat-logic");
+  const leaked = '{ "type": "predict", "question": "Sick or false positive?", "options": [ { "label": "Sick" } ], "correctAnswer": "false" }';
+  assert.equal(stripLeakedToolArgs(`Before.\n\n${leaked}\n\nAfter.`), "Before.\n\nAfter.");
+  assert.equal(stripLeakedToolArgs('Data: {"a": 1}'), 'Data: {"a": 1}');
+  assert.equal(stripLeakedToolArgs('{"a": 1}'), '{"a": 1}');
+});

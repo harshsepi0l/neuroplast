@@ -4,7 +4,6 @@ import { DemoCard } from "@/features/artifacts/ui/demo-card";
 import { JobCard, PdfJobCard } from "@/features/artifacts/ui/job-card";
 import { VisualCard } from "@/features/artifacts/ui/visual-card";
 import { ProbeDoneCard } from "@/features/learning/ui/messages/probe-done-card";
-import { ToolCallCard } from "@/features/learning/ui/messages/tool-call-card";
 import { ProblemCard, ConcludeCard } from "@/features/learning/ui/docks/practice-cards";
 
 /**
@@ -31,23 +30,11 @@ export const artifactRenderers: Record<string, ComponentType<ArtifactPartProps>>
 	// The probe conclusion: the assessment belongs to the learner as much as
 	// to the transcript. Plain v1 card.
 	probe_done: ProbeDoneCard,
-	// The learner-filesystem set (sources v1): one quiet expandable
-	// tool-call card each — collapsed one-liner (tool name + headline
-	// argument), full input/output on expand.
-	read: ToolCallCard,
-	ls: ToolCallCard,
-	find: ToolCallCard,
-	grep: ToolCallCard,
+	// Background steps (reading files, looking over past sessions) render
+	// nothing: they are the tutor's own legwork, not part of the lesson.
 	// The practice pair (2026-10-04): the pose renders the statement ONLY
 	// (the commitment lives in the call's arguments and never renders);
 	// the conclusion carries the outcome + verdict + the reveal.
 	problem: ProblemCard,
 	conclude: ConcludeCard,
-	// The prober's graph tools (wave 7): same quiet expandable card —
-	// collapsed one-liner (tool name + the session id for
-	// list_propositions), the tool's own compact row-per-line output
-	// (name / level / date) verbatim on expand, exactly the read/ls
-	// discipline (their results are pre-formatted strings too).
-	list_sessions: ToolCallCard,
-	list_propositions: ToolCallCard,
 };
