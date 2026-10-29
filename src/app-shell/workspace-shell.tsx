@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { SOURCE_URL } from "./source";
 import { usePathname, useRouter } from "next/navigation";
 import { BookOpen, ChevronDown, ChevronRight, GitBranch, Home, MessageSquare, Settings2, Trophy } from "lucide-react";
 import { Button } from "@/ui/easyui/Button";
@@ -45,6 +46,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
           {recentSession ? <button className="sidebar-plan" onClick={() => navigate(`/chat/${recentSession.id}`)}><strong>{recentSession.title}</strong><span>{recentSession.busy ? "Responding…" : "Continue recent session"}</span></button> : <div className="sidebar-plan"><strong>Recent session</strong><span>{sessionsLoading ? "Loading sessions…" : sessionsError ? "Sessions unavailable" : "Your next session starts here."}</span></div>}
         </div>
         <Button variant="ghost" fullWidth className="connection-footer" onClick={() => navigate("/connections")} aria-label="Manage model connections"><span className={`connection-dot ${modelReady ? "online" : ""}`}/><span>{modelReady ? "Model configured" : "Connect a model"}</span><ChevronRight size={14}/></Button>
+        <a className="source-link" href={SOURCE_URL} target="_blank" rel="noreferrer">Source code · AGPL-3.0</a>
       </div>
     </aside><main className="main-pane">{!activeChat && <WorkspaceHeader title={title} modelLabel={modelLabel} modelReady={modelReady}/>}<div className="integrated-content">{children}</div></main>
   </div>;

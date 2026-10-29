@@ -1,7 +1,7 @@
 # Neuroplast: Grok connections
 
-Status: implemented flow; live registration and inference verification pending  
-Updated: October 24, 2026
+Status: implemented; sign-in uses pi's built-in xAI login by default  
+Updated: October 29, 2026
 
 Neuroplast is a Next.js website with one interface and one learning engine.
 Grok is the first subscription integration. The existing Pi agent runtime runs
@@ -43,15 +43,18 @@ with xAI before describing hosted subscription access as production-ready.
 
 ## Configuration
 
-Set `XAI_OAUTH_CLIENT_ID` to a registration authorized for your deployment.
-No third-party application's client ID is embedded. Public clients can omit
-`XAI_OAUTH_CLIENT_SECRET`; confidential clients can provide it on the server.
-The configurable default scopes are `openid profile email offline_access api:access`.
-They must match the registration's approved scope set.
+By default, sign-in goes through pi's own SuperGrok / X Premium login
+(`GrokCliAuthorization`, built on `xaiProvider().auth.oauth` from
+`@earendil-works/pi-ai`). pi runs the device-code flow; the server starts it,
+shows the code and link, and polls until the learner approves. No client ID is
+needed.
 
-Without a client ID, Connections shows an explicit setup notice and disables
-the sign-in button. It does not simulate a successful connection. Model access
-depends on what xAI returns. An empty or failed discovery remains visible.
+To use your own xAI registration instead, set `XAI_OAUTH_CLIENT_ID`. Public
+clients can omit `XAI_OAUTH_CLIENT_SECRET`; confidential clients can provide it
+on the server. The configurable default scopes are
+`openid profile email offline_access api:access` and must match the
+registration's approved scope set. Model access depends on what xAI returns;
+an empty or failed discovery remains visible.
 
 Production also needs a stable 32-byte base64 `NEUROPLAST_CREDENTIAL_KEY`,
 HTTPS, the canonical `NEUROPLAST_ORIGIN`, persistent storage, and
@@ -70,8 +73,10 @@ provider adapter resolves that owner's access token per dispatch; tokens are
 never copied into client state or a process-wide environment variable.
 API-key providers can still be configured through Preferences.
 
-Research and knowledge extraction can consume model allowance in the
-background. Grok exposes an explicit background-use switch, initially off.
+Research, PDF reading and knowledge extraction can consume model allowance in
+the background. Grok exposes a background-use switch, on unless the learner
+turns it off. The warm-up → plan handoff is the lesson's own next step and never
+counts as background use.
 Disconnect removes the local credential before attempting remote revocation.
 Failure to confirm provider-side revocation is shown to the user.
 
@@ -86,13 +91,12 @@ ownership model and corresponding persistence changes first.
 There is no Electron process, desktop download, or shared borrowed CLI login.
 Optional Chrome rendering runs on the server for interactive artifacts.
 
-## Verification still required with a real registration
+## Verification
 
-Confirm approval, denial, expiry, refresh, model discovery, and an actual tutoring
-turn. Check that subscription-backed inference is authorized for the deployment,
-that available model IDs match the runtime catalog, and that background-consent
-and disconnect behavior apply to real requests. Local page/API checks and a
-successful production build cannot establish these provider entitlements.
+Sign-in through pi's login and tutoring turns have run on a real SuperGrok
+account. Still worth confirming against a live account after changes: denial,
+expiry, token refresh, disconnect, and the background-use switch on real
+requests. A custom `XAI_OAUTH_CLIENT_ID` registration has not been tested.
 
 Other subscription providers are future integrations. Their adapters can live in
 Connections without changing the Learning aggregate or replacing the UI.

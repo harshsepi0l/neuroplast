@@ -23,6 +23,8 @@
 .workspace .sidebar-footer { margin-top:auto; border:0; padding-top:24px; }
 .workspace .sidebar-plan { display:block; width:100%; border:2px solid var(--stroke); border-radius:9px 11px 8px 10px; padding:12px; background:var(--surface); color:var(--text-secondary); text-align:left; font-size:11px; transform:rotate(.25deg); }
 .workspace .sidebar-plan strong { display:block; margin-bottom:5px; color:var(--text-primary); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.workspace .source-link { display:block; margin-top:6px; padding:2px 8px; color:var(--text-secondary); font-size:11px; text-align:center; text-decoration:underline; text-underline-offset:3px; }
+.workspace .source-link:hover { color:var(--text-primary); }
 .workspace .connection-footer { padding:0 4px; margin-top:10px; }
 .workspace .topbar { height:54px; margin:10px 14px 0 0; padding:0 26px; border-bottom:2px solid var(--stroke); background:transparent; }
 .workspace .breadcrumb,.workspace .topbar-title { font-size:13px; }
