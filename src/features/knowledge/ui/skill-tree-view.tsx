@@ -147,12 +147,14 @@ function LayeredTree({ topic, selected, onSelect }: { topic: SkillTreeTopic; sel
 	);
 }
 
-/** Straight to a challenge on a Learn topic — no lesson needed. Opens the
- *  session's challenge when one exists, builds it otherwise. */
+/** A Learn topic's next moves: back into the lesson, or straight to a
+ *  challenge (opened when one exists, built otherwise). */
 function TopicChallenge({ sessionId }: { sessionId: string }) {
+	const router = useRouter();
 	const { take, busy, error } = useSessionChallenge(sessionId);
 	return (
 		<div className="flex w-full items-center gap-3">
+			<Button size="sm" data-testid="topic-learn" onClick={() => router.push(`/chat/${sessionId}`)}>Learn</Button>
 			<Button size="sm" variant="secondary" isLoading={busy} onClick={() => void take()}>Take the challenge</Button>
 			{(busy || error) && <span className="text-sm text-muted-foreground">{error || "Building your challenge…"}</span>}
 		</div>
@@ -213,7 +215,7 @@ function Detail({ topic, node }: { topic: SkillTreeTopic; node: SkillTreeNode })
 			<div className="flex flex-wrap gap-2.5">
 				{topic.kind === "learn" ? (
 					<>
-						<Button size="sm" onClick={() => router.push(`/chat/${topic.sessionId}`)}>Continue in session</Button>
+						<Button size="sm" onClick={() => router.push(`/chat/${topic.sessionId}`)}>Learn</Button>
 						<Button size="sm" variant="secondary" isLoading={busy} onClick={() => void start(`Practice: ${node.title} (${topic.title})`, "practice")}>Practice it</Button>
 					</>
 				) : (

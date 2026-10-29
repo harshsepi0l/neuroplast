@@ -1,5 +1,6 @@
 "use client";
 import { openingMessage, clearOpeningMessage } from "../opening-message";
+import Link from "next/link";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useChatSession } from "@/features/learning/ui/session/session";
 import { visibleQueuedSteers } from "@/features/learning/ui/session/session-core";
@@ -84,8 +85,8 @@ export function Chat({
 	initialConfigured = false,
 	kind = "teach",
 	challenge,
-}: {
-	chatId: string;
+	space = "learn",
+}: {	chatId: string;
 	title: string;
 	initialMessages: NeuroplastMessage[];
 	/** The session kind (practice sessions, owner 2026-10-04): practice
@@ -94,7 +95,11 @@ export function Chat({
 	kind?: "teach" | "practice";
 	/** The challenge made from this session, if any. */
 	challenge?: SessionChallengeInfo;
-	initialPrompt?: string;
+	/** Where the session is shown. "learn" (Learn, /chat/<id>) is the
+	 *  learning space: once the lesson starts it shows only the lesson.
+	 *  "record" (Sessions, /sessions/<id>) is the whole session, every stage
+	 *  and the challenge, read-only. */
+	space?: "learn" | "record";	initialPrompt?: string;
 	/** A teacher turn is running server-side but attached to no client
 	 * (navigated away mid-turn, returned while in flight). */
 	initiallyInFlight?: boolean;
@@ -134,11 +139,11 @@ export function Chat({
 	const sentInitial = useRef(false);
 	useEffect(() => {
 		const prompt = initialPrompt || openingMessage(chatId);
-		if (!sentInitial.current && initialPromptOwed(initialMessages, prompt)) {
+		if (space === "learn" && !sentInitial.current && initialPromptOwed(initialMessages, prompt)) {
 			sentInitial.current = true;
 			void send({ type: "text", text: prompt! });
 		}
-	}, [chatId, initialPrompt, initialMessages, send]);
+	}, [chatId, initialPrompt, initialMessages, send, space]);
 	useEffect(() => {
 		if (status === "ready" && nativeMessages.some(message => message.role === "user")) clearOpeningMessage(chatId);
 	}, [chatId, nativeMessages, status]);
@@ -314,7 +319,8 @@ export function Chat({
 	useEffect(() => {
 		if (mountContinuation.current) return;
 		mountContinuation.current = true;
-		if (!turnInFlight && status === "ready" && needsContinuation(initialMessages)) {
+		// The record (Sessions) only shows the session; turns start in Learn.
+		if (space === "learn" && !turnInFlight && status === "ready" && needsContinuation(initialMessages)) {
 			void send({ type: "continue" });
 		}
 		// mount-only by design (turnInFlight read at initial value)
@@ -566,10 +572,10 @@ export function Chat({
 		// record ENDS on un-consumed results, the dock owns no question, and
 		// nothing runs. The native fold (needsContinuation) is the old SDK
 		// lastAssistantMessageIsCompleteWithToolCalls check.
-		if (status === "ready" && needsContinuation(record.messages)) {
+		if (space === "learn" && status === "ready" && needsContinuation(record.messages)) {
 			void send({ type: "continue" });
 		}
-	}, [chatId, setMessages, send, status]);
+	}, [chatId, setMessages, send, status, space]);
 
 	// The settled terminal's other half (stream-reattach wave): the
 	// transport resolved turn-settled — no turn running, the record is
@@ -1209,6 +1215,15 @@ const setupOpenRef = useRef(setupOpen);
 					<button type="button" aria-pressed={showThinking} onClick={toggleThinking} className="neuroplast-no-drag shrink-0 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground print:hidden">
 						{showThinking ? "Hide thinking" : "Show thinking"}
 					</button>
+					{kind === "teach" && (space === "record" ? (
+						<Link href={`/chat/${chatId}`} data-testid="continue-learning" className="neuroplast-no-drag shrink-0 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90 print:hidden">
+							Continue learning
+						</Link>
+					) : (
+						<Link href={`/sessions/${chatId}`} data-testid="session-record-link" className="neuroplast-no-drag shrink-0 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground print:hidden">
+							Session record
+						</Link>
+					))}
 					<PrintButton label="Print" className="neuroplast-no-drag shrink-0" />
 					{/* The extraction ring (owner-locked redesign, 2026-09-24): fills
 					    with uncovered vs the chunk threshold, pulses while a run is in
@@ -1247,12 +1262,23 @@ const setupOpenRef = useRef(setupOpen);
 								/>
 							)}
 
-							{kind === "teach" ? (
+							{kind === "teach" && space === "learn" && stageNow === "learn" ? (
+								// The learning space: once the lesson starts, Learn shows only
+								// the lesson: what to learn (the plan outline) and the lesson.
+								<div data-testid="learning-space" data-phase={phases.at(-1) ?? "probe"} className="flex flex-col gap-4 pb-2">
+									<PlanOutline messages={messages} chatId={chatId} />
+									{messages.map((m, mi) => (stages[mi] === "learn" ? renderMessage(m, mi) : null))}
+									{loadingStage === "learn" && (
+										<StageLoading stage="learn" busy={busy} onRetry={(t) => void send({ type: "text", text: t })} />
+									)}
+								</div>
+							) : kind === "teach" ? (
 								<div data-testid="stage-sections" data-phase={phases.at(-1) ?? "probe"} className="flex flex-col gap-3 pb-2">
-									{SESSION_STAGES.map((stage) => {
-										const order = SESSION_STAGES.indexOf(stage) - SESSION_STAGES.indexOf(stageNow);
+									{SESSION_STAGES.map((stage) => {										const order = SESSION_STAGES.indexOf(stage) - SESSION_STAGES.indexOf(stageNow);
 										const status: StageStatus = order < 0 ? "done" : order === 0 ? "current" : "upcoming";
-										const open = status === "current" || (status === "done" && !!openStages[stage]);
+										// Learn shows only the stages being worked through; the
+										// record shows what is still ahead too.
+										if (status === "upcoming" && space === "learn") return null;										const open = status === "current" || (status === "done" && !!openStages[stage]);
 										const summary =
 											stage === "warmup"
 												? status === "done" ? `${warmup.answered} answered · ${warmup.correct} right` : warmup.answered ? `${warmup.answered} answered` : "Finding where you stand"
@@ -1260,8 +1286,7 @@ const setupOpenRef = useRef(setupOpen);
 													? planSteps ? `${planSteps} steps` : "Your plan"
 													: "Your lesson";
 										const footer =
-											status !== "current" || loadingStage === stage ? undefined
-											: (stage === "warmup" && inWarmupStage) || (stage === "plan" && awaitingStart) ? (
+											status !== "current" || loadingStage === stage || space === "record" ? undefined											: (stage === "warmup" && inWarmupStage) || (stage === "plan" && awaitingStart) ? (
 												<StageActions
 													stage={stage === "plan" ? "plan" : "warmup"}
 													chatId={chatId}
@@ -1283,14 +1308,13 @@ const setupOpenRef = useRef(setupOpen);
 											>
 												{(stage === "plan" || (stage === "learn" && !openStages.plan)) && <PlanOutline messages={messages} chatId={chatId} />}
 												{messages.map((m, mi) => (stages[mi] === stage ? renderMessage(m, mi) : null))}
-												{loadingStage === stage && (
+												{loadingStage === stage && space === "learn" && (
 													<StageLoading stage={stage} busy={busy} onRetry={(t) => void send({ type: "text", text: t })} />
 												)}
 											</StageSection>
 										);
 									})}
-									<ChallengeRow chatId={chatId} challenge={challenge} disabled={busy || compacting} />
-								</div>
+									{space === "record" && <ChallengeRow chatId={chatId} challenge={challenge} disabled={busy || compacting} />}								</div>
 							) : (
 								messages.map(renderMessage)
 							)}
@@ -1334,6 +1358,7 @@ const setupOpenRef = useRef(setupOpen);
 							)}
 						</div>
 
+						{space === "learn" && (
 						<SessionDock
 					pending={pending}
 					questionNumber={pending ? questionNo.get(pending.toolCallId) : undefined}
@@ -1400,6 +1425,7 @@ const setupOpenRef = useRef(setupOpen);
 					}}
 					attachments={attachments}
 				/>
+						)}
 					</ConversationContent>
 					<ConversationScrollButton className="print:hidden" />
 				</Conversation>

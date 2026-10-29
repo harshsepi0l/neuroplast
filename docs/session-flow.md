@@ -21,16 +21,31 @@ The stage is derived from the transcript, never stored:
 `core/phases.ts` (phase fold), `core/stages.ts` (gates and buttons),
 `core/stage-sections.ts` (which section each message renders in).
 
-## The page: one section per stage
+## Two places: Learn and Sessions
 
-A Learn session reads as stacked sections, numbered 1–4
-(`ui/session/stage-sections.tsx`):
+The same session shows in two places (`Chat`'s `space` prop):
+
+- **Learn** (`/chat/<id>`) is the learning space. Before the lesson it shows
+  the stages being worked through (warm-up, plan) with their buttons. Once
+  the lesson starts it shows **only the lesson**: the plan outline (what to
+  learn, the current step marked) and the lesson itself, with the question
+  box. No earlier stages, no challenge. A small **Session record** link in
+  the top bar opens the record.
+- **Sessions** (`/sessions/<id>`) is the record: every stage section and
+  the Challenge row, read-only, with **Continue learning** back to Learn.
+  The Sessions list opens it. The record never starts a turn.
+
+## The record: one section per stage
+
+The record (and Learn before the lesson) reads as stacked sections,
+numbered 1–4 (`ui/session/stage-sections.tsx`):
 
 - the **current** stage is open, with its buttons at its foot;
 - a **finished** stage folds to one line (warm-up: "9 answered · 3 right";
   plan: "7 steps") and opens again on Show;
-- a stage **still ahead** is a dashed row saying when it opens;
-- the **Challenge** row sits under them, always: Take it now / Open
+- a stage **still ahead** is a dashed row saying when it opens (record
+  only);
+- the **Challenge** row sits under them (record only): Take it now / Open
   challenge.
 
 Each message renders in the stage it began in: the warm-up's closing
@@ -38,8 +53,8 @@ message stays in the warm-up, and Learn begins at Start learning or the
 first lesson question, whichever comes first. The plan outline shows at the
 top of Plan, and at the top of Learn while Plan is folded.
 
-**Loading screens** (`stageLoading`): the current section shows neurons
-trying to connect while it waits on the tutor:
+**Loading screens** (`stageLoading`, Learn only): the current section shows
+neurons trying to connect while it waits on the tutor:
 
 | Section | Shows while |
 | --- | --- |
@@ -113,10 +128,13 @@ One challenge per session, built from the session title and plan steps
 | Foot of Warm-up | Skip to plan · Skip to challenge | dismisses the open question, then sends the `skip-warmup` stage message / builds the challenge |
 | Foot of Plan (waiting) | Start learning · Skip to challenge | sends `start-learning` / builds the challenge |
 | Plan outline | Open the knowledge tree | opens this session's tree |
-| Challenge row | Take it now · Open challenge | builds or opens the challenge |
+| Challenge row (Sessions) | Take it now · Open challenge | builds or opens the challenge |
+| Top bar (Learn) | Session record | opens `/sessions/<id>` |
+| Top bar (Sessions) | Continue learning | opens `/chat/<id>` |
+| Knowledge, Learn topic and its steps | Learn | opens `/chat/<id>` |
 | A stalled loading screen | Retry | sends a plain message to move the session on |
 | A finished section | Show · Hide | unfolds or folds it |
-| Knowledge, Learn topic | Take the challenge | same, without opening the session |
+| Knowledge, Learn topic | Take the challenge | builds or opens the challenge, without opening the session |
 | Under an open question | Attach file | the file rides the answer |
 
 Stage moves are a `{ type: "stage", action }` chat input; the server
