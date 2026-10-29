@@ -31,8 +31,8 @@ test("every dispatched default binding is unique", () => {
 });
 
 test("bindings and actions round-trip through the default keymap", () => {
-  assert.equal(actionForBinding("mod+d"), "toggle-dictation");
-  assert.equal(bindingForAction("toggle-dictation"), "mod+d");
+  assert.equal(actionForBinding("mod+b"), "toggle-sidebar");
+  assert.equal(bindingForAction("toggle-sidebar"), "mod+b");
   assert.equal(actionForBinding("mod+shift+z"), undefined);
 });
 

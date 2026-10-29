@@ -8,9 +8,8 @@
  *   (2026-09-17). Tab is suppressed everywhere (preventDefault, no-op) and
  *   Shift+Tab cycles the thinking level instead.
  * - Esc is a layered dismiss: topmost popover first (popovers stopPropagation
- *   on their own Esc — usePopoverDismiss + ModelControl), then dictation
- *   CANCEL (discard the transcript, owner 2026-09-17 round 3), then abort of
- *   an in-flight turn.
+ *   on their own Esc — usePopoverDismiss + ModelControl), then abort of an
+ *   in-flight turn.
  * - Global actions dispatch neuroplast:kbd-<action> window events; surfaces that are
  *   mounted listen (the neuroplast:chat-renamed pattern). A surface that isn't
  *   mounted simply doesn't listen — an F2 on the graph view is a no-op, not
@@ -27,7 +26,6 @@ import { useEffect, useRef, useState } from "react";
 import { useBackdropDismiss } from "@/ui/backdrop-dismiss";
 import { useRouter } from "next/navigation";
 import { actionForBinding, bindingForAction, eventBinding, formatBinding, isTypingSurface, kbdEventForAction, KEYBOARD_ACTIONS } from "@/features/settings/core/keyboard";
-import { isDictationActive } from "@/features/learning/ui/composer/dictation";
 import { useSettingsDialog } from "@/features/settings/ui/settings-dialog";
 
 // Re-exported for the contract pin (tests/keyboard-toggle-sidebar.test.ts):
@@ -82,16 +80,9 @@ export function KeyboardShortcuts() {
 				// overlays, dialogs) claims at the DOCUMENT level, which
 				// fires before this window listener — so reaching here means
 				// NOTHING is surfaced and no field is focused. This chain is
-				// the fallback, bottom-up: dictation (a live capture, not a
-				// surface — it survives Esc that closes a plan or overlay),
-				// then abort the turn (a server-side turn has no client
+				// the fallback: abort the turn (a server-side turn has no client
 				// request to abort — the abort seam in Chat decides what's
 				// honestly stoppable, layered by escAbortTarget).
-				if (isDictationActive()) {
-					e.preventDefault();
-					window.dispatchEvent(new CustomEvent("neuroplast:kbd-cancel-dictation"));
-					return;
-				}
 				window.dispatchEvent(new CustomEvent("neuroplast:kbd-abort-turn"));
 				return;
 			}

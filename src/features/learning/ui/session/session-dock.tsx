@@ -30,8 +30,6 @@ export function SessionDock({
 	composer,
 	onSubmitAnswer,
 	chatId,
-	dictationSlot,
-	dictationCancel,
 	setupCta,
 	queuedSteers,
 }: {
@@ -49,10 +47,6 @@ export function SessionDock({
 	composer: React.ReactNode;
 	onSubmitAnswer: (output: QuestionAnswerData) => void;
 	chatId: string;
-	/** The dictation strip, in the stats bar's middle slot. */
-	dictationSlot?: React.ReactNode;
-	/** Esc in a pending question's field stops dictation. */
-	dictationCancel?: () => void;
 	/** Only undrained steers (visibleQueuedSteers). */
 	queuedSteers: QueuedSteerLine[];
 	/** The setup CTA shown while model slots are unset. */
@@ -76,8 +70,6 @@ export function SessionDock({
 							phase={phase}
 							onExpand={() => {}}
 							onSubmit={onSubmitAnswer}
-							onEscape={dictationCancel}
-							dictationClaim
 							compactionRunning={compactionRunning}
 						/>
 					) : practice ? (
@@ -87,7 +79,6 @@ export function SessionDock({
 							expanded
 							onExpand={() => {}}
 							onSubmit={onSubmitThinking}
-							onEscape={dictationCancel}
 							compactionRunning={compactionRunning}
 						/>
 					) : (
@@ -95,7 +86,7 @@ export function SessionDock({
 					)}
 				</div>
 			</div>
-			<StatsBar turns={turns} contextTokens={contextTokens} pricing={pricing} dictationSlot={dictationSlot} chatId={chatId} />
+			<StatsBar turns={turns} contextTokens={contextTokens} pricing={pricing} chatId={chatId} />
 		</div>
 	);
 }
