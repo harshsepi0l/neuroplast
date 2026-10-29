@@ -105,9 +105,7 @@ export function ProviderKeysPanel() {
   }
 
   return <section className="provider-key-section" aria-labelledby="provider-keys-heading">
-    <div className="eyebrow">BRING YOUR OWN KEY</div>
-    <h2 id="provider-keys-heading">Provider API keys</h2>
-    <p className="page-intro">Add a key, then choose the model Neuroplast uses for learning sessions.</p>
+    <h2 id="provider-keys-heading">Or use an API key</h2>
     <SpotlightCard className="provider-key-card" spotlightColor="rgba(185,173,250,.06)">
       <label htmlFor="key-provider" className="small-label">PROVIDER</label>
       <Select id="key-provider" value={provider?.id ?? ""} onChange={event => { setProviderId(event.target.value); setValue(""); setError(""); setMessage(""); setModelId(""); }} options={providers.map(item => ({ value: item.id, label: item.label }))} disabled={!data || busy}/>
@@ -123,6 +121,5 @@ export function ProviderKeysPanel() {
       {error && <p className="error-banner" role="alert">{error}</p>}
       {message && <p className="provider-key-message" role="status">{message}</p>}
     </SpotlightCard>
-    <p className="provider-key-footnote">Keys are saved on this server. Provider usage may be billed by the provider. Other model roles can be configured in Preferences → Agent.</p>
   </section>;
 }
