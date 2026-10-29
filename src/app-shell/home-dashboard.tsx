@@ -127,16 +127,13 @@ export function HomeDashboard({ sessions, challenge, skills, week, now }: {
 	const waiting = sessions.find((s) => s.pendingQuestion || s.pendingProblem);
 	const openChallenge = challenge && !challenge.submittedAt ? challenge : undefined;
 	const latest = waiting ?? (openChallenge ? undefined : sessions[0]);
-	const today = new Date(now).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 
 	if (!latest && !challenge) {
 		return (
 			<div className="h-full overflow-auto px-6 pb-16 pt-12">
 				<div className="mx-auto flex max-w-[45rem] flex-col gap-8">
 					<header>
-						<div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Welcome</div>
-						<h1 className="mb-2 mt-1.5 text-3xl font-bold tracking-tight">Let’s get you learning</h1>
-						<p className="m-0 text-muted-foreground">Three steps. Your sessions, scores and skills will show up here as you go.</p>
+						<h1 className="m-0 text-3xl font-bold tracking-tight">Let’s get you learning</h1>
 					</header>
 					<ol className="m-0 list-none p-0">
 						{[
@@ -162,7 +159,6 @@ export function HomeDashboard({ sessions, challenge, skills, week, now }: {
 	const delta = challenge?.score !== undefined && challenge.previousScore !== undefined ? challenge.score - challenge.previousScore : undefined;
 	const continueCard = latest && status ? (
 		<div className="flex flex-col gap-3 rounded-2xl border border-border/60 border-l-[3px] bg-card p-6" style={{ borderLeftColor: "var(--brand)" }}>
-			<span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Continue where you left off</span>
 			<div className="text-xl font-semibold">{latest.title}</div>
 			<div className="text-muted-foreground">
 				{latest.kind === "practice" ? "Practice" : "Learn"}
@@ -179,7 +175,6 @@ export function HomeDashboard({ sessions, challenge, skills, week, now }: {
 		</div>
 	) : openChallenge ? (
 		<div className="flex flex-col gap-3 rounded-2xl border border-border/60 border-l-[3px] bg-card p-6" style={{ borderLeftColor: "var(--brand)" }}>
-			<span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">Continue where you left off</span>
 			<div className="text-xl font-semibold">{openChallenge.topicTitle}</div>
 			<div className="text-muted-foreground">Challenge · in progress</div>
 			<div className="mt-auto pt-1"><Button size="sm" onClick={() => router.push(`/challenge/${openChallenge.id}`)}>Resume challenge</Button></div>
@@ -196,8 +191,7 @@ export function HomeDashboard({ sessions, challenge, skills, week, now }: {
 		<div className="h-full overflow-auto px-6 pb-16 pt-10">
 			<div className="mx-auto flex max-w-[68rem] flex-col gap-9">
 				<header>
-					<div className="font-mono text-xs uppercase tracking-wide text-muted-foreground" suppressHydrationWarning>{today}</div>
-					<h1 className="m-0 mt-1.5 text-3xl font-bold tracking-tight">Welcome back</h1>
+					<h1 className="m-0 text-3xl font-bold tracking-tight">Welcome back</h1>
 				</header>
 
 				<section className={cn("grid gap-5", continueCard && "md:grid-cols-2")}>

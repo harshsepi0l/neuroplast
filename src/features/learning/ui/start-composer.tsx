@@ -43,6 +43,6 @@ export function Composer({ busy, ready, mode, setMode, send, stop, enterToSend, 
           : <Button size="icon" aria-label={ready ? "Send message" : "Connect a model to send"} disabled={!draft.trim()} onClick={() => void submit()} className="send-button"><ArrowUp size={19}/></Button>}
       </div>
     </div>
-    <div className="composer-caption">{error ? <span role="alert" className="error-text">{error}</span> : <><span>{ready ? "Grok can make mistakes. Check important details." : "Your draft stays here while you connect."}</span><span>{enterToSend ? "↵ send · ⇧↵ new line" : "Click ↑ to send"}</span></>}</div>
+    {error && <div className="composer-caption"><span role="alert" className="error-text">{error}</span></div>}
   </div>;
 }

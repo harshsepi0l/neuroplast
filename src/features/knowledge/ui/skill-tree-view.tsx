@@ -243,7 +243,6 @@ export function SkillTreeView({ topics }: { topics: SkillTreeTopic[] }) {
 			<div className="mx-auto flex max-w-[84rem] flex-col gap-7">
 				<header>
 					<h1 className="m-0 text-3xl font-bold tracking-tight">Knowledge</h1>
-					<p className="m-0 mt-1.5 text-muted-foreground">Each topic you learn becomes a skill tree. Skills fill in as you answer checks and take challenges.</p>
 				</header>
 
 				{!topic ? (
