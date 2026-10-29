@@ -10,8 +10,15 @@ import { buildAnswer, normalizeQuizType, CONFIDENCE_STOPS, DEFAULT_CONFIDENCE_IN
 import { toolQuestionKind } from "@/features/learning/core/pending";
 import { parseAskInput, parseQuizInput, parseExplainInput } from "@/features/learning/core/tool-parts";
 import { type Phase3 } from "@/features/learning/core/phases";
-import { CONFIDENCE_COLORS, confidenceRailStyle } from "@/features/learning/ui/docks/confidence-rail";
 
+
+/** The confidence choices (indices into CONFIDENCE_STOPS: 30/50/70/90%). */
+const CONFIDENCE_PILLS: readonly { idx: number; label: string }[] = [
+	{ idx: 1, label: "Guessing" },
+	{ idx: 2, label: "Unsure" },
+	{ idx: 3, label: "Fairly sure" },
+	{ idx: 4, label: "Certain" },
+];
 /**
  * The question dock — a pending quiz/ask REPLACES the chat composer: the
  * persistent bottom blob morphs into the question. Two voices meet here:
@@ -287,6 +294,21 @@ function QuestionDockForm({
 	// deliberate (the same number, the same meaning). The dock unmounts
 	// between questions, so each question starts fresh at 50.
 	const [confIdx, setConfIdx] = useState<number>(DEFAULT_CONFIDENCE_INDEX);
+	// The reasoning field stays folded behind "+ Add your reasoning" until
+	// asked for (or Tab reaches it) — the card stays quiet by default.
+	const [showReasoning, setShowReasoning] = useState(false);
+	const focusReasoningRef = useRef(false);
+	useEffect(() => {
+		if (showReasoning && focusReasoningRef.current) {
+			focusReasoningRef.current = false;
+			thinkingRef.current?.focus();
+		}
+	}, [showReasoning]);
+	const openReasoning = () => {
+		focusReasoningRef.current = true;
+		if (showReasoning) thinkingRef.current?.focus();
+		else setShowReasoning(true);
+	};
 	const selectMode: SelectMode = qd.mode === "multi-select" ? "multi-select" : "single-select";
 
 	const toggle = (idx: number) => setSel(toggleOption(selectMode, sel, idx));
@@ -402,7 +424,7 @@ function QuestionDockForm({
 			if (e.key === "Tab" && !e.shiftKey && !modded) {
 				e.preventDefault();
 				e.stopPropagation();
-				if (t?.closest?.("[data-kbdrow]")) thinkingRef.current?.focus();
+				if (t?.closest?.("[data-kbdrow]")) openReasoning();
 				else {
 					const idx = kbdIdx ?? 0;
 					setKbdIdx(idx);
@@ -432,12 +454,11 @@ function QuestionDockForm({
 				// (the slider grays out and nothing is sent).
 				if (kind !== "quiz" || sel.dontKnow) return;
 				e.preventDefault();
-				setConfIdx((i) =>
-					Math.min(
-						CONFIDENCE_STOPS.length - 1,
-						Math.max(0, i + (e.key === "ArrowRight" ? 1 : -1)),
-					),
-				);
+				setConfIdx((i) => {
+					const at = CONFIDENCE_PILLS.findIndex((p) => p.idx === i);
+					const next = Math.min(CONFIDENCE_PILLS.length - 1, Math.max(0, (at < 0 ? 1 : at) + (e.key === "ArrowRight" ? 1 : -1)));
+					return CONFIDENCE_PILLS[next]!.idx;
+				});
 			} else if (e.key === " ") {
 				if (kbdIdx === null) return; // plain Space keeps scrolling the page
 				e.preventDefault();
@@ -460,37 +481,50 @@ function QuestionDockForm({
 			?.scrollIntoView({ block: "nearest" });
 	}, [kbdIdx]);
 
+	const label =
+		toolName === "probe"
+			? "Probe"
+			: toolName === "recall"
+				? "Recall"
+				: kind === "quiz"
+					? qd.questionType === "predict"
+						? "Prediction"
+						: "Check"
+					: kind === "explain"
+						? "Explain"
+						: "Question";
+	const answered = sel.selected.size > 0 || sel.otherSelected;
+	const rowClass = (selected: boolean, walked: boolean) =>
+		cn(
+			"flex w-full items-center gap-3.5 rounded-lg px-3 py-2.5 text-left outline-none transition-colors",
+			selected ? "bg-primary/15" : "hover:bg-accent/60",
+			walked && !selected && "bg-accent/60",
+		);
+	const badgeClass = (selected: boolean) =>
+		cn(
+			"grid size-7 shrink-0 place-items-center rounded-md border font-mono text-xs",
+			selected ? "border-primary bg-primary font-semibold text-primary-foreground" : "border-border/70 text-muted-foreground",
+		);
+	const letter = (i: number) => String.fromCharCode(65 + i);
+
 	return (
-		<div ref={rootRef} data-testid="question-dock">
-			{/* Question area — scrolls internally if very tall; the bottom row stays put.
-			    Capped by the measured column (--dock-max-h; the old fixed 55dvh cut
-			    long questions short — owner round, 2026-10-05). */}
-			<div data-session-find-root="" className="max-h-[var(--dock-max-h,55dvh)] overflow-y-auto px-4 pt-3">
-				<div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-					{toolName === "probe"
-						? "Probe"
-						: toolName === "recall"
-							? "Recall"
-							: kind === "quiz"
-								? qd.questionType === "predict"
-									? "Prediction"
-									: "Check"
-									: kind === "explain"
-										? "Explain"
-											: "Question"}
+		<div ref={rootRef} data-testid="question-dock" className="border-l-[3px] border-primary py-1 pl-5">
+			<div data-session-find-root="">
+				<div className="mb-2 font-mono text-xs font-medium uppercase tracking-wide text-muted-foreground">
+					{label}
 					{qd.mode === "multi-select" && " · select all that apply"}
 				</div>
-				<div className="mb-3 font-medium">
+				<div className="mb-3 text-lg font-semibold leading-snug">
 					<MessageResponse>{qd.question}</MessageResponse>
 				</div>
 				{qd.context && (
-					<div className="mb-3 text-sm text-muted-foreground">
+					<div className="mb-3 text-muted-foreground">
 						<MessageResponse>{qd.context}</MessageResponse>
 					</div>
 				)}
 
 				{qd.mode !== "text" && (
-					<div className="flex flex-col gap-2 pb-2" role={qd.mode === "multi-select" ? "group" : "radiogroup"}>
+					<div className="flex flex-col gap-0.5" role={qd.mode === "multi-select" ? "group" : "radiogroup"}>
 						{qd.options.map((opt, i) => {
 							const isSel = sel.selected.has(i);
 							return (
@@ -501,36 +535,16 @@ function QuestionDockForm({
 									aria-checked={isSel}
 									data-kbdrow={i}
 									onClick={() => toggle(i)}
-									className={cn(
-										"flex items-start gap-3 rounded-lg border px-3 py-2 text-left text-sm outline-none transition-colors",
-										isSel ? "border-primary bg-accent" : "hover:bg-accent/50",
-										i === kbdIdx && !isSel && "ring-1 ring-border bg-accent/40",
-									)}
+									className={rowClass(isSel, i === kbdIdx)}
 								>
-									<span
-										className={cn(
-											"mt-0.5 flex size-4 shrink-0 items-center justify-center border",
-											qd.mode === "multi-select" ? "rounded-sm" : "rounded-full",
-											isSel ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40",
-										)}
-									>
-										{isSel && (
-											<span className={cn(qd.mode === "multi-select" ? "text-base leading-none" : "size-1.5 rounded-full bg-current")}>
-												{qd.mode === "multi-select" ? "✓" : ""}
-											</span>
-										)}
-									</span>
-									<span>
+									<span aria-hidden className={badgeClass(isSel)}>{letter(i)}</span>
+									<span className="min-w-0">
 										<MessageResponse>{opt.label}</MessageResponse>
 										{kind !== "quiz" && opt.description && (
-											// Option subtext renders in Source Sans 3 (owner's mockup);
-											// the "I don't know" copy stays JetBrains Mono. QUIZ options render
-											// NO description (owner ruling 2026-09-26): the model used them to
-											// telegraph correctness — the schema dropped the field and old
-											// records must not leak either. Same MessageResponse path as the
-											// label (owner, 2026-10-12): descriptions are full markdown —
-											// LaTeX included — not plain text.
-											<MessageResponse className="neuroplast-prose block text-xs text-muted-foreground">
+											// QUIZ options render NO description (owner ruling
+											// 2026-09-26): the model used them to telegraph
+											// correctness. Ask descriptions are full markdown.
+											<MessageResponse className="neuroplast-prose block text-sm text-muted-foreground">
 												{opt.description}
 											</MessageResponse>
 										)}
@@ -539,36 +553,6 @@ function QuestionDockForm({
 							);
 						})}
 
-						{kind === "quiz" && (
-							<button
-								type="button"
-								onClick={() =>
-									setSel((prev) => ({ ...prev, selected: new Set(), otherSelected: false, dontKnow: !prev.dontKnow }))
-								}
-								data-kbdrow={optionCount}
-								aria-pressed={sel.dontKnow}
-								className={cn(
-									// Option-row layout + radio circle (owner); the dashed
-									// outline stays — this is the deliberate non-answer.
-									"flex items-start gap-3 rounded-lg border border-dashed px-3 py-2 text-left text-sm outline-none transition-colors",
-									sel.dontKnow ? "border-primary text-foreground" : "text-muted-foreground",
-									kbdIdx === optionCount && !sel.dontKnow && "ring-1 ring-border bg-accent/40",
-								)}
-							>
-								<span
-									className={cn(
-										"mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border",
-										sel.dontKnow
-											? "border-primary bg-primary text-primary-foreground"
-											: "border-muted-foreground/40",
-									)}
-								>
-									{sel.dontKnow && <span className="size-1.5 rounded-full bg-current" />}
-								</span>
-								<span>I don't know</span>
-							</button>
-						)}
-
 						{kind === "ask" && (
 							<div
 								role={qd.mode === "multi-select" ? "checkbox" : "radio"}
@@ -576,27 +560,9 @@ function QuestionDockForm({
 								data-testid="other-option"
 								data-kbdrow={optionCount}
 								onClick={selectOther}
-								className={cn(
-									"flex items-start gap-3 rounded-lg border px-3 py-2 text-left text-sm outline-none transition-colors",
-									sel.otherSelected ? "border-primary bg-accent" : "border-dashed hover:bg-accent/50",
-									kbdIdx === optionCount && !sel.otherSelected && "ring-1 ring-border bg-accent/40",
-								)}
+								className={rowClass(sel.otherSelected, kbdIdx === optionCount)}
 							>
-								<span
-									className={cn(
-										"mt-0.5 flex size-4 shrink-0 items-center justify-center border",
-										qd.mode === "multi-select" ? "rounded-sm" : "rounded-full",
-										sel.otherSelected
-											? "border-primary bg-primary text-primary-foreground"
-											: "border-muted-foreground/40",
-									)}
-								>
-									{sel.otherSelected && (
-										<span className={cn(qd.mode === "multi-select" ? "text-base leading-none" : "size-1.5 rounded-full bg-current")}>
-											{qd.mode === "multi-select" ? "✓" : ""}
-										</span>
-									)}
-								</span>
+								<span aria-hidden className={badgeClass(sel.otherSelected)}>…</span>
 								<input
 									ref={otherInputRef}
 									value={other}
@@ -607,31 +573,22 @@ function QuestionDockForm({
 										setSel((prev) => (prev.otherSelected ? prev : toggleOther(selectMode, prev)));
 									}}
 									onKeyDown={(e) => {
-										// Esc escapes the typing (owner refinement round,
-										// 2026-09-24): focus leaves the input, the row STAYS
-										// selected — deselection is the next Space's job, acting
-										// on the row — and the arrow walk resumes from this
-										// row (kbdIdx pins it). stopPropagation keeps the
-										// window chain from reading this Esc as abort-turn.
+										// Esc leaves the input; the row stays selected and the
+										// arrow walk resumes from it. Claimed so the window
+										// chain doesn't read it as abort-turn.
 										if (e.key === "Escape") {
 											e.preventDefault();
 											e.stopPropagation();
 											e.currentTarget.blur();
 											setKbdIdx(optionCount);
 										}
-											// Enter submits directly (owner, keyboard round 2026-10-06):
-											// the custom answer is a single-line input — no newline
-											// to protect, and typing has already selected the row, so
-											// the payload is ready. Every Enter (shift or not — nothing
-											// else could ever happen in a one-line field) rides the
-											// same submit seam as the button
-											// included.
-											if (e.key === "Enter") {
-												e.preventDefault();
-												submit();
-											}
+										// Enter submits: a one-line field, already selected.
+										if (e.key === "Enter") {
+											e.preventDefault();
+											submit();
+										}
 									}}
-									placeholder="Type your own answer…"
+									placeholder="Something else…"
 									className="neuroplast-input w-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
 									onClick={(e) => e.stopPropagation()}
 								/>
@@ -641,118 +598,18 @@ function QuestionDockForm({
 				)}
 			</div>
 
-			{/* Confidence (owner, 2026-10-01; UI rounds same day): a snapped
-				slider below the options and above "Your thinking" — the
-				learner's stated probability that his selected answer is
-				correct. The thumb's POSITION is the raw fraction; the painted
-				RAIL overlays exactly the thumb-center range (inset half a disc
-				per side), so 0 and 100 rest flush against the rail's very
-				ends. Fill + handle wear the stop's ramp color; SOLID stop
-				ticks are background layers behind the fill (empty side only,
-				never over the color; 0/100 need no tick — the flush ends say
-				them). Keyboard: GLOBAL ←/→ (the ↑/↓ pattern; the ring is gone
-				app-wide). Clicking and dragging are native. "I don't know"
-				GRAYS it out — the layout holds, no value is sent, the IDK
-				signal stands alone. */}
-			{kind === "quiz" && (
-				<div className="border-t border-border/60 px-4 py-2.5">
-					<div className="flex items-center gap-3">
-						<span
-							className={cn(
-								"shrink-0 text-xs font-medium uppercase tracking-wide",
-								sel.dontKnow ? "text-muted-foreground/50" : "text-muted-foreground",
-							)}
-						>
-							Confidence
-						</span>
-						<div
-							className={cn("relative h-4 min-w-0 flex-1", sel.dontKnow && "opacity-40")}
-							data-testid="confidence-track"
-						>
-							{/* The RAIL is painted here, not on the input: this overlay spans
-								exactly the thumb-CENTER range (inset 8px = half the 16px disc,
-								left and right), so at 0 and 100 the disc sits flush against the
-								rail's very ends — no bare stub poking past it (owner round 4).
-								STACKING LAW (owner round 5): the input is absolute too — a
-								positioned overlay paints above an in-flow input no matter the
-								DOM order, which put the rail OVER the disc. Both positioned,
-								input later in DOM → the disc rides on top. The wrapper's height
-								is pinned (h-4) so the rail's top-1/2 and the disc's track share
-								one box — centered by construction, not by hope. */}
-							<div
-								aria-hidden
-								data-testid="confidence-rail"
-								className="pointer-events-none absolute top-1/2 left-2 right-2 h-1.5 -translate-y-1/2 rounded-full border border-border"
-								style={confidenceRailStyle(CONFIDENCE_STOPS[confIdx]!)}
-							/>
-							<input
-								type="range"
-								min={0}
-								max={100}
-								step={1}
-								value={CONFIDENCE_STOPS[confIdx]}
-								disabled={sel.dontKnow}
-								aria-label="Confidence — the probability your selected answer is correct"
-								aria-valuetext={`${CONFIDENCE_STOPS[confIdx]} percent`}
-								title="The probability your selected answer is correct — 50% is a coin flip. Adjust with ←/→."
-								data-testid="confidence-slider"
-								onChange={(e) => {
-									// Snap to the nearest stop; the rendered VALUE is the stop's own
-									// percent, so the thumb always rests at its true fraction (50 =
-									// halfway). Keyboard needs no handler here: the dock machine treats
-									// a focused range as non-typing (see the guard above) and its ←/→
-									// branch preventDefaults, which also cancels the native 1% step.
-									const v = Number(e.target.value);
-									let best = 0;
-									for (let i = 1; i < CONFIDENCE_STOPS.length; i++) {
-										if (Math.abs(CONFIDENCE_STOPS[i]! - v) < Math.abs(CONFIDENCE_STOPS[best]! - v)) best = i;
-									}
-									setConfIdx(best);
-								}}
-								style={{ color: CONFIDENCE_COLORS[confIdx] }}
-								className={cn(
-									"absolute inset-0 h-4 w-full cursor-pointer appearance-none bg-transparent outline-none",
-									"[&::-webkit-slider-runnable-track]:h-4 [&::-webkit-slider-runnable-track]:bg-transparent",
-									"[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-current",
-									"[&::-moz-range-track]:h-4 [&::-moz-range-track]:bg-transparent",
-									"[&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-current",
-								)}
-							/>
-						</div>
-						<span
-							data-testid="confidence-value"
-							className={cn(
-								"w-9 shrink-0 text-right font-mono text-sm tabular-nums",
-								sel.dontKnow && "text-muted-foreground/50",
-							)}
-						>
-							{sel.dontKnow ? "—" : `${CONFIDENCE_STOPS[confIdx]}%`}
-						</span>
-					</div>
-				</div>
-			)}
-
-			{/* The learner's half of the dock — a composer TWIN: a labeled, bordered
-			    field with Submit docked inside, exactly like the chat composer's
-			    send. Select modes get "Your thinking" (Enter makes a newline — it
-			    is for dumping; the button submits); text mode
-			    keeps "Your answer" with Enter-to-submit. */}
 			<form
-				className="border-t border-border/60 p-1.5"
+				className="mt-3 flex flex-col gap-3"
 				onSubmit={(e) => {
 					e.preventDefault();
 					submit();
 				}}
 			>
-				<div
-					data-testid={qd.mode === "text" ? "answer-field" : "thinking-field"}
-					className="rounded-[10px] border border-border/70 bg-background/60 transition-colors focus-within:border-primary/50"
-				>
-					<div className="px-2.5 pt-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-						{qd.mode === "text" ? "Your answer" : "YOUR THINKING"}
-					</div>
-					{qd.mode === "text" ? (
+				{qd.mode === "text" && (
+					<div data-testid="answer-field" className="rounded-lg border border-border/70 bg-background/60 focus-within:border-primary/60">
+						<label className="sr-only" htmlFor={`answer-${toolCallId}`}>Your answer</label>
 						<textarea
+							id={`answer-${toolCallId}`}
 							value={text}
 							onChange={(e) => {
 								answerTextRef.current = e.target.value;
@@ -767,8 +624,7 @@ function QuestionDockForm({
 									e.currentTarget.blur();
 									return;
 								}
-								// Chat convention: Enter submits, Shift+Enter is a newline;
-								// ⌘/Ctrl+Enter also submits (universal across the app).
+								// Enter submits, Shift+Enter is a newline; ⌘/Ctrl+Enter too.
 								if (e.key === "Enter" && (e.metaKey || e.ctrlKey || !e.shiftKey)) {
 									e.preventDefault();
 									submit();
@@ -776,10 +632,39 @@ function QuestionDockForm({
 							}}
 							placeholder="Type your answer…"
 							rows={1}
-							className="field-sizing-content neuroplast-input max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-2 outline-none placeholder:text-muted-foreground"
+							className="field-sizing-content neuroplast-input max-h-48 min-h-11 w-full resize-none bg-transparent px-3 py-2.5 outline-none placeholder:text-muted-foreground"
 						/>
-					) : (
+					</div>
+				)}
+
+				{/* How sure: four words instead of a slider, shown once there is
+				    an answer to be sure about. ←/→ step between them. */}
+				{kind === "quiz" && answered && !sel.dontKnow && (
+					<div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="How sure are you?" data-testid="confidence-pills">
+						<span className="mr-1 text-sm text-muted-foreground">How sure?</span>
+						{CONFIDENCE_PILLS.map((pill) => (
+							<button
+								key={pill.idx}
+								type="button"
+								role="radio"
+								aria-checked={confIdx === pill.idx}
+								onClick={() => setConfIdx(pill.idx)}
+								className={cn(
+									"min-h-8 rounded-full border px-3 text-sm transition-colors",
+									confIdx === pill.idx ? "border-foreground bg-foreground font-semibold text-background" : "border-border/70 hover:bg-accent/60",
+								)}
+							>
+								{pill.label}
+							</button>
+						))}
+					</div>
+				)}
+
+				{qd.mode !== "text" && showReasoning && (
+					<div data-testid="thinking-field" className="rounded-lg border border-border/70 bg-background/60 focus-within:border-primary/60">
+						<label className="sr-only" htmlFor={`thinking-${toolCallId}`}>Your reasoning</label>
 						<textarea
+							id={`thinking-${toolCallId}`}
 							ref={thinkingRef}
 							value={thinking}
 							onChange={(e) => {
@@ -787,17 +672,13 @@ function QuestionDockForm({
 								setThinking(e.target.value);
 							}}
 							onKeyDown={(e) => {
-								// Esc leaves the field — claimed so the window chain
-								// doesn't also dismiss the question or abort a turn.
 								if (e.key === "Escape") {
 									e.preventDefault();
 									e.stopPropagation();
 									e.currentTarget.blur();
 									return;
 								}
-								// THE STANDARD CHORD (owner round 5, 2026-10-05): Enter
-								// submits, Shift+Enter is a newline, ⌘/Ctrl+Enter works
-								// too — identical to the practice dock and the composer.
+								// Enter submits, Shift+Enter is a newline; ⌘/Ctrl+Enter too.
 								if (e.key === "Enter" && (!e.shiftKey || e.metaKey || e.ctrlKey)) {
 									e.preventDefault();
 									submit();
@@ -806,23 +687,41 @@ function QuestionDockForm({
 							placeholder="Why this answer? Whatever comes to mind."
 							rows={1}
 							className={cn(
-								"field-sizing-content neuroplast-input max-h-48 w-full resize-none bg-transparent px-2.5 py-2 outline-none placeholder:text-muted-foreground/70",
-								// Phase-scaled prominence: teaching invites depth,
-								// probing stays quick.
-								phase === "teach" ? "min-h-[4.5rem]" : "min-h-10",
+								"field-sizing-content neuroplast-input max-h-48 w-full resize-none bg-transparent px-3 py-2.5 outline-none placeholder:text-muted-foreground/70",
+								phase === "teach" ? "min-h-[4.5rem]" : "min-h-11",
 							)}
 						/>
+					</div>
+				)}
+
+				<div className="flex flex-wrap items-center justify-between gap-3">
+					{qd.mode !== "text" && !showReasoning ? (
+						<button type="button" onClick={openReasoning} className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">
+							+ Add your reasoning
+						</button>
+					) : (
+						<span className="text-sm text-muted-foreground">{compactionRunning ? "compacting session…" : ""}</span>
 					)}
-					<div className="flex items-center justify-between gap-2 p-1">
-						<span aria-hidden className="pl-1.5 text-xs text-muted-foreground">
-								{compactionRunning ? "compacting session…" : "↵ submits · ⇧↵ newline"}
-						</span>
-						<Button
-							type="submit"
-							disabled={!canSubmit || compactionRunning}
-							className="ml-auto h-9 rounded-[6px] px-3.5 text-sm font-medium"
-						>
-							Submit answer
+					<div className="ml-auto flex items-center gap-4">
+						{kind === "quiz" && (
+							<button
+								type="button"
+								onClick={() =>
+									setSel((prev) => ({ ...prev, selected: new Set(), otherSelected: false, dontKnow: !prev.dontKnow }))
+								}
+								data-kbdrow={optionCount}
+								aria-pressed={sel.dontKnow}
+								className={cn(
+									"rounded-md px-1 text-sm underline underline-offset-4 outline-none",
+									sel.dontKnow ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground",
+									kbdIdx === optionCount && "ring-1 ring-border",
+								)}
+							>
+								I don't know
+							</button>
+						)}
+						<Button type="submit" disabled={!canSubmit || compactionRunning} className="h-10 rounded-lg px-5 text-sm font-semibold">
+							Submit
 						</Button>
 					</div>
 				</div>

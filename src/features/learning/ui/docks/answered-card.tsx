@@ -7,6 +7,7 @@ import { ThinkingBlock } from "@/features/learning/ui/messages/thinking-block";
 import { cn } from "@/lib/utils";
 import { MessageResponse } from "@/features/learning/ui/messages/message";
 import type { QuestionAnswerData } from "@/features/learning/core/question-core";
+import { answerLabel, answerSummary, answerVerdict } from "@/features/learning/core/answer-summary";
 import { parseAskInput, parseQuizInput } from "@/features/learning/core/tool-parts";
 
 /**
@@ -20,6 +21,47 @@ import { parseAskInput, parseQuizInput } from "@/features/learning/core/tool-par
  * the explanation, with NO verdict chips (owner ruling 2026-09-27).
  */
 export function AnsweredCard({ answer, input }: { answer: QuestionAnswerData; input?: unknown }) {
+	// Answered questions fold to one line (the quiet worksheet): the label,
+	// a ✓/✗ mark, what was answered. Show opens the full record; print
+	// always includes it.
+	const [open, setOpen] = useState(false);
+	const verdict = answerVerdict(answer);
+	return (
+		<div data-testid="answered-card" className="my-1">
+			<div className="flex items-center gap-3 border-y border-border/50 py-2.5">
+				<span className="shrink-0 font-mono text-xs font-medium uppercase tracking-wide text-muted-foreground">{answerLabel(answer)}</span>
+				{verdict && (
+					<span
+						aria-label={verdict === "correct" ? "Correct" : verdict === "incorrect" ? "Incorrect" : "Didn't know"}
+						className={cn(
+							"shrink-0 font-semibold",
+							verdict === "correct" && "text-[var(--success)]",
+							verdict === "incorrect" && "text-[var(--danger)]",
+							verdict === "unknown" && "text-muted-foreground",
+						)}
+					>
+						{verdict === "correct" ? "✓" : verdict === "incorrect" ? "✗" : "?"}
+					</span>
+				)}
+				<span className="min-w-0 flex-1 truncate">{answerSummary(answer)}</span>
+				<button
+					type="button"
+					aria-expanded={open}
+					onClick={() => setOpen((v) => !v)}
+					className="shrink-0 text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground print:hidden"
+				>
+					{open ? "Hide" : verdict === "incorrect" ? "Why" : "Show"}
+				</button>
+			</div>
+			<div className={open ? "mt-2" : "hidden print:mt-2 print:block"}>
+				<AnsweredDetail answer={answer} input={input} />
+			</div>
+		</div>
+	);
+}
+
+/** The full record of an answered question (opened from the summary line). */
+function AnsweredDetail({ answer, input }: { answer: QuestionAnswerData; input?: unknown }) {
 	const [whyOpen, setWhyOpen] = useState(false); // the tucked explanation (predictions, owner 2026-10-03)
 	if (answer.dismissed) {
 		return (
@@ -59,7 +101,7 @@ export function AnsweredCard({ answer, input }: { answer: QuestionAnswerData; in
 		    the bottom rhythm when a row ends the card. */}
 		<div
 			className="rounded-xl border bg-card p-4 text-card-foreground [&>*:last-child]:mb-0"
-			data-testid="answered-card"
+			data-testid="answered-detail"
 		>
 			<div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
 				{/* The tool's OWN name first (owner 2026-10-09): probe-phase

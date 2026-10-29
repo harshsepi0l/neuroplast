@@ -57,9 +57,9 @@ export function SessionDock({
 		<div data-testid="session-dock" className={`${DOCK} pb-10 pt-2`} style={{ "--dock-max-h": "none" } as React.CSSProperties}>
 			{setupCta}
 			<QueuedSteersBody steers={queuedSteers} />
-			<div
-				className={`overflow-hidden rounded-2xl border bg-card ${pending || practice ? "shadow-[4px_4px_0_var(--brand)]" : ""}`}
-			>
+			{/* A pending question sits in the page with no box around it (the
+			    quiet worksheet); the practice dock and composer keep theirs. */}
+			<div className={pending ? "" : "overflow-hidden rounded-2xl border bg-card"}>
 				<div key={mode} className="dock-variant">
 					{pending ? (
 						<QuestionDock
