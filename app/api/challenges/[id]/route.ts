@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { challengeView, readChallenge, saveResponse, submitChallenge } from "@/features/challenges/server/challenge-store";
+import { challengeView, deleteChallenge, readChallenge, saveResponse, submitChallenge } from "@/features/challenges/server/challenge-store";
 import { errorResponse, jsonBody, requireSameOrigin } from "@/server/http";
 import { AppError } from "@/lib/errors";
 
@@ -28,5 +28,13 @@ export async function POST(request: Request, context: Context) {
     const parsed = z.object({ action: z.literal("submit") }).safeParse(await jsonBody(request));
     if (!parsed.success) throw new AppError("invalid_action", "Choose a valid challenge action.", 400);
     return Response.json(challengeView(submitChallenge((await context.params).id)), { headers: { "Cache-Control": "no-store" } });
+  } catch (error) { return errorResponse(error); }
+}
+
+export async function DELETE(request: Request, context: Context) {
+  try {
+    requireSameOrigin(request);
+    deleteChallenge((await context.params).id);
+    return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return errorResponse(error); }
 }

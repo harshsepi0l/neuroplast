@@ -63,6 +63,11 @@ export function readChallenge(id: string): ChallengeRecord {
     throw new AppError("challenge_not_found", "This challenge could not be found.", 404);
   }
 }
+/** Removes one challenge attempt. Retakes that point at it keep working; they just lose the previous score. */
+export function deleteChallenge(id: string): void {
+  readChallenge(id);
+  fs.rmSync(file(id));
+}
 function seed(): number { return randomBytes(4).readUInt32BE(0); }
 export function createChallenge(previousId?: string): ChallengeRecord {
   let previous: ChallengeRecord | undefined;
