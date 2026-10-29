@@ -11,13 +11,11 @@ export function ConnectionPanel({ connection, busy, action }: { connection: Conn
   const connected = connection?.phase === "connected";
   const pending = connection?.phase === "pending" || connection?.phase === "authorizing";
   return <section className="settings-page">
-    <div className="eyebrow">YOUR MODELS, YOUR ACCOUNT</div>
-    <h2 className="connection-heading">Connect a subscription.</h2>
-    <p className="page-intro">Bring your Grok subscription to your learning workspace.</p>
+    <h2 className="connection-heading">Connect a subscription</h2>
     <SpotlightCard className="connection-card" spotlightColor="rgba(185,173,250,.06)">
       <div className="between"><div className="row gap-4"><div className="grok-symbol" aria-hidden="true">𝕏</div><div><h2>Grok</h2><p className="muted text-sm">xAI subscription</p></div></div>
         <span className={`status-badge ${connected ? "active" : ""}`}><span/>{connected ? "Connected" : pending ? "Awaiting approval" : "Not connected"}</span></div>
-      <p className="connection-description">Sign in with your xAI account. Model availability and usage limits depend on the access xAI grants your account and this application.</p>
+      <p className="connection-description">Sign in with SuperGrok or X Premium. Lessons count toward your Grok plan.</p>
       {connection && !connection.configured && <div className="notice"><strong>Sign-in setup is incomplete</strong><p>This site needs an xAI OAuth client registration before accounts can be connected.</p></div>}
       {connection?.message && <p className="notice" role="status">{connection.message}</p>}
       {connection?.account && <div className="account-row"><ShieldCheck size={17}/><div><span className="small-label">CONNECTED ACCOUNT</span><p>{connection.account.label}</p></div></div>}
@@ -35,6 +33,5 @@ export function ConnectionPanel({ connection, busy, action }: { connection: Conn
       </div>
       {connected && <div className="mt-6"><Switch label="Allow background use" description="Let research and knowledge-extraction agents use this subscription." checked={connection?.allowBackgroundUse === true} onChange={enabled => void action({ action: "background-use", enabled: String(enabled) })}/></div>}
     </SpotlightCard>
-    <div className="privacy-note"><ShieldCheck size={18}/><p>Credentials are encrypted on the server and isolated to this browser’s secure session. Disconnecting Neuroplast does not cancel your subscription. Sessions and knowledge are saved in your Neuroplast workspace.</p></div>
   </section>;
 }

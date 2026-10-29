@@ -4,6 +4,7 @@ import { existsSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { dataDirectory } from "@/server/database";
 import type { SecretVault } from "./service-ports";
+import { AppError } from "@/lib/errors";
 
 function encryptionKey() {
   const configured = process.env.NEUROPLAST_CREDENTIAL_KEY;
@@ -12,7 +13,7 @@ function encryptionKey() {
     if (key.length !== 32) throw new Error("NEUROPLAST_CREDENTIAL_KEY must contain 32 base64-encoded bytes.");
     return key;
   }
-  if (process.env.NODE_ENV === "production") throw new Error("Configure NEUROPLAST_CREDENTIAL_KEY before connecting accounts in production.");
+  if (process.env.NODE_ENV === "production") throw new AppError("setup_required", "Configure NEUROPLAST_CREDENTIAL_KEY before connecting accounts in production.", 503);
   const directory = dataDirectory();
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   const file = path.join(directory, "development.key");
