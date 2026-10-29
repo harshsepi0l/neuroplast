@@ -27,10 +27,10 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
     { href: "/chat/new", label: "Learn", icon: BookOpen, active: pathname.startsWith("/chat/") || pathname === "/practice" },
     { href: "/challenges", label: "Challenges", icon: Trophy, active: pathname === "/challenges" || pathname.startsWith("/challenges/") || pathname.startsWith("/challenge/") },
     { href: "/knowledge", label: "Knowledge", icon: GitBranch, active: pathname.startsWith("/knowledge") },
-    { href: "/sessions", label: "Sessions", icon: MessageSquare, active: pathname === "/sessions" },
+    { href: "/sessions", label: "Sessions", icon: MessageSquare, active: pathname.startsWith("/sessions") },
   ];
-  const activeChat = pathname.startsWith("/chat/") && pathname !== "/chat/new";
-  const title = pathname === "/connections" ? "Connections" : pathname === "/sessions" ? "Sessions" : pathname.startsWith("/challenge/") ? "Challenge" : pathname === "/challenges/new" ? "New challenge" : pathname === "/challenges" ? "Challenges" : pathname === "/knowledge/legacy" ? "Notes graph" : pathname.startsWith("/knowledge") ? "Knowledge" : pathname === "/practice" ? "Practice" : pathname === "/settings" ? "Settings" : pathname === "/" ? "Home" : "Learn";
+  const activeChat = (pathname.startsWith("/chat/") && pathname !== "/chat/new") || pathname.startsWith("/sessions/");
+  const title = pathname === "/connections" ? "Connections" : pathname.startsWith("/sessions") ? "Sessions" : pathname.startsWith("/challenge/") ? "Challenge" : pathname === "/challenges/new" ? "New challenge" : pathname === "/challenges" ? "Challenges" : pathname === "/knowledge/legacy" ? "Notes graph" : pathname.startsWith("/knowledge") ? "Knowledge" : pathname === "/practice" ? "Practice" : pathname === "/settings" ? "Settings" : pathname === "/" ? "Home" : "Learn";
   const recentSession = sessions[0];
   return <div className={`workspace integrated-workspace ${open ? "navigation-open" : "navigation-closed"}`}>
     {open && <button className="mobile-scrim" aria-label="Close navigation" onClick={toggle}/>}
