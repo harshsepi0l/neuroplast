@@ -4,7 +4,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
 
 export default [
-  { ignores: ["node_modules/**", ".next/**", ".neuroplast/**", "next-env.d.ts", "src/ui/easyui/**"] },
+  { ignores: ["node_modules/**", ".next/**", ".neuroplast/**", ".claude/**", "next-env.d.ts", "src/ui/easyui/**"] },
   { files: ["**/*.{ts,tsx}"], languageOptions: { parser: ts, parserOptions: { ecmaVersion: "latest", sourceType: "module", ecmaFeatures: { jsx: true } } }, plugins: { "@next/next": next }, rules: { ...next.configs.recommended.rules } },
   ...tseslint.configs.recommended.map((config) => ({ ...config, files: ["**/*.{ts,tsx}"] })),
   {

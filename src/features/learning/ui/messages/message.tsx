@@ -15,6 +15,9 @@ import { cn } from "@/lib/utils";
 import { cjk } from "@streamdown/cjk";
 import { code } from "@streamdown/code";
 import { createMathPlugin } from "@streamdown/math";
+// KaTeX's own stylesheet: without it the hidden MathML copy of every
+// formula shows next to the rendered one ("10 + 50 = 6010 + 50 = 60").
+import "katex/dist/katex.min.css";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";

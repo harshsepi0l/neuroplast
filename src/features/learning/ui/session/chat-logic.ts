@@ -86,3 +86,73 @@ export function escAbortTarget(s: {
 	if (s.busy) return "turn";
 	return null;
 }
+
+/** Remembers whether the tutor's thinking is shown (per device). */
+export const SHOW_THINKING_KEY = "neuroplast:show-thinking";
+
+interface ViewPartLike { type: string; text?: string; state?: string; toolCallId?: string; output?: unknown }
+interface ViewMessageLike { role: string; parts: readonly ViewPartLike[] }
+
+const userText = (m: ViewMessageLike) => m.parts.filter((p) => p.type === "text").map((p) => p.text ?? "").join("\n").trim();
+
+/** A user message that repeats the one right before it — what a retry
+ *  after a failed attempt leaves behind. It shows once. */
+export function repeatedUserMessage(messages: readonly ViewMessageLike[], i: number): boolean {
+	const m = messages[i];
+	const prev = messages[i - 1];
+	if (!m || !prev || m.role !== "user" || prev.role !== "user") return false;
+	const text = userText(m);
+	return text.length > 0 && text === userText(prev);
+}
+
+/** The warm-up (probe-phase questions): which were answered, the first
+ *  one (where the warm-up heading goes), and how many were right. */
+export function warmupSummary(messages: readonly ViewMessageLike[]): { ids: Set<string>; first?: string; answered: number; correct: number } {
+	const ids = new Set<string>();
+	let first: string | undefined;
+	let correct = 0;
+	for (const m of messages) {
+		for (const p of m.parts) {
+			if ((p.type !== "tool-probe" && p.type !== "tool-recall") || p.state !== "output-available" || !p.toolCallId) continue;
+			ids.add(p.toolCallId);
+			first ??= p.toolCallId;
+			if ((p.output as { correct?: boolean } | undefined)?.correct) correct++;
+		}
+	}
+	return { ids, first, answered: ids.size, correct };
+}
+
+/** The tutor is still thinking (a reasoning part is the newest thing). */
+export function lastPartIsReasoning(messages: readonly ViewMessageLike[]): boolean {
+	const last = messages.at(-1);
+	return last?.role === "assistant" && last.parts.at(-1)?.type === "reasoning";
+}
+
+/** What the working line says while the tutor prepares the next thing. */
+export function workingLabel(phase: string, kind: string): string {
+	if (kind === "practice") return "Preparing the next problem…";
+	if (phase === "probe") return "Picking your next question…";
+	if (phase === "plan") return "Building your plan…";
+	return "Writing the next step…";
+}
+
+/**
+ * Removes paragraphs that are just a question tool's arguments written out
+ * as JSON — a weaker model sometimes types the call into the lesson
+ * instead of making it. Ordinary prose and code blocks are kept.
+ */
+export function stripLeakedToolArgs(text: string): string {
+	return text
+		.split(/\n{2,}/)
+		.filter((para) => {
+			const t = para.trim();
+			if (!t.startsWith("{") || !t.endsWith("}")) return true;
+			try {
+				const obj = JSON.parse(t) as Record<string, unknown>;
+				return !(typeof obj === "object" && obj && "question" in obj && ("options" in obj || "correctAnswer" in obj));
+			} catch {
+				return !/"question"\s*:/.test(t) || !/"(options|correctAnswer)"\s*:/.test(t);
+			}
+		})
+		.join("\n\n");
+}

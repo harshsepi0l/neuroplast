@@ -13,13 +13,11 @@ import { Reasoning, ReasoningContent, ReasoningTrigger } from "@/features/learni
 import { Shimmer } from "@/features/learning/ui/messages/shimmer";
 import { BrailleSpinner } from "@/features/learning/ui/messages/braille-spinner";
 import { LiveToolCard } from "@/features/learning/ui/messages/live-tool-card";
-import { Separator } from "@/ui/primitives/separator";
 import { AnsweredCard } from "@/features/learning/ui/docks/answered-card";
 import { artifactRenderers } from "@/features/artifacts/ui/renderers";
 import { SubagentSteerCard } from "@/features/learning/ui/messages/steer-card";
 import { Composer } from "@/features/learning/ui/composer/composer";
 import { useEnterSubmits } from "@/features/learning/ui/composer/enter-submits";
-import { blurAfterPointerClick } from "@/features/learning/ui/session/focus-hygiene";
 import { useFieldCycle } from "@/features/learning/ui/composer/field-cycle";
 import { JobsContext } from "@/features/learning/ui/session/jobs-context";
 import { useChatJobs } from "./use-chat-jobs";
@@ -27,12 +25,10 @@ import { useServerEvent } from "@/features/learning/ui/session/server-events";
 import { firstSourceTextParts, messageAnchorId, textPartMessageId } from "@/features/learning/core/session-navigation";
 import { kbdEventForAction as kbdEventForChat } from "@/features/settings/core/keyboard";
 import { needsContinuation, type NeuroplastMessage } from "@/features/learning/core/native-messages";
-import { PlanBlock, PlanPopup, latestTree } from "@/features/learning/ui/messages/plan-block";
 import { PlanOutline } from "@/features/learning/ui/messages/plan-outline";
 import { MermaidOverlay, SessionMermaidContext } from "@/features/learning/ui/session/session-overlay";
 import { AbortTurnDialog, type AbortMode } from "@/features/learning/ui/session/abort-turn-dialog";
-import { ArrowRightIcon, DumbbellIcon, WaypointsIcon } from "lucide-react";
-import type { PlanBlockData } from "@/features/learning/core/chat";
+import { ArrowRightIcon, DumbbellIcon } from "lucide-react";
 import { SessionFind } from "@/features/learning/ui/session/session-find";
 import { SessionMessageNavigation } from "@/features/learning/ui/session/session-navigation";
 import { ThinkingCard, type PracticeThinkingData } from "@/features/learning/ui/docks/practice-cards";
@@ -41,26 +37,26 @@ import { TopBar } from "@/app-shell/top-bar";
 import type { ArtifactPartProps, TurnUsage } from "@/features/learning/core/chat";
 import type { QuestionAnswerData } from "@/features/learning/core/question-core";
 import type { SessionPricing } from "@/features/learning/core/prices";
-import { PhaseChip, PhaseDivider } from "@/features/learning/ui/session/phase-divider";
+import { SessionStepper } from "@/features/learning/ui/session/session-stepper";
 import { CompactionCutDivider, CompactionMomentDivider, type CompactionDividerData } from "@/features/learning/ui/session/compaction-divider";
 import { CoverageRing } from "@/features/knowledge/ui/extraction-coverage";
 import { activeProblemOf } from "@/features/learning/core/native-messages";
 import { dismissedAnswer } from "@/features/learning/core/question-core";
 import { findPendingToolCall, toolQuestionKind } from "@/features/learning/core/pending";
-import { phaseTimeline, teachStepIndex } from "@/features/learning/core/phases";
+import { phaseTimeline } from "@/features/learning/core/phases";
 import { currentUserThinkingOpen, setAllUserThinkingOpen } from "@/features/learning/ui/messages/thinking-block";
 import { slotsConfigured, type ModelsSettings } from "@/features/settings/core/settings";
 import { useSettingsSaved } from "@/app-shell/settings-signal";
 import { COLUMN } from "./chat-layout";
 import { ChatActionsContext } from "./chat-actions-context";
-import { escAbortTarget, initialPromptOwed, isSubagentSteer, parseModelsRefusal, parseProviderKeyRefusal } from "./chat-logic";
+import { escAbortTarget, initialPromptOwed, isSubagentSteer, lastPartIsReasoning, stripLeakedToolArgs, parseModelsRefusal, parseProviderKeyRefusal, repeatedUserMessage, SHOW_THINKING_KEY, warmupSummary, workingLabel } from "./chat-logic";
+import { WarmupHeading } from "./warmup-heading";
 import { SessionDock } from "./session-dock";
 import { PrintButton, printedOn } from "@/ui/print/print-button";
 import { questionNumbers } from "@/features/learning/core/answer-summary";
-import { isBackgroundTool, QUESTION_TOOLS } from "@/features/learning/core/pending";
+import { isBackgroundTool } from "@/features/learning/core/pending";
 import { SessionChallenge, type SessionChallengeInfo } from "./session-challenge";
 
-const isQuestionPart = (type: string) => type.startsWith("tool-") && (QUESTION_TOOLS as readonly string[]).includes(type.slice("tool-".length));
 
 /**
  * The teaching session. All chat state lives in useChat; the server persists
@@ -253,7 +249,7 @@ export function Chat({
 			const target = escAbortTarget({
 				abortAsk: abortAskRef.current !== null,
 				mermaidFocus: mermaidFocusRef.current !== null || figureFocusRef.current !== null,
-				planOpen: planOpenRef.current,
+				planOpen: false,
 				setupOpen: setupOpenRef.current,
 				pending: pendingRef.current !== null,
 				problem: activeProblemRef.current !== null,
@@ -263,8 +259,7 @@ export function Chat({
 			else if (target === "problem") setAbortAsk("problem");
 			else if (target === "turn") setAbortAsk("turn");
 			else if (target === "mermaid") setMermaidFocus(null);
-			else if (target === "plan") setPlanOpen(false);
-			// setup closes itself; null = nothing to do — both claimed.
+// setup closes itself; null = nothing to do — both claimed.
 		};
 		window.addEventListener("neuroplast:kbd-abort-turn", onAbort);
 		return () => window.removeEventListener("neuroplast:kbd-abort-turn", onAbort);
@@ -387,6 +382,7 @@ export function Chat({
 	// color-coded dotted divider at each boundary; the header chip reads the
 	// session's current phase.
 	const phases = useMemo(() => phaseTimeline(messages), [messages]);
+	const inWarmup = (phases.at(-1) ?? "probe") === "probe";
 	// "Check 3": every question numbered in the order it was asked.
 	const questionNo = useMemo(() => questionNumbers(messages), [messages]);
 
@@ -625,12 +621,24 @@ export function Chat({
 		};
 	}, []);
 
-	// The live plan popup (wave 4): opened by any transcript plan block, the
-	// top-bar plan chip, and the dock band's marginalia.
-	const [planOpen, setPlanOpen] = useState(false);
 	// The coverage ring's refresh chain (extraction-UX redesign): bumped at
 	// turn settle — the moment this session's uncovered mass changes.
 	const [coverageTick, setCoverageTick] = useState(0);
+	// The tutor's thinking: hidden unless turned on (one switch in the top bar).
+	const [showThinking, setShowThinking] = useState(false);
+	useEffect(() => {
+		try { setShowThinking(window.localStorage.getItem(SHOW_THINKING_KEY) === "1"); } catch { /* storage unavailable */ }
+	}, []);
+	const toggleThinking = () => {
+		setShowThinking((on) => {
+			try { window.localStorage.setItem(SHOW_THINKING_KEY, on ? "0" : "1"); } catch { /* storage unavailable */ }
+			return !on;
+		});
+	};
+	// The warm-up (probe phase): its answered questions read as one list;
+	// once teaching starts the list folds to a single summary line.
+	const warmup = useMemo(() => warmupSummary(messages), [messages]);
+	const [warmupOpen, setWarmupOpen] = useState(false);
 	// The mermaid focus (chrome-melt wave, 2026-09-19): md-blocks' expand
 	// button registers the chart source here; the overlay (and the plan
 	// popup) mount INSIDE the session-area div — both are session-scoped, so
@@ -651,14 +659,8 @@ export function Chat({
 	// document level by the overlay itself); the window chain must stay out.
 	const figureFocusRef = useRef(figureFocus);
 	figureFocusRef.current = figureFocus;
-	const planOpenRef = useRef(planOpen);
-	planOpenRef.current = planOpen;
-	const setupOpenRef = useRef(setupOpen);
+const setupOpenRef = useRef(setupOpen);
 	setupOpenRef.current = setupOpen;
-	// The session's live plan (drives the top-bar chip; the marginalia
-	// derives its own from the same transcript).
-	const planTree = useMemo(() => latestTree(messages), [messages]);
-
 	// ── Session usage (wave-4 stats bar) ──
 	// The money channel: the record's turns log and read-time server Pi
 	// pricing projection. Seeded once on mount (the page doesn't carry turns),
@@ -968,26 +970,10 @@ export function Chat({
 							<div className="min-w-4 flex-1" aria-hidden="true" />
 					</>
 					)}
+					<button type="button" aria-pressed={showThinking} onClick={toggleThinking} className="neuroplast-no-drag shrink-0 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground print:hidden">
+						{showThinking ? "Hide thinking" : "Show thinking"}
+					</button>
 					<PrintButton label="Print" className="neuroplast-no-drag shrink-0" />
-					{/* The plan chip: session-level structure beside the phase
-					    chip — opens the full diagram; the outline at the top of
-					    the page is the glance view. */}
-					{planTree && (
-						<Hint label="Open the full plan" side="bottom">
-<button
-							type="button"
-							data-testid="plan-chip"
-							onClick={(e) => {
-								blurAfterPointerClick(e);
-								setPlanOpen(true);
-							}}
-							className="neuroplast-no-drag flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border/80 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:border-border hover:text-foreground"
-						>
-							<WaypointsIcon className="size-3.5 text-primary" aria-hidden />
-							Plan
-						</button>
-</Hint>
-					)}
 					{/* The extraction ring (owner-locked redesign, 2026-09-24): fills
 					    with uncovered vs the chunk threshold, pulses while a run is in
 					    flight, vanishes when the graph is off. Click → the exact
@@ -1009,7 +995,7 @@ export function Chat({
 							Practice
 						</span>
 					) : (
-						<PhaseChip phase={phases.at(-1) ?? "probe"} />
+						<SessionStepper phase={phases.at(-1) ?? "probe"} challenge={!!challenge} />
 					)}
 				</TopBar>
 
@@ -1020,7 +1006,7 @@ export function Chat({
 					<ConversationContent className="min-h-full gap-0 p-0">
 						<div data-session-find-root="" className={`${COLUMN} flex flex-1 flex-col gap-4 pt-4`}>
 							<p className="print-only print-header" suppressHydrationWarning><strong>{titleText}</strong> · Learn session · Printed {printedOn()}</p>
-							<PlanOutline messages={messages} onOpen={() => setPlanOpen(true)} />
+							<PlanOutline messages={messages} />
 							{messages.length === 0 && !busy && (
 								<ConversationEmptyState
 									title="New session"
@@ -1029,6 +1015,8 @@ export function Chat({
 							)}
 
 							{messages.map((m, mi) =>
+								// A message re-sent after a failed attempt shows once.
+								repeatedUserMessage(messages, mi) ? null :
 								m.role === "user" && isSubagentSteer(m) ? (
 									// Sub-agent delivery (wake-pipeline steer): NO message bubble — the
 									// artifact card sits in the transcript column directly, full width
@@ -1045,7 +1033,7 @@ export function Chat({
 								// Wave D grouping merged the whole probe into one giant
 								// assistant group — is gone). Never a user bubble: the wake is
 								// scaffolding; the model-facing instruction lives in the adapter.
-								<PhaseDivider key={m.id || `m-${mi}`} phase="plan" />
+								null /* the handoff wake is scaffolding; the top-bar stepper shows the phase */
 							) : m.role === "user" && m.parts.length > 0 && m.parts.every((p) => p.type.startsWith("data-")) ? (
 								// Marker cards (custom messages, 2026-10-04): user-side
 								// scaffolding — the graph-context pick, the practice
@@ -1103,13 +1091,6 @@ export function Chat({
 									PREPENDED, never a replacement branch: the teach group is a real
 									message with content — a replacement ternary swallowed the entire
 									first lesson block (the Lacan session, 2026-09-27). */}
-									{m.role === "assistant" &&
-									mi > 0 &&
-									phases[mi] === "teach" &&
-									phases[mi - 1] !== "teach" &&
-									teachStepIndex(m.parts) === -1 ? (
-										<PhaseDivider key={`teach-${m.id || `m-${mi}`}`} phase="teach" />
-									) : null}
 									{m.role === "user" ? (
 										/* THE DOCUMENT ROW (owner round, 2026-10-05): no right-aligned
 										    bubble — the transcript reads as a document. User text is a
@@ -1144,15 +1125,6 @@ export function Chat({
 									<MessageContent className="w-full">
 											{m.parts.map((part, pi) => {
 												const isLastPart = mi === messages.length - 1 && pi === m.parts.length - 1;
-												// The step boundary where teaching begins (round 8): when
-												// the teach flip happens in a LATER step, its PhaseDivider
-												// replaces this boundary's plain hairline.
-												const teachBoundary =
-													m.role === "assistant" &&
-													mi > 0 &&
-													phases[mi] === "teach" &&
-													phases[mi - 1] !== "teach" &&
-													teachStepIndex(m.parts) === pi;
 												// A tool call that errored back to the agent (malformed
 												// args and the like) is the tutor's own retry loop — not
 												// part of the lesson, so it renders nothing; the Thinking
@@ -1164,11 +1136,12 @@ export function Chat({
 														const anchor = sourceId && sourceTextParts.get(sourceId) === part.id ? messageAnchorId(sourceId) : undefined;
 														return (
 															<div key={part.id || pi} id={anchor} data-source-message-id={sourceId ?? undefined} className="neuroplast-source-passage">
-																<MessageResponse>{part.text}</MessageResponse>
+																<MessageResponse>{stripLeakedToolArgs(part.text ?? "")}</MessageResponse>
 															</div>
 														);
 													}
 													case "reasoning":
+														if (!showThinking) return null;
 														return (
 															<Reasoning key={pi} isStreaming={status === "streaming" && isLastPart} className="mb-2">
 																<ReasoningTrigger />
@@ -1176,22 +1149,13 @@ export function Chat({
 															</Reasoning>
 														);
 													case "step-start":
-														if (teachBoundary)
-															return <PhaseDivider key={`teach-step-${pi}`} phase="teach" />;
-														// No hairline right after an answered question: its
-														// one-line record already ends in a rule.
-														if (pi > 0 && m.parts[pi - 1]?.state === "output-available" && isQuestionPart(m.parts[pi - 1]!.type)) return null;
-														return pi > 0 ? <Separator key={pi} className="my-3" /> : null;
+														// Provider steps are the tutor's bookkeeping: no rules between
+														// them; the page reads as one document.
+														return null;
 													case "data-plan-block":
-														// The plan in the chat (wave 4): a frozen snapshot
-														// block — rendered as carried, never re-derived.
-														return (
-															<PlanBlock
-																key={pi}
-																data={part.data as PlanBlockData}
-																onOpen={() => setPlanOpen(true)}
-															/>
-														);
+														// The plan lives in the outline at the top of the page and as a
+														// skill tree in Knowledge — no diagram here.
+														return null;
 													case "tool-quiz":
 													case "tool-probe":
 													case "tool-ask_user_question":
@@ -1201,7 +1165,14 @@ export function Chat({
 														// transcript; answered ones render as graded records.
 														if (part.state === "output-available") {
 															return (
-																<AnsweredCard key={pi} answer={part.output as QuestionAnswerData} input={part.input} number={part.toolCallId ? questionNo.get(part.toolCallId) : undefined} />
+																<Fragment key={pi}>
+																	{part.toolCallId === warmup.first && (
+																		<WarmupHeading summary={warmup} folded={!inWarmup} open={warmupOpen} onToggle={() => setWarmupOpen((v) => !v)} />
+																	)}
+																	{(!part.toolCallId || !warmup.ids.has(part.toolCallId) || inWarmup || warmupOpen) && (
+																		<AnsweredCard answer={part.output as QuestionAnswerData} input={part.input} number={part.toolCallId ? questionNo.get(part.toolCallId) : undefined} />
+																	)}
+																</Fragment>
 															);
 														}
 														return null;
@@ -1218,6 +1189,8 @@ export function Chat({
 														// Artifact extension point (contracts.ts): job
 														// parts and future artifacts render via the
 														// registry — add renderers there, not here.
+														// The warm-up's assessment folds with the warm-up.
+														if (part.type === "tool-probe_done" && !inWarmup && !warmupOpen) return null;
 														if (part.type.startsWith("tool-")) {
 															const Renderer = artifactRenderers[part.type.slice("tool-".length)];
 															if (Renderer) return <Renderer key={pi} part={part as ArtifactPartProps["part"]} />;
@@ -1258,13 +1231,11 @@ export function Chat({
 									<Shimmer duration={1}>COMPACTING CONTEXT…</Shimmer>
 								</span>
 							)}
-							{(status === "submitted" || turnInFlight) && (
-								<span className="flex items-center gap-2 font-ui text-xs font-medium uppercase tracking-wide text-muted-foreground">
-									<BrailleSpinner label="Thinking" />
-									<Shimmer duration={1}>
-										THINKING…
-									</Shimmer>
-								</span>
+							{(status === "submitted" || turnInFlight || (status === "streaming" && !showThinking && lastPartIsReasoning(messages))) && (
+								<div role="status" className="flex items-center gap-2.5 py-1 text-muted-foreground">
+									<BrailleSpinner label="Working" />
+									<Shimmer duration={1}>{workingLabel(phases.at(-1) ?? "probe", kind)}</Shimmer>
+								</div>
 							)}
 							{error && (
 								<div className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm">
@@ -1358,8 +1329,7 @@ export function Chat({
 						onClose={() => setFigureFocus(null)}
 					/>
 				)}
-				{planOpen && <PlanPopup messages={messages} onClose={() => setPlanOpen(false)} />}
-				<AbortTurnDialog mode={abortAsk} onClose={() => setAbortAsk(null)} onConfirm={confirmAbort} busy={busy} />
+<AbortTurnDialog mode={abortAsk} onClose={() => setAbortAsk(null)} onConfirm={confirmAbort} busy={busy} />
 				</div>
 			</div>
 		</div>
