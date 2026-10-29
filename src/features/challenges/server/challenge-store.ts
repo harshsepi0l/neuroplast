@@ -27,6 +27,8 @@ export interface ChallengeRecord {
   topic?: { id: string; title: string; description: string };
   skills?: { id: string; name: string; description: string }[];
   request?: string;
+  /** The Learn session this challenge tests (carried to its retakes). */
+  sessionId?: string;
   practice?: Question[];
   seed: number;
   createdAt: string;
@@ -79,7 +81,7 @@ export function createChallenge(previousId?: string): ChallengeRecord {
   save(record);
   return record;
 }
-export async function createCustomChallenge(request: string, previousId?: string, signal?: AbortSignal): Promise<ChallengeRecord> {
+export async function createCustomChallenge(request: string, previousId?: string, signal?: AbortSignal, sessionId?: string): Promise<ChallengeRecord> {
   const previous = previousId ? readChallenge(previousId) : undefined;
   if (previous && (previous.kind !== "custom" || !previous.submittedAt)) throw new AppError("challenge_incomplete", "Choose a completed custom challenge for this retake.", 409);
   const topicId = previous?.topicId ?? `topic_${randomUUID()}`;
@@ -90,6 +92,7 @@ export async function createCustomChallenge(request: string, previousId?: string
     version: VERSION, id: `challenge_${randomUUID()}`, kind: "custom", topicId, seed: seed(), createdAt: new Date().toISOString(),
     ...(previous ? { previousId: previous.id } : {}), topic: previous?.topic ?? generated.topic,
     skills: previous?.skills ?? generated.skills, request: source,
+    ...(previous?.sessionId ?? sessionId ? { sessionId: previous?.sessionId ?? sessionId } : {}),
     questions: generated.questions, practice: generated.practice, responses: {},
   };
   save(record);
@@ -141,7 +144,7 @@ export function challengeView(record: ChallengeRecord) {
   const previous = record.previousId ? score(readChallenge(record.previousId)) : null;
   return {
     id: record.id, topic: record.topic ?? TOPIC, skills: skillsOf(record), createdAt: record.createdAt,
-    previousId: record.previousId, previousScore: previous?.points,
+    previousId: record.previousId, previousScore: previous?.points, sessionId: record.sessionId,
     submittedAt: record.submittedAt, questions: record.questions.map(publicQuestion),
     responses: record.responses, result,
     training: record.training ? trainingProgress(record) : null,
@@ -157,7 +160,13 @@ function allRecords(): ChallengeRecord[] {
   } catch { return []; }
 }
 export function listChallenges() {
-  return allRecords().slice(0, 100).map(record => ({ id: record.id, topicId: record.topicId, topicTitle: record.topic?.title ?? TOPIC.title, createdAt: record.createdAt, submittedAt: record.submittedAt, score: score(record)?.points, goalMet: score(record)?.goalMet, trainingReady: record.training ? trainingProgress(record).ready : false }));
+  const records = allRecords();
+  const pointsOf = (id?: string) => { if (!id) return undefined; try { return score(readChallenge(id))?.points; } catch { return undefined; } };
+  return records.slice(0, 100).map(record => ({ id: record.id, topicId: record.topicId, topicTitle: record.topic?.title ?? TOPIC.title, createdAt: record.createdAt, submittedAt: record.submittedAt, score: score(record)?.points, previousScore: pointsOf(record.previousId), goalMet: score(record)?.goalMet, trainingReady: record.training ? trainingProgress(record).ready : false, sessionId: record.sessionId }));
+}
+/** The newest challenge made from a Learn session, if there is one. */
+export function challengeForSession(sessionId: string): ChallengeRecord | undefined {
+  return allRecords().find(record => record.sessionId === sessionId);
 }
 function knowledgeProjection(records: ChallengeRecord[]) {
   return records.map(record => ({

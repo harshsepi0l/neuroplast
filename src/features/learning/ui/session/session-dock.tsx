@@ -32,6 +32,7 @@ export function SessionDock({
 	onSubmitAnswer,
 	chatId,
 	setupCta,
+	challengeCta,
 	queuedSteers,
 }: {
 	pending: ReturnType<typeof findPendingToolCall>;
@@ -54,11 +55,14 @@ export function SessionDock({
 	queuedSteers: QueuedSteerLine[];
 	/** The setup CTA shown while model slots are unset. */
 	setupCta?: React.ReactNode;
+	/** "Take the challenge" — shown above the composer once teaching starts. */
+	challengeCta?: React.ReactNode;
 }) {
 	const mode = pending ? `question:${pending.toolCallId}` : practice ? `practice:${practice.toolCallId}` : "chat";
 	return (
 		<div data-testid="session-dock" className={`${pending ? COLUMN : DOCK} pb-10 pt-2`} style={{ "--dock-max-h": "none" } as React.CSSProperties}>
 			{setupCta}
+			{!pending && !practice && challengeCta}
 			<QueuedSteersBody steers={queuedSteers} />
 			{/* A pending question sits in the page with no box around it (the
 			    quiet worksheet); the practice dock and composer keep theirs. */}

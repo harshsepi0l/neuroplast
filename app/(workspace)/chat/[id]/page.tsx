@@ -5,6 +5,7 @@ import { compactionInFlight } from "@/features/learning/server/compaction";
 import { getChat } from "@/features/learning/server/chats";
 import { isTurnRunning } from "@/features/learning/server/turn-liveness";
 import { readSettings as readSettingsRecord } from "@/features/settings/server/settings-store";
+import { challengeForSession, score } from "@/features/challenges/server/challenge-store";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export default async function ChatPage({
 	// over the settings record, server-read — the same gate home/new read. The
 	// server's 503 stays the truth; this only decides whether the pill rides.
 	const record = readSettingsRecord();
+	const challenge = challengeForSession(chat.id);
 	return (
 		<Chat
 			key={chat.id}
@@ -38,6 +40,7 @@ export default async function ChatPage({
 			// attach (busy shimmer + poll), never resurrect the stale record.
 			initiallyInFlight={isTurnRunning(chat.id)}
 			initiallyCompacting={compactionInFlight(chat.id)}
+			challenge={challenge ? { id: challenge.id, score: score(challenge)?.points } : undefined}
 		/>
 	);
 }
