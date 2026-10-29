@@ -2,7 +2,8 @@ import { withRequestOwner } from "@/server/request-context";
 import { chainsForSelection, formatChainLine } from "@/features/knowledge/core/chains";
 import { newGraphContextMessage, type GraphContextPick } from "@/features/learning/core/native-messages";
 import { compactionInFlight } from "@/features/learning/server/compaction";
-import { createChat, listChats, titleFromPrompt } from "@/features/learning/server/chats";
+import { createChat, listChats } from "@/features/learning/server/chats";
+import { shortTitle } from "@/features/learning/core/titles";
 import { isTurnRunning } from "@/features/learning/server/turn-liveness";
 import { readSettings as readSettingsRecord } from "@/features/settings/server/settings-store";
 import { stores } from "@/server/workspace-stores";
@@ -30,7 +31,7 @@ async function handlePOST(req: Request) {
 	// Practice sessions (owner, 2026-10-04): kind "practice" marks the
 	// record — the practice agent + its tools from turn 1, no extraction.
 	const kind = body.kind === "practice" ? ("practice" as const) : undefined;
-	const chat = createChat(titleFromPrompt(title || "Untitled session"), kind);
+	const chat = createChat(shortTitle(title || "Untitled session"), kind);
 	// PER-SESSION MODELS (owner, 2026-09-28): a session owns its model +
 	// thinking level from birth — stamped verbatim from the STRONG slot,
 	// the new-session default. From here the strong slot never reaches

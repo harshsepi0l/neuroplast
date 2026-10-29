@@ -243,8 +243,8 @@ function defaultNode(topic: SkillTreeTopic): string {
  * topic's tree in the middle (a path, or layered rows when the plan
  * branches), and the selected skill's detail and next steps on the right.
  */
-export function SkillTreeView({ topics }: { topics: SkillTreeTopic[] }) {
-	const [topicKey, setTopicKey] = useState(topics[0]?.key ?? "");
+export function SkillTreeView({ topics, initialTopic }: { topics: SkillTreeTopic[]; initialTopic?: string }) {
+	const [topicKey, setTopicKey] = useState(topics.some((t) => t.key === initialTopic) ? initialTopic! : (topics[0]?.key ?? ""));
 	const topic = topics.find((t) => t.key === topicKey) ?? topics[0];
 	const [selected, setSelected] = useState<Record<string, string>>({});
 	const nodeId = topic ? (selected[topic.key] ?? defaultNode(topic)) : "";

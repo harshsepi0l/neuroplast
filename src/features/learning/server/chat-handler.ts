@@ -57,6 +57,7 @@ import {
 	type TurnInput,
 } from "@/features/learning/core/input-events";
 import { steerDelivered } from "@/features/artifacts/core/jobs";
+import { lessonHandoffOnly } from "@/features/learning/core/stages";
 import type { CallUsage } from "@/features/learning/core/chat";
 import type { SteerMessage } from "@/features/artifacts/core/jobs";
 
@@ -87,8 +88,8 @@ const jobRunner = createJobRunner({
 	// override → slot → NOTHING — read FRESH per job (a settings PUT
 	// between dispatch and spawn lands); an empty chain flows through as
 	// undefined and the runner refuses the spawn honestly.
-	engineFor: (role) =>
-		resolveEngine(role),
+	engineFor: (role, chatId) =>
+		resolveEngine(role, chatId),
 	// Key-presence gate (provider-key interlude, 2026-09-25): the runner
 	// reads the resolved engine's provider and asks THIS check (the agent
 	// layer may not read the key store); a missing key refuses the spawn
@@ -135,8 +136,17 @@ setTurnRunner(async (chatId, input) => {
  *  the chain (role override → slot → NOTHING) may end empty, and undefined
  *  flows through to the per-need refusal gates (runner/extraction), read
  *  FRESH so a settings PUT between dispatch and spawn lands. */
-function resolveEngine(role: ModelRole): PiEngine | undefined {
-	const spec = resolveRoleSpec(role, stores.settingsStore.readSettings());
+function resolveEngine(role: ModelRole, chatId?: string): PiEngine | undefined {
+	const record = stores.settingsStore.readSettings();
+	const spec = resolveRoleSpec(role, record);
+	// A helper whose own slot has no usable key (e.g. the PDF reader on a
+	// Gemini vision slot while the lesson runs on a Grok sign-in) borrows
+	// the lesson's model — the session's own pick, else the main slot.
+	if (!spec || !providerKeyPresent(spec.provider)) {
+		const chat = chatId ? stores.chatStore.getChat(chatId) : undefined;
+		const main = resolveConversationSpec(chat?.settings, effectiveSettings().models.strong);
+		if (main && providerKeyPresent(main.provider)) return piEngineForSpec(main);
+	}
 	return spec ? piEngineForSpec(spec) : undefined;
 }
 
@@ -209,7 +219,7 @@ export async function handleChatInput(
 	// (a chat.model override still resolves through it).
 	if (isSubscriptionProvider(conversation.provider)) {
 		await refreshConnectionCatalog(conversation.provider);
-		if (input.type === "steers" && !connectionBackgroundAllowed(conversation.provider)) {
+		if (input.type === "steers" && !lessonHandoffOnly(input.steers) && !connectionBackgroundAllowed(conversation.provider)) {
 			return Response.json({ error: "Background use is off for this connection. Automatic follow-up remains deferred in its queue." }, { status: 403 });
 		}
 	}
@@ -228,7 +238,9 @@ export async function handleChatInput(
 	// placement mirrors the BYOK/key gates — BEFORE appends and
 	// beginTurn, no liveness effects — and the record re-reads after
 	// because compaction appends the marker.
-	const callPurpose = { background: input.type === "steers" || (input.type === "continue" && reconstructRequestCause(record.messages) !== "foreground") };
+	// The warm-up → plan handoff is the lesson's own next step, not
+	// background work: it never waits on background-use consent.
+	const callPurpose = { background: (input.type === "steers" && !lessonHandoffOnly(input.steers)) || (input.type === "continue" && reconstructRequestCause(record.messages) !== "foreground") };
 	let requestCycle: SubscriptionRequestCycle | undefined;
 	const lifecycle: SubscriptionDispatchLifecycle = {
 		captured: (scope) => requestCycle?.captured(scope),

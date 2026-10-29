@@ -77,9 +77,9 @@ function advance(
 	if (!parts) return phase;
 	for (const part of parts) {
 		// STRICTLY SEQUENTIAL: probe → plan only via a concluded probe_done,
-		// plan → teach only via the first nodeId-tagged quiz CALL (the call,
-		// not its answer — an errored-and-retried call still proves teaching
-		// began, and the retry lands in the same group anyway).
+		// plan → teach only via the first nodeId-tagged quiz CALL that was
+		// not refused (the plan gate errors lesson questions until the
+		// learner starts; a valid retry lands in the same group anyway).
 		if (phase === "probe" && part.type === "tool-probe_done" && part.state === "output-available") {
 			phase = "plan";
 		}
@@ -88,6 +88,7 @@ function advance(
 		if (
 			phase === "plan" &&
 			(part.type === "tool-quiz" || part.type === "tool-explain") &&
+			part.state !== "output-error" &&
 			taggedNodeId(part.input)
 		) {
 			phase = "teach";
@@ -123,6 +124,7 @@ export function teachStepIndex(
 		}
 		if (
 			(part.type === "tool-quiz" || part.type === "tool-explain") &&
+			part.state !== "output-error" &&
 			taggedNodeId(part.input)
 		) {
 			// The call's governing step: 0–1 step-starts seen = the message's
@@ -163,6 +165,12 @@ import type { NeuroplastMessage } from "@/features/learning/core/native-messages
 export function phaseAt3Lh(messages: readonly NeuroplastMessage[], upToIndex?: number): Phase3 {
 	let phase: Phase3 = "probe";
 	const last = Math.min(upToIndex ?? messages.length - 1, messages.length - 1);
+	// Refused calls (errored results — e.g. the plan gate) never start teaching.
+	const refused = new Set(
+		messages
+			.filter((m) => (m as { role?: string }).role === "toolResult" && (m as { isError?: boolean }).isError)
+			.map((m) => (m as { toolCallId?: string }).toolCallId),
+	);
 	for (let i = 0; i <= last; i++) {
 		const m = messages[i]!;
 		const role = (m as { role?: string }).role;
@@ -176,12 +184,13 @@ export function phaseAt3Lh(messages: readonly NeuroplastMessage[], upToIndex?: n
 				phase = "plan";
 			}
 		} else if (role === "assistant") {
-			const content = (m as { content?: ReadonlyArray<{ type?: string; name?: string; arguments?: unknown }> }).content ?? [];
+			const content = (m as { content?: ReadonlyArray<{ type?: string; id?: string; name?: string; arguments?: unknown }> }).content ?? [];
 			if (phase === "plan") {
 				for (const block of content) {
 					if (
 						block.type === "toolCall" &&
 						(block.name === "quiz" || block.name === "explain") &&
+						!refused.has(block.id) &&
 						taggedNodeId(block.arguments)
 					) {
 						phase = "teach";

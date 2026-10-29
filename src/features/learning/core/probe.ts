@@ -36,6 +36,7 @@ export interface ProbeAssessment {
 /** probe_done tool input (the assessment the prober authors). */
 export interface ProbeDoneInput {
 	assessment: ProbeAssessment;
+	title?: string;
 }
 
 // The TypeBox schema of that input — SINGLE SOURCE OF TRUTH, lived by the
@@ -55,8 +56,8 @@ export const probeDoneInputSchema = Type.Object({
 					}),
 					assessment: Type.String({
 						description:
-							"Where his edge sits on this strand: the floor (what he reliably gets right), the ceiling (where it runs out), " +
-							"misconceptions found, and what the lesson should build from.",
+							"Where the learner's edge sits on this strand, written TO them in second person ('you'): the floor (what you reliably get right), " +
+							"the ceiling (where it runs out), misconceptions found, and what the lesson will build from. The learner reads this.",
 					}),
 				}),
 				{ minItems: 1, description: "Every strand the planned lesson will depend on, each with your read of his edge on it." },
@@ -68,6 +69,12 @@ export const probeDoneInputSchema = Type.Object({
 			),
 		},
 		{ description: "The learner assessment — the probe's distilled output." },
+	),
+	title: Type.Optional(
+		Type.String({
+			maxLength: 60,
+			description: "A 2–5 word name for this session's topic, e.g. 'Bayesian inference basics'. Becomes the session title.",
+		}),
 	),
 });
 

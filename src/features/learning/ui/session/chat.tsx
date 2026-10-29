@@ -1039,7 +1039,7 @@ const setupOpenRef = useRef(setupOpen);
 					<ConversationContent className="min-h-full gap-0 p-0">
 						<div data-session-find-root="" className={`${COLUMN} flex flex-1 flex-col gap-4 pt-4`}>
 							<p className="print-only print-header" suppressHydrationWarning><strong>{titleText}</strong> · Learn session · Printed {printedOn()}</p>
-							<PlanOutline messages={messages} />
+							<PlanOutline messages={messages} chatId={chatId} />
 							{messages.length === 0 && !busy && (
 								<ConversationEmptyState
 									title="New session"
@@ -1181,7 +1181,9 @@ const setupOpenRef = useRef(setupOpen);
 														);
 													}
 													case "reasoning":
-														if (!showThinking) return null;
+														// Hidden reasoning (some providers send only an encrypted
+														// signature) has nothing to show: no empty header.
+														if (!showThinking || !(part.text ?? "").trim() && !(status === "streaming" && isLastPart)) return null;
 														return (
 															<Reasoning key={pi} isStreaming={status === "streaming" && isLastPart} className="mb-2">
 																<ReasoningTrigger />

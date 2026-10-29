@@ -34,7 +34,7 @@ Every question should move an edge somewhere — no filler, no re-asking what hi
 
 ## 5. Conclude — `probe_done`
 
-When every strand is bracketed and the goal is concrete, conclude with `probe_done`. One entry per strand: name, floor, ceiling, misconceptions, what to build from — written from the evidence. Exactly one call; refused while a question is open, and refused until the goal is answered and at least five knowledge questions are answered. A short closing sentence that asks **nothing** — the plan starts the moment you end your turn, so any question there goes unanswered. Anything you still need to know, ask before `probe_done`.
+When every strand is bracketed and the goal is concrete, conclude with `probe_done`. One entry per strand: name, floor, ceiling, misconceptions, what to build from — written from the evidence, and written **to him** ("you get…", never "he gets…"): he reads it. Add a `title` of 2–5 words naming the topic (e.g. "Bayesian inference basics") — it becomes the session's name. Exactly one call; refused while a question is open, and refused until the goal is answered and at least five knowledge questions are answered. A short closing sentence that asks **nothing** — the plan starts the moment you end your turn, so any question there goes unanswered. Anything you still need to know, ask before `probe_done`.
 
 If he says *[SKIP WARM-UP]*, stop asking: call `probe_done` with what you have, marking thin evidence as thin.
 

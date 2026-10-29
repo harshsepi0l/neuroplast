@@ -123,7 +123,7 @@ export function warmupSummary(messages: readonly ViewMessageLike[]): { ids: Set<
 			if ((!knowledge && !goal) || p.state !== "output-available" || !p.toolCallId) continue;
 			ids.add(p.toolCallId);
 			first ??= p.toolCallId;
-			if (!knowledge) continue;
+			if (!knowledge || (p.output as { dismissed?: boolean } | undefined)?.dismissed) continue;
 			answered++;
 			if ((p.output as { correct?: boolean } | undefined)?.correct) correct++;
 		}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { MessageResponse } from "@/features/learning/ui/messages/message";
 import type { QuestionAnswerData } from "@/features/learning/core/question-core";
-import { answerLabel, answerSummary, answerVerdict, confidenceWord } from "@/features/learning/core/answer-summary";
+import { answerLabel, answerSummary, answerVerdict, confidenceWord, plainLine } from "@/features/learning/core/answer-summary";
 import { parseAskInput, parseQuizInput } from "@/features/learning/core/tool-parts";
 
 /**
@@ -47,9 +47,9 @@ export function AnsweredCard({ answer, input, number }: { answer: QuestionAnswer
 				) : (
 					<>
 						<span className="min-w-0 flex-1 truncate text-[calc(var(--neuroplast-prose-size)*0.95)] text-muted-foreground">
-							{plain(answer.questionText)}
+							{plainLine(answer.questionText)}
 						</span>
-						<span className="min-w-0 max-w-[45%] shrink-0 truncate text-[calc(var(--neuroplast-prose-size)*0.95)]">{answerSummary(answer, 80)}</span>
+						<span className="min-w-0 max-w-[45%] shrink-0 truncate text-[calc(var(--neuroplast-prose-size)*0.95)]">{plainLine(answerSummary(answer, 80))}</span>
 					</>
 				)}
 				<button
@@ -68,10 +68,6 @@ export function AnsweredCard({ answer, input, number }: { answer: QuestionAnswer
 	);
 }
 
-/** Markdown/LaTeX markers stripped for the one-line view. */
-function plain(text: string): string {
-	return text.replace(/\$+/g, "").replace(/[*_`]/g, "").replace(/\s+/g, " ").trim();
-}
 
 function Line({ label, children }: { label: string; children: React.ReactNode }) {
 	return (

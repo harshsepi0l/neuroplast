@@ -89,9 +89,6 @@ const RESEARCH_ACK =
 const DEMO_ACK =
 	"This call is fire-and-forget: continue your turn and keep teaching — do not wait, poll, or mention waiting. " +
 	"The tested demo arrives as a new message when ready and is rendered in the lesson; teach with it then.";
-const VISUAL_ACK =
-	"This call is fire-and-forget: continue your turn and keep teaching — do not wait, poll, or mention waiting. " +
-	"The verified figure arrives as a new message when ready and is rendered in the lesson; reference it then.";
 const PDF_ACK =
 	"This call is fire-and-forget: continue your turn and keep teaching — do not wait, poll, or mention waiting. " +
 	"The document brief arrives as a new message when ready; weave it into the lesson and cite its pages.";
@@ -107,12 +104,6 @@ const DEMO_DESCRIPTION =
 	"something to sweep, animate, or sample is better experienced than described. " +
 	"The call is ASYNC and fire-and-forget — it resolves immediately and your turn continues; the tested demo arrives later " +
 	"as a new message. Write a precise brief: concept, controls, interactions, style.";
-const VISUAL_DESCRIPTION =
-	"Dispatch a background sub-agent that hand-authors ONE precise SVG figure, renders it, LOOKS at the render, and iterates " +
-	"until correct. Use it for exact spatial pictures auto-layout diagrams can't do: coordinate geometry, number lines, vectors, " +
-	"function plots, physical layouts. For flows/relations/taxonomies write mermaid inline instead. " +
-	"The call is ASYNC and fire-and-forget — it resolves immediately and your turn continues; the verified figure arrives later " +
-	"as a new message.";
 const PDF_DESCRIPTION =
 	"Dispatch a background sub-agent that READS a learner-provided PDF on your behalf (triage, targeted extraction, visual page " +
 	"reading for equations and diagrams) and returns a brief with page citations. Use it when the learner gives you a PDF path " +
@@ -145,15 +136,6 @@ export function jobTools(ctx: JobToolContext): Record<string, AgentTool<any>> {
 			description: DEMO_DESCRIPTION,
 			parameters: demoInputSchema,
 			execute: serverExecute("demo", demoInputSchema, (input, { toolCallId }) => dispatch(ctx, "demo", toolCallId, DEMO_ACK, input)),
-		},
-		visual: {
-			name: "visual",
-			label: "visual",
-			description: VISUAL_DESCRIPTION,
-			parameters: visualInputSchema,
-			execute: serverExecute("visual", visualInputSchema, (input, { toolCallId }) =>
-				dispatch(ctx, "visual", toolCallId, VISUAL_ACK, input),
-			),
 		},
 		pdf: {
 			name: "pdf",

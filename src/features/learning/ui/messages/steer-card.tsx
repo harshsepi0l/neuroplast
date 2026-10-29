@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckIcon, CircleX } from "lucide-react";
-import type { PdfResult, ResearchResult, SubagentArtifactData } from "@/features/artifacts/core/jobs";
+import type { DemoResult, PdfResult, ResearchResult, SubagentArtifactData, VisualResult } from "@/features/artifacts/core/jobs";
 import type { NeuroplastViewMessage } from "@/features/learning/core/view";
 import { isSubagentFailure } from "@/features/artifacts/core/jobs";
 import { DemoOutputCard } from "@/features/artifacts/ui/demo-card";
@@ -42,24 +42,41 @@ export function SubagentSteerCard({ message }: { message: NeuroplastViewMessage 
 			</div>
 		);
 	}
+	// Any failure is one quiet line; the reason opens on demand.
+	if (isSubagentFailure(data.kind, data.result)) return <FailedBadge kind={data.kind} reason={failureReason(data.result)} />;
 	switch (data.kind) {
 		case "research":
-			return isSubagentFailure("research", data.result as ResearchResult) ? (
-				<ResearchBriefCard output={data.result} />
-			) : (
-				<ResearchCompleteBadge result={data.result as ResearchResult} />
-			);
+			return <ResearchCompleteBadge result={data.result as ResearchResult} />;
 		case "pdf":
-			return isSubagentFailure("pdf", data.result as PdfResult) ? (
-				<PdfBriefCard output={data.result} />
-			) : (
-				<PdfCompleteBadge result={data.result as PdfResult} />
-			);
+			return <PdfCompleteBadge result={data.result as PdfResult} />;
 		case "demo":
 			return <DemoOutputCard output={data.result} messageId={message.id} initialInverted={data.ui?.inverted ?? false} />;
 		case "visual":
 			return <VisualOutputCard output={data.result} messageId={message.id} initialInverted={data.ui?.inverted ?? false} />;
 	}
+}
+
+const FAILED_LABEL: Record<string, string> = { research: "Research", pdf: "PDF reading", demo: "Demo", visual: "Figure" };
+
+/** The failure text a result carries (brief, notes), without its "X failed:" prefix. */
+function failureReason(result: SubagentArtifactData["result"]): string {
+	const r = result as Partial<ResearchResult & PdfResult & DemoResult & VisualResult>;
+	const text = r.brief ?? r.notes ?? "";
+	return text.replace(/^(PDF|Research) failed:\s*/i, "").replace(/^FAILED:\s*/, "").trim();
+}
+
+/** A failed helper task: one line, the reason one click away. */
+function FailedBadge({ kind, reason }: { kind: string; reason: string }) {
+	return (
+		<details data-testid="job-failed-badge" className="group w-full text-xs text-muted-foreground">
+			<summary className="flex cursor-pointer select-none list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+				<CircleX className="size-3.5 text-[var(--danger)]" />
+				<span>{FAILED_LABEL[kind] ?? "Task"} failed</span>
+				{reason && <span className="text-muted-foreground/70 group-open:hidden">· details</span>}
+			</summary>
+			{reason && <p className="mt-1.5 whitespace-pre-wrap pl-5.5">{reason}</p>}
+		</details>
+	);
 }
 
 /** The aborted-job chip: mirrors the complete-badge one-liner — the

@@ -3,11 +3,9 @@ import { QUESTION_TOOLS } from "./pending";
 
 /** The card's label: the tool's own name first (probe-phase calls read
  *  Probe/Recall), else by kind. Old records without `tool` use the kind. */
-export function answerLabel(answer: QuestionAnswerData): string {
-	if (answer.tool === "probe") return "Probe";
-	if (answer.tool === "recall") return "Recall";
-	if (answer.kind === "quiz") return answer.questionType === "predict" ? "Prediction" : "Check";
-	if (answer.kind === "explain") return "Explain";
+export function answerLabel(_answer: QuestionAnswerData): string {
+	// One label and one numbering for every question in the session: the
+	// tool behind it (probe, quiz, explain, ask) is the tutor's business.
 	return "Question";
 }
 
@@ -21,7 +19,7 @@ export function confidenceWord(confidence: number): string {
 
 /** Graded result of a quiz answer; null for ungraded kinds. */
 export function answerVerdict(answer: QuestionAnswerData): "correct" | "incorrect" | "unknown" | null {
-	if (answer.kind !== "quiz") return null;
+	if (answer.kind !== "quiz" || answer.dismissed) return null;
 	if (answer.dontKnow) return "unknown";
 	return answer.correct ? "correct" : "incorrect";
 }
@@ -60,4 +58,24 @@ export function questionNumbers(
 		}
 	}
 	return numbers;
+}
+
+const LATEX_SYMBOLS: Record<string, string> = {
+	mid: "|", cdot: "·", times: "×", le: "≤", leq: "≤", ge: "≥", geq: "≥", ne: "≠", neq: "≠",
+	approx: "≈", infty: "∞", pm: "±", to: "→", rightarrow: "→", cap: "∩", cup: "∪", in: "∈",
+	alpha: "α", beta: "β", theta: "θ", lambda: "λ", mu: "μ", sigma: "σ", pi: "π",
+};
+
+/** One-line plain text for a question or answer: markdown and LaTeX
+ *  markers turned into readable characters (\(P(A \mid B)\) → P(A | B)). */
+export function plainLine(text: string): string {
+	return text
+		.replace(/\\[()[\]]/g, "")
+		.replace(/\\(?:text|mathrm|mathbf|operatorname)\{([^}]*)\}/g, "$1")
+		.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "$1/$2")
+		.replace(/\\([a-zA-Z]+)/g, (_m, name: string) => LATEX_SYMBOLS[name] ?? "")
+		.replace(/[{}$]/g, "")
+		.replace(/[*_`]/g, "")
+		.replace(/\s+/g, " ")
+		.trim();
 }

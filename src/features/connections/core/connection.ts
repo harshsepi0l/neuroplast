@@ -9,6 +9,7 @@ export type Connection = {
   attempt?: DeviceAttempt; credential?: string; expiresAt?: number;
   account?: { id: string; label: string }; models: GrokModel[];
   selectedModel?: string; message?: string;
+  /** Unset means on (same default as ChatGPT); only an explicit false turns it off. */
   allowBackgroundUse?: boolean;
 };
 export type ConnectionView = {
@@ -23,7 +24,7 @@ export function emptyConnection(ownerId: string): Connection {
 export function connectionView(connection: Connection, configured: boolean): ConnectionView {
   const { phase, models, selectedModel, message, account, attempt } = connection;
   return {
-    configured, phase, models, selectedModel, message, allowBackgroundUse: connection.allowBackgroundUse === true,
+    configured, phase, models, selectedModel, message, allowBackgroundUse: connection.allowBackgroundUse !== false,
     account: account ? { label: account.label } : undefined,
     attempt: attempt ? { id: attempt.id, userCode: attempt.userCode, verificationUrl: attempt.verificationUrl, expiresAt: attempt.expiresAt, nextPollAt: attempt.nextPollAt } : undefined,
   };
