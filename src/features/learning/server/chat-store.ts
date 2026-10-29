@@ -13,10 +13,11 @@ import { PATHS } from "@/server/workspace-config";
 import { emit } from "@/features/learning/core/events";
 import type { ChatStore } from "@/features/learning/core/ports";
 import type { ChatRecord, ChatSettings, ChatSummary, ExtractionRunUsage, TurnUsage } from "@/features/learning/core/chat";
-import type { PlanTree } from "@/features/learning/core/plan";
+import { derivePlanStatusesLh, type PlanTree } from "@/features/learning/core/plan";
+import { answerTally } from "@/features/learning/core/answer-tally";
 import { CURRENT_CHAT_VERSION } from "@/features/learning/core/chat";
 import type { NeuroplastMessage } from "@/features/learning/core/native-messages";
-import { danglingQuestionOf } from "@/features/learning/core/native-messages";
+import { activeProblemOf, danglingQuestionOf } from "@/features/learning/core/native-messages";
 import { phaseAt3Lh } from "@/features/learning/core/phases";
 
 function chatFile(id: string): string {
@@ -77,6 +78,13 @@ function getChat(id: string): ChatRecord | null {
 	return parsed as ChatRecord;
 }
 
+/** Steps reached (visited or current) out of the plan's total. */
+function planProgress(tree: PlanTree, messages: NeuroplastMessage[]) {
+	const statuses = derivePlanStatusesLh(tree, messages);
+	const reached = tree.nodes.filter((node) => statuses.visited.has(node.id) || statuses.current === node.id).length;
+	return { reached, total: tree.nodes.length };
+}
+
 function listChats(): ChatSummary[] {
 	try {
 		fs.mkdirSync(PATHS.chats, { recursive: true });
@@ -85,7 +93,7 @@ function listChats(): ChatSummary[] {
 			.filter((f) => f.endsWith(".json"))
 			.map((f) => getChat(f.slice(0, -5)))
 			.filter((r): r is ChatRecord => r !== null)
-			.map(({ messages, tree, turns, extractions, ...summary }) => {
+			.map(({ messages, tree, turns, extractions, ...summary }): ChatSummary | null => {
 				// Per-record isolation (Wave B): a record whose messages fail the
 				// projection (e.g. pre-Wave-B UIMessage-format scratch — the
 				// zero-back-compat wipe makes these "corrupt") must not blank the
@@ -108,6 +116,9 @@ function listChats(): ChatSummary[] {
 						// NOT record-derived — the API route merges it (ChatListItem).
 						phase: phaseAt3Lh(messages),
 						pendingQuestion: danglingQuestionOf(messages) !== null,
+						pendingProblem: activeProblemOf(messages) !== null,
+						answers: answerTally(messages),
+						plan: tree && tree.nodes.length > 0 ? planProgress(tree, messages) : undefined,
 					};
 				} catch (err) {
 					console.error(`[chat ${summary.id}] summary projection failed:`, err);
