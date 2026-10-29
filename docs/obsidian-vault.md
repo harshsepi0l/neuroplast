@@ -49,10 +49,13 @@ literal `\$`.
 Links follow the knowledge tree rather than forming stars, so Obsidian's
 graph shows each plan's shape:
 
-- home → topics (and any session or challenge no topic reaches);
-- topic → its first step(s), the current step, its session and challenge;
+- home → topics (and any session no topic reaches; never a challenge);
+- topic → its first step(s), the current step and its session;
 - step → the steps it builds on;
-- session ↔ topic and challenge; a retake → the challenge it retakes.
+- session → its newest challenge → each earlier attempt ("Retake of").
+
+A challenge always chains to its session. Only a challenge with no session
+(the built-in chapter) chains to its topic instead.
 
 Steps do not link back to their topic, and the topic's step list is plain
 text (its Mermaid diagram shows the tree). Diagram labels read "1 · Step",

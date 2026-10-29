@@ -451,13 +451,16 @@ export function vaultNotes(input: VaultInput): Note[] {
 	}
 	for (const topic of input.topics) {
 		const session = topic.sessionId ? input.sessions.find((s) => s.id === topic.sessionId) : undefined;
-		const challenge = topic.sessionId ? challengeBySession.get(topic.sessionId) : input.challenges.find((c) => c.id === topic.challengeId);
+		// A session's challenge hangs off the session; only a topic with no
+		// session (the built-in chapter) links its newest challenge itself.
+		const challenge = topic.sessionId ? undefined : input.challenges.find((c) => c.id === topic.challengeId);
 		notes.push(...topicNotes(topic, { session: sessionLink(topic.sessionId), challenge: challengeLink(challenge) }, session ? questionsByStep(session.messages) : new Map()));
 	}
 	for (const c of input.challenges) {
 		const topic = topicByChallenge.get(c.id) ?? (c.sessionId ? topicBySession.get(c.sessionId) : undefined);
 		const previous = input.challenges.find((p) => p.id === c.previousId);
-		notes.push(challengeNote(c, { session: sessionLink(c.sessionId), previous: challengeLink(previous), topic: topic && link(topicPath(topic), topic.title) }));
+		const session = sessionLink(c.sessionId);
+		notes.push(challengeNote(c, { session, previous: challengeLink(previous), topic: !session && topic ? link(topicPath(topic), topic.title) : undefined }));
 	}
 
 	// Two records with the same title and day: later ones get " (2)", " (3)".
@@ -469,13 +472,14 @@ export function vaultNotes(input: VaultInput): Note[] {
 		note.path = path;
 	}
 
-	// Home links the topics, and only the sessions and challenges no topic
-	// links to; the rest are reached through their topic.
+	// Home links the topics, and sessions no topic links to. Challenges are
+	// always reached through their session (or, with none, their topic).
 	const reached = new Set<string>();
 	for (const n of notes) if (n.properties.neuroplast === "topic") for (const m of n.body.matchAll(/\[\[([^|\]]+)/g)) reached.add(`${m[1]}.md`);
 	const name = (n: Note) => String(n.path.split("/").pop()).replace(/\.md$/, "");
 	const list = (kind: string) =>
-		notes.filter((n) => n.properties.neuroplast === kind).map((n) => `- ${kind === "topic" || !reached.has(n.path) ? link(n.path, name(n)) : `${name(n)} (in its topic)`}`).join("\n") || "- None yet";
+		notes.filter((n) => n.properties.neuroplast === kind).map((n) =>
+			`- ${kind === "topic" || (kind === "session" && !reached.has(n.path)) ? link(n.path, name(n)) : `${name(n)} (${kind === "challenge" ? "in its session or topic" : "in its topic"})`}`).join("\n") || "- None yet";
 	notes.unshift({
 		key: "home",
 		path: `${ROOT}/Neuroplast.md`,

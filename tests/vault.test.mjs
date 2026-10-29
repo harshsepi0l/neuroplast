@@ -125,3 +125,25 @@ test("two records with the same name on the same day get distinct notes", () => 
 	const paths = notes.filter((n) => n.properties.neuroplast === "session").map((n) => n.path);
 	assert.deepEqual(paths, ["Neuroplast/Sessions/2026-10-29 Probability basics.md", "Neuroplast/Sessions/2026-10-29 Probability basics (2).md"]);
 });
+
+test("a challenge chains to its session; one without a session to its topic; home links neither", () => {
+	const topic = learnTopic({ ...session, tree });
+	const base = { title: "Probability basics", skills: [], questions: [], responses: {}, result: null };
+	const first = { ...base, id: "challenge_aaaaaaaa-0000-4000-8000-000000000000", createdAt: "2026-10-30T09:00:00Z", sessionId: "chat_1" };
+	const retake = { ...base, id: "challenge_bbbbbbbb-0000-4000-8000-000000000000", createdAt: "2026-10-31T09:00:00Z", sessionId: "chat_1", previousId: first.id };
+	const notes = vaultNotes({ sessions: [session], topics: [topic], challenges: [retake, first] });
+	const byKey = (k) => notes.find((n) => n.key === k);
+	assert.ok(byKey("session:chat_1").body.includes("Challenge: [[Neuroplast/Challenges/2026-10-31 Probability basics bbbbbb|"), "the session links its newest challenge");
+	assert.ok(!byKey("topic:learn:chat_1").body.includes("Neuroplast/Challenges/"), "the topic does not");
+	const r = byKey(`challenge:${retake.id}`).body;
+	assert.ok(r.includes("Session: [[Neuroplast/Sessions/2026-10-29 Probability basics|") && r.includes("Retake of [[Neuroplast/Challenges/2026-10-30 Probability basics aaaaaa|"));
+	assert.ok(!r.includes("Skill tree:"));
+	const home = byKey("home").body;
+	assert.ok(!home.includes("[[Neuroplast/Challenges/"), "home links no challenge");
+
+	const chapter = { key: "challenge:linear", kind: "challenge", title: "Linear equations", statusLine: "", nodes: [], edges: [], branching: false, challengeId: "challenge_cccccccc-0000-4000-8000-000000000000" };
+	const solo = { ...base, title: "Linear equations", id: chapter.challengeId, createdAt: "2026-10-30T09:00:00Z" };
+	const notes2 = vaultNotes({ sessions: [], topics: [chapter], challenges: [solo] });
+	assert.ok(notes2.find((n) => n.key === "topic:challenge:linear").body.includes("Challenge: [[Neuroplast/Challenges/2026-10-30 Linear equations cccccc|"));
+	assert.ok(notes2.find((n) => n.key === `challenge:${solo.id}`).body.includes("Skill tree: [[Neuroplast/Topics/Linear equations|"));
+});
