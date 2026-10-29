@@ -7,7 +7,7 @@ import { SetupDialog } from "@/features/learning/ui/session/setup-dialog";
 import { Hint } from "@/ui/primitives/hint";
 import { useZeroKeys, ZeroKeysPill } from "@/features/learning/ui/session/setup-cta";
 import { type StickToBottomContext } from "use-stick-to-bottom";
-import { Conversation, ConversationContent, ConversationEmptyState } from "@/features/learning/ui/messages/conversation";
+import { Conversation, ConversationContent, ConversationEmptyState, ConversationScrollButton } from "@/features/learning/ui/messages/conversation";
 import { Message, MessageContent, MessageResponse } from "@/features/learning/ui/messages/message";
 import { Reasoning, ReasoningContent, ReasoningTrigger } from "@/features/learning/ui/messages/reasoning";
 import { Shimmer } from "@/features/learning/ui/messages/shimmer";
@@ -29,7 +29,7 @@ import { firstSourceTextParts, messageAnchorId, textPartMessageId } from "@/feat
 import { kbdEventForAction as kbdEventForChat } from "@/features/settings/core/keyboard";
 import { needsContinuation, type NeuroplastMessage } from "@/features/learning/core/native-messages";
 import { PlanBlock, PlanPopup, latestTree } from "@/features/learning/ui/messages/plan-block";
-import { PlanMarginalia, planExists } from "@/features/learning/ui/messages/plan-window";
+import { PlanOutline } from "@/features/learning/ui/messages/plan-outline";
 import { MermaidOverlay, SessionMermaidContext } from "@/features/learning/ui/session/session-overlay";
 import { AbortTurnDialog, type AbortMode } from "@/features/learning/ui/session/abort-turn-dialog";
 import { ArrowRightIcon, DumbbellIcon, WaypointsIcon } from "lucide-react";
@@ -46,16 +46,16 @@ import { PhaseChip, PhaseDivider } from "@/features/learning/ui/session/phase-di
 import { CompactionCutDivider, CompactionMomentDivider, type CompactionDividerData } from "@/features/learning/ui/session/compaction-divider";
 import { CoverageRing } from "@/features/knowledge/ui/extraction-coverage";
 import { activeProblemOf } from "@/features/learning/core/native-messages";
-import { dismissedAnswer, questionNeedsReveal } from "@/features/learning/core/question-core";
+import { dismissedAnswer } from "@/features/learning/core/question-core";
 import { findPendingToolCall, toolQuestionKind } from "@/features/learning/core/pending";
-import { phaseAt3, phaseTimeline, teachStepIndex } from "@/features/learning/core/phases";
+import { phaseTimeline, teachStepIndex } from "@/features/learning/core/phases";
 import { currentUserThinkingOpen, setAllUserThinkingOpen } from "@/features/learning/ui/messages/thinking-block";
 import { slotsConfigured, type ModelsSettings } from "@/features/settings/core/settings";
 import { useSettingsSaved } from "@/app-shell/settings-signal";
 import { COLUMN } from "./chat-layout";
 import { ChatActionsContext } from "./chat-actions-context";
 import { escAbortTarget, initialPromptOwed, isSubagentSteer, parseModelsRefusal, parseProviderKeyRefusal } from "./chat-logic";
-import { DockOverlay } from "./dock-overlay";
+import { SessionDock } from "./session-dock";
 
 /** The quiet system line (custom-message scheme rendering): centered, muted,
  *  small — the transcript's voice for events that are not speech (wake
@@ -292,13 +292,7 @@ export function Chat({
 			const p = pendingRef.current;
 			if (p) {
 				const question = (p.input as { question?: string } | null)?.question ?? "";
-				const reading = readingThinkingRef.current.trim() || undefined;
-				clearReadingThinking();
-				const answer = dismissedAnswer(toolQuestionKind(p.tool), question);
-				void dismissQuestion(
-					p.toolCallId,
-					reading ? { ...answer, readingThinking: reading } : answer,
-				);
+				void dismissQuestion(p.toolCallId, dismissedAnswer(toolQuestionKind(p.tool), question));
 				if (busyRef.current) abortInFlightTurn();
 				return;
 			}
@@ -387,24 +381,6 @@ export function Chat({
 		[send],
 	);
 
-	// Teach-phase check (W5, vision §2): a pending QUIZ that lands once a
-	// plan node is OCCUPIED (phaseAt3 "teach") starts collapsed behind a
-	// "Check your understanding" reveal button; probe- and plan-phase
-	// questions auto-open as today. Both teach quizzing tools obey the
-	// law (owner, 2026-10-09: explain checks join quiz checks behind the
-	// reveal); predictions of either mechanic and ask always arrive open.
-	// A pending question can never precede its phase's seam in the transcript (the teacher's turn
-	// ends at the question call), so the session's current phase IS the
-	// question's phase.
-	const requiresReveal = pending !== null && questionNeedsReveal(pending.tool, pending.input, phaseAt3(messages));
-
-	/* The READING-THINKING channel (owner 2026-10-03): a draft field for
-	 * thinking while reading the teaching prose, mounted while a check waits
-	 * behind its reveal, riding the check answer (or its dismissal) as the
-	 * separate `readingThinking` field. Reset per pending question. */
-	const [readingThinking, setReadingThinking] = useState("");
-	const readingThinkingRef = useRef("");
-
 	// ⌘T (toggle-user-thinking, owner round 2026-10-07): set EVERY user
 	// thinking row to one state — transcript rows default open, so the
 	// first press collapses everything, the second re-expands.
@@ -413,20 +389,6 @@ export function Chat({
 		window.addEventListener(kbdEventForChat("toggle-user-thinking"), onToggle);
 		return () => window.removeEventListener(kbdEventForChat("toggle-user-thinking"), onToggle);
 	}, []);
-	const applyReadingThinking = useCallback((v: string) => {
-		readingThinkingRef.current = v;
-		setReadingThinking(v);
-	}, []);
-	const clearReadingThinking = useCallback(() => {
-		readingThinkingRef.current = "";
-		setReadingThinking("");
-	}, []);
-	const pendingQuestionId = pending?.toolCallId ?? null;
-	useEffect(() => {
-		// A new pending question never inherits the previous one's draft.
-		readingThinkingRef.current = "";
-		setReadingThinking("");
-	}, [pendingQuestionId]);
 
 	// The phase at every message (one linear fold): the transcript draws a
 	// color-coded dotted divider at each boundary; the header chip reads the
@@ -700,11 +662,6 @@ export function Chat({
 	// The live plan popup (wave 4): opened by any transcript plan block, the
 	// top-bar plan chip, and the dock band's marginalia.
 	const [planOpen, setPlanOpen] = useState(false);
-	// Real plan presence — gates the marginalia's clickable flank. A JSX
-	// element is always truthy; gating on the node alone mounted a phantom
-	// (invisible, clickable) button in the bottom-right whenever a question
-	// was pending with no plan yet (owner report, UI round 2026-10-01).
-	const hasPlan = useMemo(() => planExists(messages), [messages]);
 	// The coverage ring's refresh chain (extraction-UX redesign): bumped at
 	// turn settle — the moment this session's uncovered mass changes.
 	const [coverageTick, setCoverageTick] = useState(0);
@@ -746,13 +703,6 @@ export function Chat({
 	const [pricing, setPricing] = useState<SessionPricing | undefined>();
 	// The per-chat model control state (model-picker writes via PUT; the
 	// record is the source of truth, lifted here so the stats bar re-renders).
-	// The dock's reserved tail height (DockOverlay reports it; the spacer at
-	// the end of the transcript renders it). Lives here because the spacer is
-	// inside the scroller while the dock overlays OUTSIDE it — two parents.
-	// 208 ≈ gradient(96) + composer block(~112): the SSR/pre-hydration
-	// guess so the static paint has a sane tail. The first layout effect
-	// replaces it with the measured truth before paint.
-	const [dockReserve, setDockReserve] = useState(208);
 	const syncTurns = useCallback(async () => {
 		try {
 			const res = await fetch(`/api/chats/${chatId}`);
@@ -1110,6 +1060,7 @@ export function Chat({
 					<SessionMessageNavigation />
 					<ConversationContent className="min-h-full gap-0 p-0">
 						<div data-session-find-root="" className={`${COLUMN} flex flex-1 flex-col gap-4 pt-4`}>
+							<PlanOutline messages={messages} onOpen={() => setPlanOpen(true)} />
 							{messages.length === 0 && !busy && (
 								<ConversationEmptyState
 									title="New session"
@@ -1372,35 +1323,16 @@ export function Chat({
 							)}
 						</div>
 
-						{/* The dock's reserved tail (DockOverlay reports its height):
-						    keeps at-rest transcript content scrolling fully clear of
-						    the overlay — the flow-space replacement for the old
-						    sticky dock. Zero only pre-measurement (the first layout
-						    effect reports before paint). */}
-						<div aria-hidden data-testid="dock-spacer" style={{ height: dockReserve }} />
-				</ConversationContent>
-				{/* The dock: an overlay sibling of the scroller (the
-				    use-stick-to-bottom pattern). The scroll-down button lives
-				    INSIDE the overlay now (owner refinement round, 2026-09-24):
-				    anchored to the dock block's top edge, so it rides every
-				    height morph (typing, a question growing the band, the
-				    fold) and NEVER overlaps the composer. */}
-				<DockOverlay
+						<SessionDock
 					pending={pending}
 					practice={activeProblem}
 					compactionRunning={compacting}
 					onSubmitThinking={submitThinking}
 					chatId={chatId}
-					plan={hasPlan ? <PlanMarginalia messages={messages} /> : undefined}
-					onOpenPlan={() => setPlanOpen(true)}
-					requiresReveal={requiresReveal}
-					readingThinking={readingThinking}
-					onReadingThinking={applyReadingThinking}
 					phase={phases.at(-1) ?? "probe"}
 					turns={turns}
 					contextTokens={contextTokens}
 					pricing={pricing}
-					onReserve={setDockReserve}
 					dictationSlot={<DictationBar dictation={dictation} />}
 					dictationCancel={dictation.cancel}
 					queuedSteers={visibleQueuedSteers(steerQueue, nativeMessages)}
@@ -1451,14 +1383,12 @@ export function Chat({
 						// the optimistic graded result (the AnsweredCard shows at
 						// once) and the server's write-ahead persists it before the
 						// turn; the teacher's reaction streams below it. Dismissals
-						// ride the same callback (QuestionAnswerData.dismissed). The
-						// reading-thinking draft rides along (owner 2026-10-03) — the
-						// check answer is its only carrier.
-						const reading = readingThinkingRef.current.trim() || undefined;
-						clearReadingThinking();
-						submitAnswer(pending.tool, pending.toolCallId, reading ? { ...output, readingThinking: reading } : output);
+						// ride the same callback (QuestionAnswerData.dismissed).
+						submitAnswer(pending.tool, pending.toolCallId, output);
 					}}
 				/>
+					</ConversationContent>
+					<ConversationScrollButton />
 				</Conversation>
 
 				{/* The session-scoped focuses (chrome-melt wave, 2026-09-19): mounted
