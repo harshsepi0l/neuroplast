@@ -4,7 +4,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { DownloadIcon } from "lucide-react";
 import { Toggle } from "@/features/settings/ui/controls";
 import { InvertDiscIcon } from "@/features/artifacts/ui/invert-disc";
-import { ChatActionsContext } from "@/features/learning/ui/session/chat";
+import { ChatActionsContext } from "@/features/learning/ui/session/chat-actions-context";
 import { downloadFile, slugFilename } from "@/features/artifacts/ui/download";
 import { DispatchCard } from "@/features/artifacts/ui/dispatch-card";
 import type { ArtifactPartProps } from "@/features/learning/core/chat";
