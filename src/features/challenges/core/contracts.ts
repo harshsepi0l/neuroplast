@@ -28,10 +28,19 @@ export interface ChallengeView {
   result: ChallengeResult | null;
   training: TrainingProgress | null;
 }
+/** One answered practice problem, in the order it was answered. */
+export interface TrainingHistoryItem {
+  question: PublicQuestion;
+  response: string;
+  correct: boolean;
+  answer: string;
+  explanation: string;
+}
 export interface TrainingView {
   challengeId: string;
   topic: { id: string; title: string; description: string };
   progress: TrainingProgress;
+  history: TrainingHistoryItem[];
   current: PublicQuestion | null;
   feedback?: { correct: boolean; answer: string; explanation: string; response: string; skillId: string; stage?: TrainingStage };
 }

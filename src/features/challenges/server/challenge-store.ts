@@ -210,7 +210,11 @@ export function trainingView(record: ChallengeRecord) {
   if (!record.submittedAt) throw new AppError("challenge_incomplete", "Finish the challenge before training.", 409);
   const progress = trainingProgress(record);
   const current = nextTask(record);
-  return { challengeId: record.id, topic: record.topic ?? TOPIC, progress, current: current ? publicQuestion(current.question) : null };
+  const history = (record.training?.tasks ?? [])
+    .filter(task => task.response !== undefined)
+    .sort((a, b) => (a.answeredAt ?? "").localeCompare(b.answeredAt ?? ""))
+    .map(task => ({ question: publicQuestion(task.question), response: task.response!, correct: task.correct === true, answer: task.question.answer, explanation: task.question.explanation }));
+  return { challengeId: record.id, topic: record.topic ?? TOPIC, progress, history, current: current ? publicQuestion(current.question) : null };
 }
 export function startTraining(id: string) {
   const record = readChallenge(id);
