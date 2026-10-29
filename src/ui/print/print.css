@@ -27,7 +27,7 @@
 	.challenge-page { padding:0 !important; }
 	.challenge-container { width:auto !important; max-width:none !important; }
 	.challenge-sheet-bar { position:static !important; }
-	.training-log-current, .challenge-topic, .knowledge-map { box-shadow:none !important; }
+	.training-log-current, .challenge-topic { box-shadow:none !important; }
 	.challenge-sheet-item, .challenge-review-item, .challenge-skill-row, .challenge-mode-results>div,
 	[data-testid="answered-card"], [data-testid="plan-outline"] { break-inside:avoid; }
 	h1, h2, h3 { break-after:avoid; }

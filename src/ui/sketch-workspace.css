@@ -51,7 +51,7 @@
 .workspace .learning-pane .composer-caption { justify-content:center; flex-wrap:wrap; font-size:11px; }
 .workspace .learning-pane .composer-caption>span:last-child { display:inline; }
 .workspace .learning-pane .composer-box:focus-within { outline:2px solid var(--brand); outline-offset:3px; }
-.workspace .challenge-topic,.workspace .knowledge-map,.workspace .knowledge-detail { background:var(--surface); box-shadow:none; }
+.workspace .challenge-topic { background:var(--surface); box-shadow:none; }
 @media(max-width:760px) {
   .workspace .sidebar { margin:0; height:100dvh; width:228px; border-radius:0 12px 12px 0; }
   .workspace .topbar { margin:0 10px; padding:0 4px; min-height:58px; }
