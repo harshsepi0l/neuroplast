@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { learnTopic } from "@/features/knowledge/core/skill-trees";
-import { challengeNote, END, fileName, GRAPH_COLOR_GROUPS, obsidianText, renderNote, START, userText, vaultNotes, withGraphColors } from "@/features/vault/core/notes";
+import { challengeNote, COLOR_GROUPS, END, fileName, graphColorGroups, obsidianText, renderNote, START, textOn, topicMermaid, userText, vaultColors, vaultNotes, withGraphColors } from "@/features/vault/core/notes";
 
 const t = Date.parse("2026-10-29T12:00:00Z");
 const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
@@ -97,10 +97,10 @@ test("links follow the tree: the topic links where to start, each step what it b
 test("graph colors go first and the learner's own groups stay", () => {
 	const merged = withGraphColors({ scale: 1.2, colorGroups: [{ query: "path:Daily", color: { a: 1, rgb: 1 } }, { query: "tag:#neuroplast/old", color: { a: 1, rgb: 2 } }] });
 	assert.equal(merged.scale, 1.2);
-	assert.equal(merged.colorGroups.length, GRAPH_COLOR_GROUPS.length + 1);
+	assert.equal(merged.colorGroups.length, COLOR_GROUPS.length + 1);
 	assert.equal(merged.colorGroups[0].query, "tag:#neuroplast/learning");
 	assert.equal(merged.colorGroups.at(-1).query, "path:Daily");
-	assert.equal(withGraphColors({}).colorGroups.length, GRAPH_COLOR_GROUPS.length);
+	assert.equal(withGraphColors({}).colorGroups.length, COLOR_GROUPS.length);
 });
 
 test("a challenge hides answers until submitted, then shows the score and misses", () => {
@@ -146,4 +146,21 @@ test("a challenge chains to its session; one without a session to its topic; hom
 	const notes2 = vaultNotes({ sessions: [], topics: [chapter], challenges: [solo] });
 	assert.ok(notes2.find((n) => n.key === "topic:challenge:linear").body.includes("Challenge: [[Neuroplast/Challenges/2026-10-30 Linear equations cccccc|"));
 	assert.ok(notes2.find((n) => n.key === `challenge:${solo.id}`).body.includes("Skill tree: [[Neuroplast/Topics/Linear equations|"));
+});
+
+test("picked colors drive the graph groups and the topic diagram", () => {
+	const colors = vaultColors({ learning: "#00FF00", topic: "#123456", solid: "nope", bogus: "#ffffff" });
+	assert.equal(colors.learning, "#00ff00");
+	assert.equal(colors.topic, "#123456");
+	assert.equal(colors.solid, "#51cf66", "an invalid pick keeps the default");
+	assert.ok(!("bogus" in colors));
+	const groups = graphColorGroups(colors);
+	assert.deepEqual(groups[0], { query: "tag:#neuroplast/learning", color: { a: 1, rgb: 0x00ff00 } });
+	assert.equal(groups.find((g) => g.query === "tag:#neuroplast/topic").color.rgb, 0x123456);
+	assert.equal(withGraphColors({}, colors).colorGroups[0].color.rgb, 0x00ff00);
+	const topic = learnTopic({ ...session, tree });
+	const diagram = topicMermaid(topic, vaultColors({ learning: "#1b1b5e" }));
+	assert.ok(diagram.includes("classDef now fill:#1b1b5e,stroke:#1e1e1e,color:#ffffff"), "text turns light on a dark fill");
+	assert.equal(textOn("#ffd43b"), "#1e1e1e");
+	assert.equal(textOn("#000000"), "#ffffff");
 });

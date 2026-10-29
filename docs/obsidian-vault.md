@@ -65,8 +65,14 @@ Every note is tagged `neuroplast/<kind>`, and steps also
 `neuroplast/<status>` (`learning`, `solid`, `needs-practice`, `ahead`).
 **Color the graph** in Settings › Obsidian adds color groups for those tags
 to `<vault>/.obsidian/graph.json`, in front of your own groups (which stay):
-yellow learning now, green solid, red needs practice, gray ahead, blue
-topics, purple sessions, orange challenges.
+by default yellow learning now, green solid, red needs practice, gray ahead,
+blue topics, purple sessions, orange challenges.
+
+**Colors** in the same section picks each of those eight colors. A pick is
+saved with the vault connection, recolors every topic's diagram (with dark
+or light text, whichever reads), and, once **Color the graph** has been
+used, rewrites the graph's color groups too. **Reset colors** goes back to
+the defaults.
 
 ## Writing in the notes
 
@@ -100,9 +106,9 @@ it.
 | --- | --- |
 | Note rendering (pure) | `src/features/vault/core/notes.ts` |
 | Connect, sync, watch | `src/features/vault/server/vault.ts` |
-| API | `app/api/vault/route.ts` (status, connect, disconnect), `app/api/vault/sync/route.ts`, `app/api/vault/graph/route.ts` (graph colors) |
+| API | `app/api/vault/route.ts` (status, connect, disconnect), `app/api/vault/sync/route.ts`, `app/api/vault/graph/route.ts` (graph colors), `app/api/vault/colors/route.ts` (color picks) |
 | Settings section | `src/features/vault/ui/vault-section.tsx` |
-| Connection record | `<workspace>/vault.json` (path, token hash, last sync) |
+| Connection record | `<workspace>/vault.json` (path, token hash, last sync, color picks) |
 | Tests | `tests/vault.test.mjs` |
 
 ## Next

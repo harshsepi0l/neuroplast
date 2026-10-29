@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SettingsRow } from "@/features/settings/ui/controls";
 
 interface VaultStatus {
@@ -9,7 +9,20 @@ interface VaultStatus {
 	lastSyncAt?: string;
 	lastError?: string;
 	notes?: number;
+	colors: Record<string, string>;
+	graphColors?: boolean;
 }
+
+const COLOR_LABELS: [string, string][] = [
+	["learning", "Learning now"],
+	["needs-practice", "Needs practice"],
+	["solid", "Solid"],
+	["ahead", "Ahead"],
+	["topic", "Topics"],
+	["session", "Sessions"],
+	["challenge", "Challenges"],
+	["home", "Home"],
+];
 
 const BUTTON = "rounded-sm border border-border bg-card px-3 py-1.5 font-ui text-xs text-foreground transition-colors hover:bg-accent disabled:opacity-50";
 const headers = { "Content-Type": "application/json", "x-neuroplast-client": "web" };
@@ -26,6 +39,27 @@ export function VaultSection() {
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
 	const [colored, setColored] = useState(false);
+	const [colors, setColors] = useState<Record<string, string>>({});
+	const [saved, setSaved] = useState("");
+	const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+	useEffect(() => {
+		if (status) setColors(status.colors);
+	}, [status]);
+	// Dragging a color fires many changes: save once it settles.
+	function pick(group: string, hex: string) {
+		const next = { ...colors, [group]: hex };
+		setColors(next);
+		setSaved("");
+		if (saveTimer.current) clearTimeout(saveTimer.current);
+		saveTimer.current = setTimeout(() => void saveColors(next), 500);
+	}
+	async function saveColors(next: Record<string, string> | null) {
+		const data = await call("PUT", "/api/vault/colors", { colors: next });
+		if (data) {
+			setStatus(data);
+			setSaved(data.graphColors ? "Saved. Reopen Obsidian's graph view to see them." : "Saved. Use Color the graph to apply them to Obsidian's graph.");
+		}
+	}
 
 	useEffect(() => {
 		void fetch("/api/vault").then((r) => r.json()).then(setStatus).catch(() => setError("The vault status could not be loaded."));
@@ -90,10 +124,32 @@ export function VaultSection() {
 							</button>
 						</div>
 					</SettingsRow>
-					<SettingsRow label="Graph colors" hint={colored ? "Added. Reopen Obsidian's graph view to see them." : "Color Obsidian's graph by topic, session, challenge and step status. Your own color groups stay."}>
-						<button type="button" className={BUTTON} disabled={busy || !status.obsidian} onClick={() => void call("POST", "/api/vault/graph").then((s) => s && setColored(true))}>
+					<SettingsRow label="Graph colors" hint={colored ? "Added. Reopen Obsidian's graph view to see them." : status.graphColors ? "On. Color changes below apply to the graph too." : "Color Obsidian's graph by topic, session, challenge and step status. Your own color groups stay."}>
+						<button type="button" className={BUTTON} disabled={busy || !status.obsidian} onClick={() => void call("POST", "/api/vault/graph").then((s) => { if (s) { setStatus(s); setColored(true); } })}>
 							Color the graph
 						</button>
+					</SettingsRow>
+					<SettingsRow label="Colors" hint={saved || "Used by the graph and by each topic's diagram."}>
+						<div className="flex flex-col items-end gap-2">
+							<div data-testid="vault-colors" className="grid grid-cols-2 gap-x-5 gap-y-1.5">
+								{COLOR_LABELS.map(([group, label]) => (
+									<label key={group} className="flex items-center gap-2 text-xs">
+										<input
+											type="color"
+											aria-label={`${label} color`}
+											value={colors[group] ?? "#000000"}
+											onChange={(e) => pick(group, e.target.value)}
+											className="size-6 cursor-pointer rounded-sm border border-border bg-transparent p-0"
+										/>
+										<span className="w-24">{label}</span>
+										<span className="font-mono text-muted-foreground">{colors[group]}</span>
+									</label>
+								))}
+							</div>
+							<button type="button" className={BUTTON} disabled={busy} onClick={() => void saveColors(null)}>
+								Reset colors
+							</button>
+						</div>
 					</SettingsRow>
 				</>
 			)}

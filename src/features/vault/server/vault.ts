@@ -8,7 +8,7 @@ import { AppError } from "@/lib/errors";
 import { subscribe } from "@/features/learning/core/events";
 import { challengeTopic, learnTopic, type SkillTreeTopic } from "@/features/knowledge/core/skill-trees";
 import { challengeView, knowledgeTrees, listChallenges, readChallenge, score } from "@/features/challenges/server/challenge-store";
-import { renderNote, ROOT, userText, vaultNotes, withGraphColors, type VaultChallenge, type VaultSession } from "@/features/vault/core/notes";
+import { renderNote, ROOT, userText, vaultColors, vaultNotes, withGraphColors, type VaultChallenge, type VaultColors, type VaultSession } from "@/features/vault/core/notes";
 
 /**
  * The Obsidian vault connection: Neuroplast's records written as Markdown
@@ -28,6 +28,10 @@ interface VaultConfig {
 	lastSyncAt?: string;
 	lastError?: string;
 	notes?: number;
+	/** The learner's color picks (only the changed ones). */
+	colors?: Partial<VaultColors>;
+	/** "Color the graph" was used: color changes rewrite graph.json too. */
+	graphColors?: boolean;
 }
 
 export interface VaultStatus {
@@ -39,6 +43,9 @@ export interface VaultStatus {
 	lastSyncAt?: string;
 	lastError?: string;
 	notes?: number;
+	/** The colors in use: defaults with the learner's picks on top. */
+	colors: VaultColors;
+	graphColors?: boolean;
 }
 
 const configFile = () => path.join(PATHS.data, "vault.json");
@@ -66,9 +73,11 @@ function writeConfig(config: VaultConfig): void {
 
 export function vaultStatus(): VaultStatus {
 	const config = readConfig();
-	if (!config) return { connected: false };
+	if (!config) return { connected: false, colors: vaultColors() };
 	return {
 		connected: true,
+		colors: vaultColors(config.colors),
+		graphColors: config.graphColors,
 		path: config.path,
 		obsidian: fs.existsSync(path.join(config.path, ".obsidian")),
 		connectedAt: config.connectedAt,
@@ -164,7 +173,7 @@ export function vaultInput(): { sessions: VaultSession[]; topics: SkillTreeTopic
  *  whose record is gone unless the learner wrote in them. */
 export function syncVault(): VaultStatus {
 	const config = readConfig();
-	if (!config) return { connected: false };
+	if (!config) return vaultStatus();
 	try {
 		const root = path.join(config.path, ROOT);
 		fs.mkdirSync(root, { recursive: true });
@@ -174,7 +183,7 @@ export function syncVault(): VaultStatus {
 		} catch {
 			/* first sync */
 		}
-		const notes = vaultNotes(vaultInput());
+		const notes = vaultNotes({ ...vaultInput(), colors: vaultColors(config.colors) });
 		const next: Record<string, string> = {};
 		for (const note of notes) {
 			const target = path.join(config.path, note.path);
@@ -223,7 +232,22 @@ export function applyGraphColors(): void {
 	} catch {
 		/* no graph settings yet */
 	}
-	writeAtomic(file, JSON.stringify(withGraphColors(graph), null, 2));
+	writeAtomic(file, JSON.stringify(withGraphColors(graph, vaultColors(config.colors)), null, 2));
+	if (!config.graphColors) writeConfig({ ...config, graphColors: true });
+}
+
+/**
+ * Save the learner's colors (null resets to the defaults), then rewrite
+ * the topic diagrams, and the graph colors if they were added before.
+ */
+export function setVaultColors(picked: Partial<Record<string, string>> | null): VaultStatus {
+	const config = readConfig();
+	if (!config) throw new AppError("vault_not_connected", "Connect a vault first.", 400);
+	const colors = vaultColors(picked ?? {});
+	const changed = Object.fromEntries(Object.entries(colors).filter(([group, hex]) => vaultColors()[group as keyof VaultColors] !== hex));
+	writeConfig({ ...config, colors: changed });
+	if (config.graphColors && fs.existsSync(path.join(config.path, ".obsidian"))) applyGraphColors();
+	return syncVault();
 }
 
 /** Remove folders left empty by moved or removed notes (never the root). */

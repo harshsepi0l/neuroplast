@@ -54,6 +54,8 @@ export interface VaultChallenge {
 }
 
 export interface VaultInput {
+	/** The learner's colors (defaults when absent). */
+	colors?: VaultColors;
 	sessions: readonly VaultSession[];
 	topics: readonly SkillTreeTopic[];
 	challenges: readonly VaultChallenge[];
@@ -282,7 +284,7 @@ function stepLine(node: SkillTreeNode): string {
 }
 
 /** The topic's tree as a Mermaid diagram, nodes colored by status. */
-export function topicMermaid(topic: SkillTreeTopic): string {
+export function topicMermaid(topic: SkillTreeTopic, colors: VaultColors = DEFAULT_COLORS): string {
 	const nodes = ordered(topic);
 	const id = new Map(nodes.map((n, i) => [n.id, `n${i + 1}`]));
 	const lines = ["```mermaid", "flowchart TD"];
@@ -291,17 +293,17 @@ export function topicMermaid(topic: SkillTreeTopic): string {
 	nodes.forEach((n, i) => lines.push(`    n${i + 1}["${i + 1} · ${n.title.replace(/["`]/g, "'")}"]:::${STATUS_CLASS[n.status] ?? "ahead"}`));
 	for (const e of topic.edges) if (id.has(e.from) && id.has(e.to)) lines.push(`    ${id.get(e.from)} --> ${id.get(e.to)}`);
 	lines.push(
-		"    classDef good fill:#d3f9d8,stroke:#2b8a3e,color:#1e1e1e",
-		"    classDef now fill:#ffd43b,stroke:#1e1e1e,color:#1e1e1e",
-		"    classDef weak fill:#ffe3e3,stroke:#c92a2a,color:#1e1e1e",
-		"    classDef ahead fill:#f1f3f5,stroke:#868e96,stroke-dasharray:4 3,color:#1e1e1e",
+		`    classDef good fill:${colors.solid},stroke:#1e1e1e,color:${textOn(colors.solid)}`,
+		`    classDef now fill:${colors.learning},stroke:#1e1e1e,color:${textOn(colors.learning)}`,
+		`    classDef weak fill:${colors["needs-practice"]},stroke:#1e1e1e,color:${textOn(colors["needs-practice"])}`,
+		`    classDef ahead fill:${colors.ahead},stroke:#868e96,stroke-dasharray:4 3,color:${textOn(colors.ahead)}`,
 		"```",
 	);
 	return lines.join("\n");
 }
 
 /** A topic note and one note per step (Learn) or skill (challenge). */
-export function topicNotes(topic: SkillTreeTopic, links: { session?: string; challenge?: string }, questions: Map<string, string[]>): Note[] {
+export function topicNotes(topic: SkillTreeTopic, links: { session?: string; challenge?: string }, questions: Map<string, string[]>, colors: VaultColors = DEFAULT_COLORS): Note[] {
 	const nodes = ordered(topic);
 	const path = topicPath(topic);
 	const paths = new Map(nodes.map((n, i) => [n.id, stepPath(topic, n, i)]));
@@ -315,7 +317,7 @@ export function topicNotes(topic: SkillTreeTopic, links: { session?: string; cha
 		`# ${topic.title}`,
 		[topic.statusLine, links.session && `Session: ${links.session}`, links.challenge && `Challenge: ${links.challenge}`].filter(Boolean).join(" · "),
 		[`Start: ${roots.map((n) => link(paths.get(n.id)!, n.title)).join(", ")}`, now.length ? `Now: ${now.map((n) => link(paths.get(n.id)!, n.title)).join(", ")}` : ""].filter(Boolean).join("\n"),
-		topicMermaid(topic),
+		topicMermaid(topic, colors),
 		`## ${unit}`,
 		nodes.map((n, i) => `${i + 1}. ${n.title}: ${stepLine(n)}`).join("\n"),
 	];
@@ -454,7 +456,7 @@ export function vaultNotes(input: VaultInput): Note[] {
 		// A session's challenge hangs off the session; only a topic with no
 		// session (the built-in chapter) links its newest challenge itself.
 		const challenge = topic.sessionId ? undefined : input.challenges.find((c) => c.id === topic.challengeId);
-		notes.push(...topicNotes(topic, { session: sessionLink(topic.sessionId), challenge: challengeLink(challenge) }, session ? questionsByStep(session.messages) : new Map()));
+		notes.push(...topicNotes(topic, { session: sessionLink(topic.sessionId), challenge: challengeLink(challenge) }, session ? questionsByStep(session.messages) : new Map(), input.colors));
 	}
 	for (const c of input.challenges) {
 		const topic = topicByChallenge.get(c.id) ?? (c.sessionId ? topicBySession.get(c.sessionId) : undefined);
@@ -495,18 +497,56 @@ export function vaultNotes(input: VaultInput): Note[] {
 	return notes;
 }
 
-// ─── graph colors ────────────────────────────────────────────────────────────
+// ─── colors ──────────────────────────────────────────────────────────────────
+
+/** The colored groups: step statuses, then kinds of note. The learner can
+ *  pick each color in Settings › Obsidian; the graph and the topic diagrams
+ *  both use them. */
+export const COLOR_GROUPS = ["learning", "needs-practice", "solid", "ahead", "topic", "session", "challenge", "home"] as const;
+export type ColorGroup = (typeof COLOR_GROUPS)[number];
+export type VaultColors = Record<ColorGroup, string>;
+
+export const DEFAULT_COLORS: VaultColors = {
+	learning: "#ffd43b",
+	"needs-practice": "#ff6b6b",
+	solid: "#51cf66",
+	ahead: "#adb5bd",
+	topic: "#4dabf7",
+	session: "#9775fa",
+	challenge: "#ff922b",
+	home: "#e9ecef",
+};
+
+const HEX = /^#[0-9a-f]{6}$/i;
+
+/** Defaults with the learner's valid picks on top (anything else ignored). */
+export function vaultColors(picked?: Partial<Record<string, unknown>>): VaultColors {
+	const out = { ...DEFAULT_COLORS };
+	for (const group of COLOR_GROUPS) {
+		const value = picked?.[group];
+		if (typeof value === "string" && HEX.test(value)) out[group] = value.toLowerCase();
+	}
+	return out;
+}
+
+/** Dark or light text, whichever reads on `hex` (WCAG relative luminance). */
+export function textOn(hex: string): string {
+	const [r, g, b] = [1, 3, 5].map((i) => {
+		const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+		return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+	});
+	return 0.2126 * r! + 0.7152 * g! + 0.0722 * b! > 0.179 ? "#1e1e1e" : "#ffffff";
+}
 
 /** Color groups for Obsidian's graph (.obsidian/graph.json), first match
  *  wins: step status before kind. Colors as Obsidian stores them. */
-export const GRAPH_COLOR_GROUPS: readonly { query: string; color: { a: 1; rgb: number } }[] = [
-	["learning", 0xffd43b], ["needs-practice", 0xff6b6b], ["solid", 0x51cf66], ["ahead", 0xadb5bd],
-	["topic", 0x4dabf7], ["session", 0x9775fa], ["challenge", 0xff922b], ["home", 0xe9ecef],
-].map(([name, rgb]) => ({ query: `tag:#neuroplast/${name}`, color: { a: 1 as const, rgb: rgb as number } }));
+export function graphColorGroups(colors: VaultColors = DEFAULT_COLORS): { query: string; color: { a: 1; rgb: number } }[] {
+	return COLOR_GROUPS.map((group) => ({ query: `tag:#neuroplast/${group}`, color: { a: 1 as const, rgb: parseInt(colors[group].slice(1), 16) } }));
+}
 
 /** An existing graph.json with Neuroplast's color groups in front and the
  *  learner's own groups (and every other setting) kept. */
-export function withGraphColors(graph: Record<string, unknown>): Record<string, unknown> {
+export function withGraphColors(graph: Record<string, unknown>, colors: VaultColors = DEFAULT_COLORS): Record<string, unknown> {
 	const own = Array.isArray(graph.colorGroups) ? (graph.colorGroups as { query?: string }[]).filter((g) => !g.query?.startsWith("tag:#neuroplast/")) : [];
-	return { ...graph, colorGroups: [...GRAPH_COLOR_GROUPS, ...own] };
+	return { ...graph, colorGroups: [...graphColorGroups(colors), ...own] };
 }
