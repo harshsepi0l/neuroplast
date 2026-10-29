@@ -110,16 +110,25 @@ export function repeatedUserMessage(messages: readonly ViewMessageLike[], i: num
 export function warmupSummary(messages: readonly ViewMessageLike[]): { ids: Set<string>; first?: string; answered: number; correct: number } {
 	const ids = new Set<string>();
 	let first: string | undefined;
+	let answered = 0;
 	let correct = 0;
+	// The goal questions (ask_user_question) asked before probe_done are
+	// part of the warm-up too: they fold with it but carry no score.
+	let warming = true;
 	for (const m of messages) {
 		for (const p of m.parts) {
-			if ((p.type !== "tool-probe" && p.type !== "tool-recall") || p.state !== "output-available" || !p.toolCallId) continue;
+			if (p.type === "tool-probe_done") warming = false;
+			const knowledge = p.type === "tool-probe" || p.type === "tool-recall";
+			const goal = warming && p.type === "tool-ask_user_question";
+			if ((!knowledge && !goal) || p.state !== "output-available" || !p.toolCallId) continue;
 			ids.add(p.toolCallId);
 			first ??= p.toolCallId;
+			if (!knowledge) continue;
+			answered++;
 			if ((p.output as { correct?: boolean } | undefined)?.correct) correct++;
 		}
 	}
-	return { ids, first, answered: ids.size, correct };
+	return { ids, first, answered, correct };
 }
 
 /** The tutor is still thinking (a reasoning part is the newest thing). */

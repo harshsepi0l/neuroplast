@@ -15,7 +15,7 @@
 
 import type { AgentEvent } from "@earendil-works/pi-agent-core";
 import type { ToolResultMessage } from "@earendil-works/pi-ai";
-import { needsContinuation, newAnswerResult, newNextMessage, newProblemDismissedMarker, newThinkingMessage, newUserMessage, type NeuroplastMarkerMessage, type NeuroplastMessage } from "@/features/learning/core/native-messages";
+import { needsContinuation, newAnswerResult, newNextMessage, newProblemDismissedMarker, newStageMessage, newThinkingMessage, newUserMessage, type NeuroplastMarkerMessage, type NeuroplastMessage } from "@/features/learning/core/native-messages";
 import { measuredContextTokens } from "@/features/learning/core/context-usage";
 import { projectView, type NeuroplastViewMessage, type LiveExecution } from "@/features/learning/core/view";
 import { type ChatInput } from "@/features/learning/core/input-events";
@@ -572,6 +572,8 @@ export class SessionModel {
 			// The move-on signal (owner round 16): the NEXT PROBLEM line
 			// renders the instant the chip/Enter fires.
 			optimistic.push({ ...newNextMessage(), id: localId() });
+		} else if (input.type === "stage") {
+			optimistic.push({ ...newStageMessage(input.action), id: localId() });
 		} else if (input.type === "answer") {
 			const tool = pendingCallTool([...this.base, ...this.tail], input.toolCallId) ?? "quiz";
 			optimistic.push({ ...newAnswerResult(input.toolCallId, tool, input.answer), id: localId() });

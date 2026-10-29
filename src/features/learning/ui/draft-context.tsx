@@ -1,10 +1,9 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 import type { LessonMode } from "../core/lesson";
-export type StudyAttachment = { name: string; text: string };
 export type KnowledgePick = { id: string; name: string; statement: string };
-type Draft = { text: string; file: StudyAttachment | null; picks: KnowledgePick[] };
-const empty = (): Draft => ({ text: "", file: null, picks: [] });
+type Draft = { text: string; picks: KnowledgePick[] };
+const empty = (): Draft => ({ text: "", picks: [] });
 const DraftContext = createContext<{ drafts: Record<LessonMode, Draft>; update: (mode: LessonMode, delta: Partial<Draft>) => void }>({ drafts: { learn: empty(), practice: empty() }, update: () => {} });
 export function DraftProvider({ children }: { children: React.ReactNode }) {
   const [drafts, setDrafts] = useState<Record<LessonMode, Draft>>({ learn: empty(), practice: empty() });

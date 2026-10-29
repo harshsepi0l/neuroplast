@@ -56,6 +56,12 @@ import { PrintButton, printedOn } from "@/ui/print/print-button";
 import { questionNumbers } from "@/features/learning/core/answer-summary";
 import { isBackgroundTool } from "@/features/learning/core/pending";
 import { SessionChallenge, type SessionChallengeInfo } from "./session-challenge";
+import { StageActions } from "./stage-actions";
+import { UserText } from "./user-text";
+import { useAttachments } from "@/features/learning/ui/composer/attach";
+import { attachmentLine, splitAttachments, withAttachments } from "@/features/learning/core/attachments";
+import { planAwaitingStart, STAGE_LABEL, type StageAction } from "@/features/learning/core/stages";
+import { hasProbeDone } from "@/features/learning/core/native-messages";
 
 
 /**
@@ -450,8 +456,10 @@ export function Chat({
 			}
 			if (cancelled) return;
 			if (draftRef.current !== null) {
-				applyText(draftRef.current);
+				const restored = splitAttachments(draftRef.current);
+				applyText(restored.text === "Here is my material." ? "" : restored.text);
 				draftRef.current = null;
+				if (sentFilesRef.current.length > 0) attachments.restore(sentFilesRef.current);
 			}
 			clearError();
 			setSetupOpen(true);
@@ -494,8 +502,24 @@ export function Chat({
 	// server's registry mutex is the structural gate; this is the
 	// affordance).
 	const [compacting, setCompacting] = useState(initiallyCompacting);
+	// Files picked with the paperclip ride the next send as path lines.
+	const attachments = useAttachments();
+	const sentFilesRef = useRef<typeof attachments.files>([]);
 	const canSend =
-		text.trim().length > 0 && !pending && !activeProblem && !compacting;
+		(text.trim().length > 0 || attachments.files.length > 0) && !attachments.uploading && !pending && !activeProblem && !compacting;
+	// The stage buttons: skip the warm-up (before probe_done), start the
+	// lesson (the first plan waiting on the learner).
+	const awaitingStart = kind === "teach" && planAwaitingStart(nativeMessages, false);
+	const inWarmupStage = kind === "teach" && !hasProbeDone(nativeMessages) && nativeMessages.length > 0;
+	const moveStage = async (action: StageAction) => {
+		if (busy || compacting) return;
+		const p = pendingRef.current;
+		if (p) {
+			const question = (p.input as { question?: string } | null)?.question ?? "";
+			await dismissQuestion(p.toolCallId, dismissedAnswer(toolQuestionKind(p.tool), question));
+		}
+		void send({ type: "stage", action });
+	};
 
 	/* THE PRACTICE PAUSE (owner round 16): between problems — practice
 	 * kind, nothing active, nothing in flight, and at least one problem
@@ -840,9 +864,18 @@ const setupOpenRef = useRef(setupOpen);
 		if (pending || compacting) return;
 		doSteerOrSend();
 	};
+	/** The typed text plus any attached files' path lines; clears both. */
+	const takeMessage = (): string => {
+		const files = attachments.files;
+		const t = textRef.current.trim();
+		if ((!t && files.length === 0) || attachments.uploading) return "";
+		sentFilesRef.current = files;
+		attachments.clear();
+		return withAttachments(t || "Here is my material.", files);
+	};
 	const doSend = () => {
 		if (busy || pending || compacting) return;
-		const t = textRef.current.trim();
+		const t = takeMessage();
 		if (!t) return;
 		draftRef.current = t; // the refusal flow's preserve-and-replay seam
 		applyText("");
@@ -860,9 +893,9 @@ const setupOpenRef = useRef(setupOpen);
 	 * plain send; a raced settle 409s and falls back to exactly that. */
 	const doSteerOrSend = () => {
 		if (pending || compacting) return;
-		const t = textRef.current.trim();
-		if (!t) return;
 		if (busy) {
+			const t = takeMessage();
+			if (!t) return;
 			applyText("");
 			void steer(t);
 			return;
@@ -1053,6 +1086,15 @@ const setupOpenRef = useRef(setupOpen);
 												return <CompactionCutDivider key={pi} data={part.data as CompactionDividerData} />;
 											case "data-practice-thinking":
 												return <ThinkingCard key={pi} data={part.data as PracticeThinkingData} />;
+											case "data-stage": {
+												const action = (part.data as { action?: StageAction } | null)?.action;
+												return action ? (
+													<div key={pi} data-testid="stage-line" className="my-4 flex items-center justify-center gap-1.5 font-ui text-xs font-medium uppercase tracking-wide text-muted-foreground">
+														<ArrowRightIcon className="size-3" />
+														{STAGE_LABEL[action]}
+													</div>
+												) : null;
+											}
 											case "data-practice-next":
 												// The learner's move-on signal (owner round 16): a compact
 												// centered mono-caps line — chrome, the dismissal register.
@@ -1116,9 +1158,7 @@ const setupOpenRef = useRef(setupOpen);
 												    sits INSIDE the rail, same mono-xs register and same 1ch
 												    rail as the thinking rows — one quote geometry. */}
 												<div className="font-medium uppercase tracking-wide text-muted-foreground">You</div>
-												<div className="neuroplast-prose whitespace-pre-wrap text-foreground">
-													{m.parts.filter((p) => p.type === "text").map((p) => p.text).join("\n")}
-												</div>
+												<UserText text={m.parts.filter((p) => p.type === "text").map((p) => p.text).join("\n")} />
 											</div>
 									) : (
 									<Message from="assistant" className="max-w-full">
@@ -1256,6 +1296,18 @@ const setupOpenRef = useRef(setupOpen);
 					contextTokens={contextTokens}
 					pricing={pricing}
 					queuedSteers={visibleQueuedSteers(steerQueue, nativeMessages)}
+					stageActions={
+						inWarmupStage || awaitingStart ? (
+							<StageActions
+								stage={awaitingStart ? "plan" : "warmup"}
+								chatId={chatId}
+								challenge={challenge}
+								disabled={busy || compacting}
+								onSkipWarmup={() => void moveStage("skip-warmup")}
+								onStartLearning={() => void moveStage("start-learning")}
+							/>
+						) : undefined
+					}
 					challengeCta={
 						kind === "teach" && phases.at(-1) === "teach" && !busy && !compacting ? (
 							<SessionChallenge chatId={chatId} challenge={challenge} />
@@ -1296,6 +1348,7 @@ const setupOpenRef = useRef(setupOpen);
 							// IS the hint — empty state, exactly where Enter-on-empty
 							// applies.
 							nextProblem={nextReady}
+							attachments={attachments}
 							onNext={sendNext}
 							placeholder={nextReady ? "Ask anything, or press Enter for the next one." : undefined}
 						/>
@@ -1308,8 +1361,11 @@ const setupOpenRef = useRef(setupOpen);
 						// once) and the server's write-ahead persists it before the
 						// turn; the teacher's reaction streams below it. Dismissals
 						// ride the same callback (QuestionAnswerData.dismissed).
-						submitAnswer(pending.tool, pending.toolCallId, output);
+						const files = output.dismissed ? [] : attachments.files.map(attachmentLine);
+						attachments.clear();
+						submitAnswer(pending.tool, pending.toolCallId, files.length > 0 ? { ...output, files } : output);
 					}}
+					attachments={attachments}
 				/>
 					</ConversationContent>
 					<ConversationScrollButton className="print:hidden" />

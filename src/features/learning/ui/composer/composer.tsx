@@ -4,6 +4,7 @@ import { ArrowRightIcon, ArrowUpIcon, SquareIcon } from "lucide-react";
 import { Button } from "@/ui/easyui/Button";
 import { Textarea } from "@/ui/easyui/Form";
 import { cn } from "@/lib/utils";
+import { AttachButton, AttachmentChips, type Attachments } from "./attach";
 
 /**
  * The chat composer — content row ONLY (the persistent rounded shell lives in
@@ -49,6 +50,7 @@ export function Composer({
 	placeholder = "Ask, answer, or steer the lesson…",
 	nextProblem = false,
 	onNext,
+	attachments,
 }: {
 	busy: boolean;
 	value: string;
@@ -70,6 +72,8 @@ export function Composer({
 	/** The signal's dispatcher (send({type:"next"})) — the chip and the
 	 *  empty-Enter share it. */
 	onNext?: () => void;
+	/** Files picked for this message (the paperclip). */
+	attachments?: Attachments;
 }) {
 	const act = () => {
 		const action = enterAction({ busy, canSend, nextProblem });
@@ -78,6 +82,8 @@ export function Composer({
 		else if (action === "next") onNext?.();
 	};
 	return (
+		<>
+		{attachments && <AttachmentChips attachments={attachments} />}
 		<form
 			data-testid="composer"
 			className="flex items-end gap-1.5 p-1.5"
@@ -86,6 +92,7 @@ export function Composer({
 				act();
 			}}
 		>
+			{attachments && <AttachButton attachments={attachments} />}
 			<Textarea
 				aria-label="Message your tutor"
 				ref={inputRef}
@@ -146,5 +153,6 @@ export function Composer({
 					</Button>
 				)}
 		</form>
+		</>
 	);
 }

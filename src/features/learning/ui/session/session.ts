@@ -110,7 +110,7 @@ export function useChatSession({ chatId, initialMessages, initiallyInFlight }: U
 		[model],
 	);
 	const dismissQuestion = useCallback(
-		(toolCallId: string, answer: QuestionAnswerData) => void model.dismissQuestion(toolCallId, answer),
+		(toolCallId: string, answer: QuestionAnswerData) => model.dismissQuestion(toolCallId, answer),
 		[model],
 	);
 	const dismissProblem = useCallback(

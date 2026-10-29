@@ -420,6 +420,9 @@ export interface QuestionData {
  *  toolCallId restated — the toolResult message already carries it. */
 export interface QuestionAnswerData {
 	kind: QuestionKind;
+	/** Files attached with the answer — the path lines the tutor reads
+	 *  (core/attachments attachmentLine). */
+	files?: string[];
 	/** The persisted call's tool NAME (owner, 2026-10-09): probe-phase
 	 *  calls are `probe`/`recall`, teach calls `quiz`/`explain` — the
 	 *  cards label by it ("Probe"/"Recall"), so the phase boundary is
@@ -763,5 +766,6 @@ export function compactAnswerForModel(ad: QuestionAnswerData): Record<string, un
 	const thinking = ad.thinking ?? ad.note;
 	if (thinking) out.thinking = thinking;
 	if (ad.readingThinking) out.thinkingWhileReading = ad.readingThinking;
+	if (Array.isArray(ad.files) && ad.files.length > 0) out.attached = ad.files;
 	return out;
 }
