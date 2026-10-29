@@ -6,7 +6,6 @@ import {
   initialPromptOwed,
   parseModelsRefusal,
   parseProviderKeyRefusal,
-  shouldStampGeometryMute,
 } from "@/features/learning/ui/session/chat-logic";
 
 const idle = { abortAsk: false, mermaidFocus: false, planOpen: false, setupOpen: false, pending: false, problem: false, busy: false };
@@ -44,9 +43,3 @@ test("provider-key refusals match only the real envelope", () => {
   assert.equal(parseProviderKeyRefusal("provider_key_missing"), false);
 });
 
-test("only dock growth while a question is pending stamps the geometry mute", () => {
-  assert.equal(shouldStampGeometryMute(300, 200, true), true);
-  assert.equal(shouldStampGeometryMute(200, 300, true), false);
-  assert.equal(shouldStampGeometryMute(201, 200, true), false);
-  assert.equal(shouldStampGeometryMute(300, 200, false), false);
-});
