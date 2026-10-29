@@ -17,7 +17,7 @@ export type ButtonVariant =
   | 'link'
   | 'gradient';
 
-export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'icon' | 'icon-sm';
 
 export interface ButtonProps
   extends Omit<HTMLMotionProps<'button'>, 'children'> {
@@ -61,10 +61,12 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
+  xs: 'h-6 px-2 text-xs rounded-md gap-1',
   sm: 'h-8 px-3 text-xs rounded-md gap-1.5',
   md: 'h-10 px-4.5 text-sm rounded-lg gap-2',
   lg: 'h-12 px-6 text-base rounded-lg gap-2.5',
   icon: 'h-10 w-10 p-0 rounded-lg justify-center shrink-0',
+  'icon-sm': 'h-8 w-8 p-0 rounded-lg justify-center shrink-0',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -115,7 +117,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
         {/* Loading Spinner or Left Icon */}
         {isLoading ? (
-          <Loader2 className={cn('animate-spin shrink-0', size === 'sm' ? 'w-3 h-3' : 'w-4 h-4')} />
+          <Loader2 className={cn('animate-spin shrink-0', size === 'sm' || size === 'xs' ? 'w-3 h-3' : 'w-4 h-4')} />
         ) : (
           leftIcon && <span className="shrink-0">{leftIcon}</span>
         )}

@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ChatGPTStatus } from "@/features/connections/core/chatgpt";
 import { ConnectionDialog, ConnectionFooter, ConnectionRow } from "@/features/connections/ui/connection-controls";
-import { Button } from "@/ui/primitives/button";
+import { Button } from "@/ui/easyui/Button";
 import { Toggle } from "@/features/settings/ui/controls";
 
 export const CHATGPT_NOTICE = "neuroplast stores your ChatGPT account details and credentials in an unencrypted local file on this device. When this connection is used, relevant conversation context, learning material, and tool results are sent directly to OpenAI. ChatGPT plan limits apply; any additional credits are authorized and managed in ChatGPT, not neuroplast.";

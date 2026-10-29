@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { NATIVE_SUBSCRIPTIONS, type NativeSubscriptionProviderId, type NativeSubscriptionStatus } from "@/features/connections/core/subscriptions";
-import { Button } from "@/ui/primitives/button";
+import { Button } from "@/ui/easyui/Button";
 import { notifySettingsSaved } from "@/app-shell/settings-signal";
 import { ConnectionDialog, ConnectionFooter, ConnectionRow } from "@/features/connections/ui/connection-controls";
 import { ChatGPTConnection } from "@/features/connections/ui/chatgpt-connection";

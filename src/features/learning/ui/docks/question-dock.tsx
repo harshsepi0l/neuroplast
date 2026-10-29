@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownIcon, ChevronRightIcon, PlayIcon } from "lucide-react";
-import { Button } from "@/ui/primitives/button";
+import { Button } from "@/ui/easyui/Button";
 import { finishDictation, isDictationActive, joinDictation, useDictationTarget } from "@/features/learning/ui/composer/dictation";
 import { useEnterSubmits } from "@/features/learning/ui/composer/enter-submits";
 import { MessageResponse } from "@/features/learning/ui/messages/message";
