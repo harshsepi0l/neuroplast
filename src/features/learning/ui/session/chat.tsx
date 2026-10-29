@@ -57,25 +57,10 @@ import { escAbortTarget, initialPromptOwed, isSubagentSteer, parseModelsRefusal,
 import { SessionDock } from "./session-dock";
 import { PrintButton, printedOn } from "@/ui/print/print-button";
 import { questionNumbers } from "@/features/learning/core/answer-summary";
-import { QUESTION_TOOLS } from "@/features/learning/core/pending";
+import { isBackgroundTool, QUESTION_TOOLS } from "@/features/learning/core/pending";
 import { SessionChallenge, type SessionChallengeInfo } from "./session-challenge";
 
 const isQuestionPart = (type: string) => type.startsWith("tool-") && (QUESTION_TOOLS as readonly string[]).includes(type.slice("tool-".length));
-
-/** The quiet system line (custom-message scheme rendering): centered, muted,
- *  small — the transcript's voice for events that are not speech (wake
- *  scaffolding). */
-function SystemLine({ children, testId }: { children: React.ReactNode; testId?: string }) {
-	return (
-		<div
-			data-testid={testId}
-			className="flex items-center justify-center gap-1.5 py-1 text-xs text-muted-foreground"
-		>
-			{children}
-		</div>
-	);
-}
-
 
 /**
  * The teaching session. All chat state lives in useChat; the server persists
@@ -1168,24 +1153,11 @@ export function Chat({
 													phases[mi] === "teach" &&
 													phases[mi - 1] !== "teach" &&
 													teachStepIndex(m.parts) === pi;
-												// A tool call that errored BACK TO THE AGENT (validation
-												// failure, malformed args) is invisible work — the agent
-												// reads the error and retries. Owner ruling 2026-09-26:
-												// surface the retry loop as one quiet line, any tool,
-												// instead of silence (question tools used to render null,
-												// so a flailing quiz loop read as a stall). Aborts are
-												// terminal — nothing retries — so they stay silent.
-												if (
-													part.state === "output-error" &&
-													part.type.startsWith("tool-") &&
-													part.errorText !== "Operation aborted"
-												) {
-													return (
-														<SystemLine key={`retry-${pi}`} testId="tool-retry">
-															Retrying…
-														</SystemLine>
-													);
-												}
+												// A tool call that errored back to the agent (malformed
+												// args and the like) is the tutor's own retry loop — not
+												// part of the lesson, so it renders nothing; the Thinking
+												// indicator already shows the turn is still working.
+												if (part.state === "output-error" && part.type.startsWith("tool-")) return null;
 												switch (part.type) {
 													case "text": {
 														const sourceId = textPartMessageId(part.id);
@@ -1240,7 +1212,7 @@ export function Chat({
 														// spinner + shimmered activity label, the input watchable on expand
 														// — replaces the retired transcript bottom line. On settling, the
 														// registry's card takes over below.
-														if (part.type.startsWith("tool-") && part.state === "input-streaming") {
+														if (part.type.startsWith("tool-") && part.state === "input-streaming" && !isBackgroundTool(part.type.slice("tool-".length))) {
 															return <LiveToolCard key={pi} part={part as ArtifactPartProps["part"]} />;
 														}
 														// Artifact extension point (contracts.ts): job

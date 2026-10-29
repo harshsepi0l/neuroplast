@@ -152,19 +152,13 @@ const ACTIVITY_LABELS: Record<string, string> = {
 	list_propositions: "Checking what you learned before…",
 };
 
-/** The settled one-liner for a finished background step (the collapsed
- *  tool card): plain words, not the tool's code name. */
-const DONE_LABELS: Record<string, string> = {
-	read: "Read a file",
-	ls: "Looked in a folder",
-	find: "Looked for files",
-	grep: "Searched your files",
-	list_sessions: "Looked over your past sessions",
-	list_propositions: "Checked what you learned before",
-};
+/** The tutor's background legwork: reading the learner's files and
+ *  looking over past sessions. These steps never render in the
+ *  transcript, live or settled. */
+export const BACKGROUND_TOOLS: readonly string[] = ["read", "ls", "find", "grep", "list_sessions", "list_propositions"];
 
-export function toolDoneLabel(tool: string): string {
-	return DONE_LABELS[tool] ?? tool.replace(/_/g, " ");
+export function isBackgroundTool(tool: string): boolean {
+	return BACKGROUND_TOOLS.includes(tool);
 }
 
 /** The activity label for ONE running tool (owner, streaming round
