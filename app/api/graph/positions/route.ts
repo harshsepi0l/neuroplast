@@ -5,7 +5,7 @@ import { withRequestOwner } from "@/server/request-context";
  * sanitizes (finite coords, known ids only), writes the ledger, and if
  * the graph grew mid-drag runs one incremental settle to absorb the new
  * nodes with the client's arrangement as anchors. See
- * src/server/commit-positions.ts.
+ * src/features/knowledge/server/commit-positions.ts.
  *
  *   PUT → 200 {positions: {...}} with whatever survived sanitizing
  *         (empty object = nothing written).

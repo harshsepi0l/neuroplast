@@ -30,7 +30,7 @@ export { jobTools };
 export type { ProbeDoneContext } from "@/features/learning/server/agent/tools/probe";
 
 /**
- * The agent-split tool composition (docs/probe-teach-split.md §1): the
+ * The agent-split tool composition: the
  * PROBER and the TEACHER are different agents with different tool sets.
  * The question tools share a NAME but are genuinely DIFFERENT tools —
  * the prober's quiz has NO nodeId field at all (its declaration is built
@@ -49,10 +49,10 @@ export type { ProbeDoneContext } from "@/features/learning/server/agent/tools/pr
  *   core/question-core. Question tools opt into SEQUENTIAL execution so
  *   parallel calls resolve in the model's call order (the dock's subject
  *   can never flip mid-turn).
- * - probe_done (src/agent/tools/probe.ts): SERVER-SIDE seam tool.
- * - planTools (src/agent/tools/plan.ts): SERVER-SIDE — author-once
+ * - probe_done (src/features/learning/server/agent/tools/probe.ts): SERVER-SIDE seam tool.
+ * - planTools (src/features/learning/server/agent/tools/plan.ts): SERVER-SIDE — author-once
  *   plan_init. Teacher only.
- * - jobTools (src/agent/tools/jobs.ts): SERVER-EXECUTED dispatch. Teacher
+ * - jobTools (src/features/learning/server/agent/tools/jobs.ts): SERVER-EXECUTED dispatch. Teacher
  *   only.
  */
 

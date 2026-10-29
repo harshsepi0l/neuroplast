@@ -5,7 +5,7 @@ import { withRequestOwner } from "@/server/request-context";
  *
  *   PUT    body {text} → writes data/prompts/<segment path mirror>. 200.
  *          The segment must be a CURRENT source segment (allSegmentPaths
- *          — derived from src/agent/prompts at runtime): overriding a
+ *          — derived from src/features/learning/server/agent/prompts at runtime): overriding a
  *          segment that doesn't compose is a typo or a vanished fragment,
  *          a 400, never a silent orphan.
  *   DELETE → removes the override file (idempotent) AND clears the

@@ -3,7 +3,7 @@
  * adapters are wired. Everything else (core, services, agents) codes against
  * the port types in core/ports.ts and receives instances through this
  * module. Swapping the fs adapter for SQLite later changes exactly this
- * file (and the adapter implementations in src/store/).
+ * file (and the adapter implementations in each feature's server/*-store.ts).
  */
 
 import { chatStore } from "@/features/learning/server/chat-store";

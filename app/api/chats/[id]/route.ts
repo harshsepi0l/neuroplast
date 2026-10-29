@@ -11,7 +11,7 @@ async function handleGET(_req: Request, { params }: { params: Promise<{ id: stri
 	const chat = getChat(id);
 	if (!chat) return Response.json({ error: "Not found" }, { status: 404 });
 	// turnInFlight lets a returning client re-attach to a running turn
-	// (chat-handler write-ahead + registry — see src/server/turn-liveness.ts).
+	// (chat-handler write-ahead + registry — see src/features/learning/server/turn-liveness.ts).
 	// coverage (extraction-UX redesign, 2026-09-24): the chat view's ring
 	// meter + sidebar block — THE coverage surface (the all-sessions GET
 	// route died with the redesign; the Extract POST stays). getChat

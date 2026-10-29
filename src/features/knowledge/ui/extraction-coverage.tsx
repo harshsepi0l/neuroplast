@@ -29,7 +29,7 @@ import { resolveSettings } from "@/features/settings/core/settings-resolution";
  * start-site nudge seam refreshes either way).
  */
 
-/** Client-safe mirror of the server's SessionCoverage (src/server/chats.ts
+/** Client-safe mirror of the server's SessionCoverage (src/features/learning/server/chats.ts
  *  — the GET /api/chats/[id] `coverage` block). */
 export interface SessionCoverage {
 	totalMessages: number;

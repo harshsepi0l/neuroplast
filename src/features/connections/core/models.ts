@@ -1,7 +1,7 @@
 /**
  * Model-catalog contracts (model-control wave, 2026-09-12) — the client-safe
  * shapes of GET /api/models and PUT /api/chats/[id]/settings responses.
- * Pure types; the server projection lives in src/server/model-catalog.ts
+ * Pure types; the server projection lives in src/features/connections/server/model-catalog.ts
  * (which OWNS these shapes — the contract is defined here only so client
  * components never import from the server band).
  */
@@ -60,7 +60,7 @@ export interface ModelCatalogResponse {
 	 *  refuses with 503 models_not_configured). */
 	defaults: CatalogDefaults | null;
 	/** The six background roles' resolved pins (same resolution the agent
-	 *  factories use — src/server/stores.ts effectiveSettings); NULL per
+	 *  factories use — src/server/workspace-stores.ts effectiveSettings); NULL per
 	 *  role = chain empty. */
 	rolePins: RolePins;
 	/** The three slot tiers' resolved pins: role override → slot at tier

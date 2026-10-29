@@ -2,7 +2,7 @@
 
 /**
  * The default-order resolution, CLIENT-SIDE (chunk 2, Platform interlude
- * bd68486): the UI mirrors defaultThinkingLevel from src/agent/models.ts
+ * bd68486): the UI mirrors defaultThinkingLevel from src/features/connections/server/runtime/models.ts
  * EXACTLY — first DEFAULT_THINKING_ORDER entry the model supports, else
  * the first supported level, else "off". One source of truth for the
  * ordering (the core barrel); this helper is its only client

@@ -19,7 +19,7 @@
  * - tool toggles: passed through as the delta map; consumers look up by
  *   tool id with absent → enabled (the honoring lives in the agent band);
  * - prompt switches: passed through; effective composition lives in
- *   src/store/prompt-overrides.ts (segment list derived from source).
+ *   src/features/settings/server/prompt-overrides-store.ts (segment list derived from source).
  */
 
 import type { ThinkingLevel } from "@earendil-works/pi-agent-core";

@@ -18,7 +18,7 @@ import { runVisualMaker } from "@/features/artifacts/server/agents/visual-maker"
  * The background job runner (contracts.ts "THE ASYNC PROTOCOL" §2–3), created
  * via createJobRunner({ chatStore, jobStore, deliver }) — the composition root
  * (chat-handler) injects the storage ports and the WAKE SEAM (the server-side
- * steer delivery, src/server/jobs.ts); this module never imports an adapter.
+ * steer delivery, src/features/artifacts/server/jobs.ts); this module never imports an adapter.
  *
  *   runJob(jobId) — runs the kind's sub-agent loop in the background
  *     (the job tools' execute fires this via the spawn seam, fire-and-forget),
@@ -44,7 +44,7 @@ export const demoModelOverride: { current?: PiEngine } = {};
 export const visualModelOverride: { current?: PiEngine } = {};
 export const pdfModelOverride: { current?: PiEngine } = {};
 
-/** The dispatch-time tool input (from src/agent/tools/jobs.ts schemas). */
+/** The dispatch-time tool input (from src/features/learning/server/agent/tools/jobs.ts schemas). */
 type JobToolInput = ResearchToolInput | DemoToolInput | VisualToolInput | PdfToolInput;
 
 export interface JobRunnerDeps {

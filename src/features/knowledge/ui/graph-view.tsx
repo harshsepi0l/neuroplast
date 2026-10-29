@@ -93,7 +93,7 @@ const CAMERA_STORAGE_KEY = "neuroplast.graph.camera.v1";
 // ---- Render settings (the settings-panel controls) ------------------------
 //
 // The shape, defaults, sanitizer, and slider mappings live in
-// src/core/render-settings.ts (shared with the server store + tests).
+// src/features/knowledge/core/render-settings.ts (shared with the server store + tests).
 
 type RenderSettings = GraphRenderSettings;
 
@@ -468,7 +468,7 @@ function GraphSettingsControl({
 					<div className="flex flex-col gap-2 overflow-y-auto pr-2.5">
 							{/* Size/zoom/region sliders: LADDER-mapped 0-100, step 10 (11
 							    stops, every DEFAULT dead-center at 50, every value a nice
-							    number — src/core/render-settings.ts). Physics keeps the
+							    number — src/features/knowledge/core/render-settings.ts). Physics keeps the
 							    fine-grained log sliders (step 5). */}
 							<SettingSlider
 								label="Node size"
@@ -643,7 +643,7 @@ function GraphSettingsControl({
 						    engine the server settle runs (createGraphSimulation);
 						    changing one rebuilds the sim from the current positions —
 						    drag mid-settle re-anneals, pins survive. Sliders over
-						    sweep-validated ranges (src/core/render-settings.ts):
+						    sweep-validated ranges (src/features/knowledge/core/render-settings.ts):
 						    range ends and all four corners settle cleanly — no NaN,
 						    no explosion, no non-settle. Repulsion is displayed as
 						    the negative it is; cluster pull's far left = off.

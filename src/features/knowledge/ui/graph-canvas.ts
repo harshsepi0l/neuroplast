@@ -573,7 +573,7 @@ export class GraphCanvasRenderer {
 
 	// ── Live physics ──
 	// One d3-force sim shared with the server settle (createGraphSimulation
-	// in @/src/core): dragging pins fx/fy and reheats (alphaTarget), release
+	// in knowledge/core/layout.ts): dragging pins fx/fy and reheats (alphaTarget), release
 	// un-pins and the sim anneals; once alpha drops below SIM_SETTLE_ALPHA
 	// the new rest state is debounced-committed via onCommit. The sim mutates
 	// data.nodes IN PLACE (they ARE the sim nodes — zero copying), so every

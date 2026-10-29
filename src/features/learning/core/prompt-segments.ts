@@ -2,9 +2,9 @@
  * The pure prompt-segment grammar (P2 reconciliation, 2026-09-19):
  * segment-path validation + the shared segment types, ZERO fs. Discovery
  * (reading the agent's prompt tree) lives in the agent layer
- * (src/agent/prompt-segments.ts — the canonical loader composeInstructions
+ * (src/features/learning/server/agent/prompt-segments.ts — the canonical loader composeInstructions
  * composes through); the override-file CRUD lives in the store adapter
- * (src/store/prompt-overrides.ts). Both import THIS grammar so the
+ * (src/features/settings/server/prompt-overrides-store.ts). Both import THIS grammar so the
  * mirror-layout rules are defined exactly once.
  *
  * Path grammar: "system-prompt.md" (the shared base), "shared/<fragment>"

@@ -4,7 +4,7 @@
  * Implements core/ports.ts ChatStore; the record shapes live in
  * core/contracts.ts (ChatRecord/ChatSummary). Idioms: sync fs, tiny
  * records, id-guarded filenames, JSON with tab indentation. Wired in the
- * composition root (src/server/stores.ts); nothing else constructs it.
+ * composition root (src/server/workspace-stores.ts); nothing else constructs it.
  */
 
 import * as fs from "node:fs";
@@ -101,7 +101,7 @@ function listChats(): ChatSummary[] {
 						messageCount: messages.length,
 						// Record-derived status for the session picker: phase from the
 						// transcript's explicit events (probe_done concluded / verdict
-						// accepted — docs/probe-teach-split.md §4), pending question
+						// accepted), pending question
 						// from the native dangling-call scan. Wave D: both folds read
 						// the NATIVE record (core/phases.ts phaseAt3Lh +
 						// native-messages.ts danglingQuestionOf). Liveness (busy) is

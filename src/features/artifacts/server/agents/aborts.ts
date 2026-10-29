@@ -2,14 +2,15 @@
  * Job abort registry — WHO can actually kill a running sub-agent.
  *
  * The runner creates one AbortController per running job and registers it
- * here; the abort path (src/server/jobs.ts abortJob, driven by the dock's
+ * here; the abort path (src/features/artifacts/server/jobs.ts abortJob, driven by the dock's
  * END button via POST /api/jobs/[jobId]/abort) fires it through fireJobAbort.
- * Two module trees meet: the runner (src/agent) and the endpoint
- * (src/server) — the registry lives on globalThis for the same reason as
+ * Two module trees meet: the runner (artifacts/server/agents) and the
+ * endpoint (artifacts/server/jobs.ts) — the registry lives on globalThis
+ * for the same reason as
  * the turn registry and the wake pipeline: Next dev gives each route entry
  * its own module instances, so a module-level Map would be a different
- * object in each. Placed under src/agent (server→agent imports are an
- * established direction; agent→server is not — see chat-handler).
+ * object in each. Placed beside the runner (jobs→agents imports are an
+ * established direction; agents→jobs is not — see chat-handler).
  *
  * 2026-09 abort semantics (user-decided): REAL KILL, not mark-and-abandon —
  * the controller aborts the in-flight model call (agent.generate /

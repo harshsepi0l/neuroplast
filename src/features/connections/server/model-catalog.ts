@@ -13,7 +13,7 @@
  *
  * Federation: `getModels()` is called per keyed provider (federated, the
  * model-slots wave), so a provider appears in the picker exactly when its
- * key is present — piModels() in src/agent/models.ts owns the provider
+ * key is present — piModels() in src/features/connections/server/runtime/models.ts owns the provider
  * set; nothing here changes.
  */
 
@@ -106,7 +106,7 @@ export function rolePinsFor(
 
 /** The background roles' RESOLVED pins: the user's agent-models
  *  override → tier slot → nothing — the same resolution the agent wiring
- *  uses (src/server/stores.ts effectiveSettings), so the caption can
+ *  uses (src/server/workspace-stores.ts effectiveSettings), so the caption can
  *  never drift from what actually runs. */
 export function catalogRolePins(): RolePins {
 	return rolePinsFor(effectiveSettings().agent.models);

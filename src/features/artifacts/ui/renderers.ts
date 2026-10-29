@@ -12,7 +12,7 @@ import { ProblemCard, ConcludeCard } from "@/features/learning/ui/docks/practice
  *
  * chat.tsx renders any tool part it doesn't specially handle (i.e. not
  * quiz/ask) by looking the tool name up here. Add your renderer — do NOT
- * edit chat.tsx (see docs/plan.md file-ownership rules).
+ * edit chat.tsx.
  *
  * Typical shape: while the part is input-available render an activity card
  * (the chat view's jobs feed reads GET /api/jobs?chatId=…; on completion call
@@ -29,7 +29,7 @@ export const artifactRenderers: Record<string, ComponentType<ArtifactPartProps>>
 	demo: DemoCard,
 	visual: VisualCard,
 	// The probe conclusion: the assessment belongs to the learner as much as
-	// to the transcript (docs/probe-teach-split.md §2). Plain v1 card.
+	// to the transcript. Plain v1 card.
 	probe_done: ProbeDoneCard,
 	// The learner-filesystem set (sources v1): one quiet expandable
 	// tool-call card each — collapsed one-liner (tool name + headline

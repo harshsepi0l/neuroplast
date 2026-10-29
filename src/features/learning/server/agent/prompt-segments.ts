@@ -3,17 +3,17 @@
  * reconciliation, 2026-09-19). The agent layer owns it because composition
  * lives here: composeInstructions (teacher-agent.ts) composes through
  * effectivePromptSegments, and the discovery reads THIS layer's own tree
- * (src/agent/prompts — base, shared/, per-agent fragments) — the exact
+ * (src/features/learning/server/agent/prompts — base, shared/, per-agent fragments) — the exact
  * rules the pre-P2 loader used, now in one place.
  *
  * The architecture law pins the layout: the agent layer never imports the
  * store adapters, so the override-file READ lives here too (config-anchored
  * static file, same discipline as reading the source fragments); the
  * override-file CRUD (write/delete/list — the mutating store behind the
- * core port) stays in src/store/prompt-overrides.ts. Both sides share the
- * pure path grammar (src/core/prompt-segments.ts).
+ * core port) stays in src/features/settings/server/prompt-overrides-store.ts. Both sides share the
+ * pure path grammar (src/features/learning/core/prompt-segments.ts).
  *
- * SEGMENTS: the SHARED base (src/agent/system-prompt.md), then every
+ * SEGMENTS: the SHARED base (src/features/learning/server/agent/system-prompt.md), then every
  * numeric-prefix *.md fragment in the agent's own directory (sorted by
  * filename), then the shared/ fragments directory (composed by BOTH
  * agents as a trailing appendix — the 2026-09-27 reorder). The segment

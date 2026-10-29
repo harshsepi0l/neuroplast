@@ -5,14 +5,14 @@
  *
  * The CANONICAL segment discovery + resolution (listSourceSegments,
  * effectivePromptSegments, allSegmentPaths) lives in the agent layer
- * (src/agent/prompt-segments.ts) — composition is an agent concern, and
+ * (src/features/learning/server/agent/prompt-segments.ts) — composition is an agent concern, and
  * the architecture law pins the layers apart (store may not import agent;
  * agent may not import store). Both sides share the pure path grammar
- * (src/core/prompt-segments.ts); the store's readOverride and the agent's
+ * (src/features/learning/core/prompt-segments.ts); the store's readOverride and the agent's
  * readPromptOverride read the SAME mirror layout.
  *
  * SEGMENTS: a prompt composes from the SHARED base
- * (src/agent/system-prompt.md), the shared/ fragments (composed by both
+ * (src/features/learning/server/agent/system-prompt.md), the shared/ fragments (composed by both
  * agents), plus every numeric-prefix *.md fragment in the agent's own
  * directory — see the agent module for the full rules.
  *

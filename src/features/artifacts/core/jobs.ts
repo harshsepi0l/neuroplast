@@ -1,10 +1,10 @@
 /**
  * Sub-agent job contracts — the async ack-and-steer protocol
  *
- * Part of the domain-split contracts (src/core/contracts/): each domain file
+ * Part of the domain-split contracts (each feature's core/): each domain file
  * is owned outright by its stream — cross-domain schema changes go through
  * master. Pure types + protocol docs + tiny pure helpers; type-only imports
- * of "ai" (safe everywhere: server, client, tests). See docs/vision.md.
+ * of "ai" (safe everywhere: server, client, tests).
  */
 import type { CallUsage } from "@/features/learning/core/chat";
 import type { NeuroplastMessage, NeuroplastMarkerMessage } from "@/features/learning/core/native-messages";
@@ -142,7 +142,7 @@ export function accumulateJobUsage(
  *     (full parallelism), and ends whenever it ends. The tool part's output
  *     is the ack, forever.
  *
- *  2. The background runner (src/agent/subagents/runner.ts) runs the kind's
+ *  2. The background runner (src/features/artifacts/server/agents/runner.ts) runs the kind's
  *     sub-agent loop — isolated context, modelFor(role), the
  *     verify-never-one-shot doctrine (headless-tested demos, looked-at SVGs,
  *     sourced briefs) — tracking a live activity line in the job record.
@@ -152,7 +152,7 @@ export function accumulateJobUsage(
  *     panel, and the single re-sync when a job settles.
  *
  *  3. On completion the runner builds a STEER MESSAGE (buildSubagentSteer)
- *     and hands it to the wake pipeline (src/server/jobs.ts): a user-role
+ *     and hands it to the wake pipeline (src/features/artifacts/server/jobs.ts): a user-role
  *     result-carrying native marker — the content is what the MODEL needs
  *     (the research brief, the builder's notes), plus a data-subagent-artifact
  *     part with what the UI renders (the full result: brief + sources /
@@ -390,7 +390,7 @@ export function buildSubagentSteer(
 }
 
 /** Build the abort steer for an aborted job (pure — shared by the
- * abort path in src/server/jobs.ts and tests). Same id space as the result
+ * abort path in src/features/artifacts/server/jobs.ts and tests). Same id space as the result
  * steer (same id space — exactly one delivers). */
 export function buildAbortSteer(
 	job: Pick<JobRecord, "id" | "kind" | "toolCallId">,
@@ -419,7 +419,7 @@ function abortText(kind: JobKind): string {
 	return "The figure job was aborted by the learner — no figure is coming. Acknowledge it in one line and teach without it (a re-dispatch is fine if the learner wants it).";
 }
 
-// ─── the probe handoff steer (the probe→teach split, docs/probe-teach-split.md §2) ──
+// ─── the probe handoff steer (the probe→teach split) ──
 //
 // probe_done's execute queues this through the same wake pipeline; the
 // pump fires it once the prober's turn ends (gates + grace). It carries no

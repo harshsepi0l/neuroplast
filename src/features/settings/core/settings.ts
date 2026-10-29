@@ -13,7 +13,7 @@
  * records simply lack the new keys. `version` is a PRIVATE schema counter
  * for BREAKING shape changes only (field renamed / meaning changed) —
  * unrelated to the app release version. Migrations live in the adapter
- * (src/store/settings.ts), not here.
+ * (src/features/settings/server/settings-store.ts), not here.
  *
  * Sanitizer contract (mirrors render-settings.ts discipline): whatever
  * arrives from disk or the network passes through sanitizeUserSettings

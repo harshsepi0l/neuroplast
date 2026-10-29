@@ -7,7 +7,7 @@ import { providerEventObserver } from "@/features/connections/server/runtime/pro
 import type { ModelRole } from "@/server/workspace-config";
 
 /**
- * The shared sub-agent runner (docs/pi-engine-swap.md §6): one helper every
+ * The shared sub-agent runner: one helper every
  * background agent (researcher, demo-builder, visual-maker, extractor,
  * auditor) runs on — a stateless pi Agent built per call, driven to
  * completion, with the seams the job runner and the money channel need.

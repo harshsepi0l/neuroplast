@@ -75,7 +75,7 @@ const SLOT_META: Record<ModelSlotName, { label: string; roster: string }> = {
 	vision: { label: "Vision", roster: "The assistants that draw and read PDFs" },
 };
 
-/** The search engines this wave ships (src/core/search.ts) + their labels. */
+/** The search engines this wave ships (src/features/learning/core/search.ts) + their labels. */
 const SEARCH_ENGINES = ["tavily", "brave"] as const;
 
 /** The owner's final toggleable-tool list (confirm with the user before

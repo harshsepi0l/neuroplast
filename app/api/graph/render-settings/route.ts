@@ -10,7 +10,7 @@ import { withRequestOwner } from "@/server/request-context";
  *   PUT → 200 {settings} (the sanitized copy actually persisted — the
  *         client may echo it to stay honest with clamped values).
  *
- * Every body is passed through sanitizeRenderSettings (src/core) before
+ * Every body is passed through sanitizeRenderSettings (src/features/knowledge/core/render-settings.ts) before
  * touching disk: garbage clamps or falls back to defaults, never throws.
  */
 import { readRenderSettings, writeRenderSettings } from "@/features/knowledge/server/render-settings-store";

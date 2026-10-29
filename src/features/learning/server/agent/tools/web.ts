@@ -24,7 +24,7 @@ import TurndownService from "turndown";
  * (import law: this tool depends on the core port, never server code). NO
  * silent fallback (owner decision): provider absent → search is honestly
  * unavailable, and the composition root drops the research dispatch tool on
- * the same signal (the jobTools seam, src/agent/tools/jobs.ts).
+ * the same signal (the jobTools seam, src/features/learning/server/agent/tools/jobs.ts).
  *
  * Tool contract: NEVER throw into the agent loop — missing provider and
  * every failure path return a clear error STRING as the tool output, so the

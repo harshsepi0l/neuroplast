@@ -184,7 +184,7 @@ export function keyStatuses(): AuthKeyStatus[] {
 }
 
 /** The live value for one var, env-first (the env-wins rule) — the canonical
- *  read for consumers that don't live behind the @/src/server barrel (the
+ *  read for consumers that don't live behind the workspace-stores composition (the
  *  STT route was the one cold-boot hole: a first-ever request to it would
  *  otherwise read env before any fill-gap ran). */
 export function keyValue(id: string): string | undefined {
