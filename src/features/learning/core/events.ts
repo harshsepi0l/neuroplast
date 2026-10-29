@@ -16,7 +16,7 @@
  * route, and every emitter's entry — they would each hold a private
  * listener set and nothing would propagate. globalThis spans module
  * instances within the process; it is the standard Next singleton
- * channel (see src/server/turn-liveness.ts for the original incident).
+ * channel (see src/features/learning/server/turn-liveness.ts for the original incident).
  *
  * Pure core by law: no React, no IO, no imports — the one layer that
  * server, store, and agent may all depend on.

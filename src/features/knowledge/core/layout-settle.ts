@@ -20,8 +20,7 @@ import { deriveView, getGraph } from "@/features/knowledge/core/graph";
  * SPLIT FROM layout.ts deliberately (2026-09-13): layout.ts is in the
  * browser barrel, and the settle needs the cluster partition for the
  * cluster centroid pull — this module must not ship in the client bundle.
- * Server code imports it DIRECTLY; it is never re-exported through
- * src/core/index.ts.
+ * Server code imports it DIRECTLY; it is never re-exported to client code.
  */
 export function settleGraphLayout(graphStore: {
 	readNodes(): GraphNode[];

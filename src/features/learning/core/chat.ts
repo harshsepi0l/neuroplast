@@ -1,9 +1,9 @@
 /**
  * Chat-session contracts — records, summaries, UI extension points
  *
- * Part of the domain-split contracts (src/core/contracts/): each domain file
+ * Part of the domain-split contracts (each feature's core/): each domain file
  * is owned outright by its stream — cross-domain schema changes go through
- * master. Pure types + protocol docs + tiny pure helpers. See docs/vision.md.
+ * master. Pure types + protocol docs + tiny pure helpers.
  */
 import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 import type { NeuroplastMessage } from "@/features/learning/core/native-messages";
@@ -252,8 +252,8 @@ export interface PlanBlockData {
  *  them in listChats. Liveness (`busy`) is NOT record-derived — the API
  *  route merges it in (see ChatListItem).
  *
- *  Phase semantics (three phases, event-driven — docs/probe-teach-split.md
- *  §4): probe ends at the concluded probe_done, plan ends at the successful
+ *  Phase semantics (three phases, event-driven):
+ *  probe ends at the concluded probe_done, plan ends at the successful
  *  plan_init; derived from the transcript (core/phases.ts phaseAt3).
  */
 export interface ChatSummary {

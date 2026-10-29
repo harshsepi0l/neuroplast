@@ -3,7 +3,7 @@ import { withRequestOwner } from "@/server/request-context";
  * GET /api/graph/costs — the graph view's cost pill (2026-09 graph cost
  * metrics wave): what the graph PIPELINE cost, folded read-time from the
  * three usage channels (chat extraction runs, notes-source runs,
- * cluster-naming runs). Thin transport over src/server's graphCosts();
+ * cluster-naming runs). Thin transport over graphCosts() in src/features/knowledge/server/graph.ts;
  * the fold itself is pure core (core/cost-summary.ts). Dollars are
  * inferred from Pi's catalog/calculator at read time — never stored, so a catalog update
  * re-prices the whole history for free.

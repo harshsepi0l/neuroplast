@@ -28,7 +28,7 @@
  * adapter's. Reads are strict against the contracts.ts shapes (the 2026-09-02
  * graph redesign): corrupt lines are skipped, never guessed at — the ledgers
  * are the source of truth and everything else is derived (core/graph.ts,
- * which takes this port as a parameter). Same idioms as src/store/chats.ts:
+ * which takes this port as a parameter). Same idioms as src/features/learning/server/chat-store.ts:
  * sync fs, no framework.
  */
 

@@ -92,7 +92,7 @@ export function QuestionDock({
 	// 2026-10-09): probe-phase questions label Probe/Recall in the
 	// composer; teach tools keep the standing labels.
 	const toolLabel = toolName === "probe" ? "Probe" : toolName === "recall" ? "Recall" : undefined;
-	// Parse, don't cast (src/core/tool-parts.ts): the model authored this
+	// Parse, don't cast (src/features/learning/core/tool-parts.ts): the model authored this
 	// input, and only the schema the tool declared vouches for its shape.
 	// The dock mounts on input-available parts (already validated at the
 	// bridge), so this is pure defense in depth — but it is STRUCTURAL now:

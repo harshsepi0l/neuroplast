@@ -27,7 +27,7 @@ export const PATHS = {
 	chats: path.join(DATA_ROOT, "chats"),
 	graph: path.join(DATA_ROOT, "graph"),
 	/** Debug artifacts (env-gated): data/debug/provider-events/<chatId>.jsonl
-	 * raw provider stream recordings (src/agent/provider-events.ts). */
+	 * raw provider stream recordings (src/features/connections/server/runtime/provider-events.ts). */
 	debug: path.join(DATA_ROOT, "debug"),
 } as const;
 
@@ -47,8 +47,8 @@ export type ThinkingLevel = "off" | "minimal" | "low" | "medium" | "high" | "xhi
 export type { ModelRole } from "@/features/connections/core/model-role";
 
 /**
- * The LIVE graph store (src/store/graph.ts) — owned by the app's extraction
- * pipeline. Line shapes: src/core/contracts.ts. CHAINS ARE THE STORED
+ * The LIVE graph store (src/features/knowledge/server/graph-store.ts) — owned by the app's extraction
+ * pipeline. Line shapes: src/features/knowledge/core/graph-contracts.ts. CHAINS ARE THE STORED
  * TRUTH (owner, 2026-09-30): edges are a derived view, never stored.
  */
 export const LEDGER_FILES = {
@@ -74,7 +74,7 @@ export const POSITIONS_FILE = path.join(PATHS.graph, "positions.json");
 
 /**
  * Graph render settings (the settings-panel controls): one small JSON blob,
- * read-modify-write. Shared shape/sanitizer: src/core/render-settings.ts.
+ * read-modify-write. Shared shape/sanitizer: src/features/knowledge/core/render-settings.ts.
  */
 export const RENDER_SETTINGS_FILE = path.join(PATHS.graph, "render-settings.json");
 
@@ -91,7 +91,7 @@ export const GRAPH_FORMAT_FILE = path.join(PATHS.graph, "format.json");
  * non-secret product preference — general, agent (background
  * model/thinking overrides + tool toggles + prompt-override switches),
  * appearance, graph. Explicit user choices only: ABSENT keys resolve to the
- * factory defaults compiled into src/core/settings.ts (FACTORY_SETTINGS), so
+ * factory defaults compiled into src/features/settings/core/settings.ts (FACTORY_SETTINGS), so
  * a software update that adds a knob (new tool, new role, new appearance
  * field) needs no migration — old records simply lack the new keys. The
  * version field is a PRIVATE schema counter for breaking shape changes
@@ -106,13 +106,13 @@ export const SETTINGS_FILE = path.join(DATA_ROOT, "settings.json");
 /**
  * User prompt-override files (settings-storage wave, 2026-09-19): the
  * per-segment system-prompt overrides mirroring the SOURCE layout
- * (src/agent/prompts/) — the shared base as prompts/system-prompt.md,
+ * (src/features/learning/server/agent/prompts/) — the shared base as prompts/system-prompt.md,
  * fragments as prompts/teacher/<file> / prompts/prober/<file>. File
  * PRESENCE alone is not the override: settings.json's agent.prompts map
  * (segmentPath → boolean) is the explicit switch, so a user can keep a
  * customized file on disk but run the source default to compare. The
  * segment list itself is ALWAYS derived from source at runtime (the
- * loader in src/store/prompt-overrides.ts) — code updates that add,
+ * loader in src/features/settings/server/prompt-overrides-store.ts) — code updates that add,
  * remove, or reorder fragments adapt automatically; an override keyed to
  * a vanished segment stops composing but stays on disk.
  */

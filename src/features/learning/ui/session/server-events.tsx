@@ -6,7 +6,7 @@
  * the window's lifetime — the channel that retires the app's poll
  * lattice. Every server-initiated change arrives as a named SSE frame;
  * consumers respond by fetching truth (notify → fetch, the architecture's
- * whole trick — see src/core/events.ts and server/events-stream.ts).
+ * whole trick — see src/features/learning/core/events.ts and server/events-stream.ts).
  *
  * This file is the ONE place in the app that knows EventSource exists.
  * Auto-reconnect is EventSource's own — never fought, always exploited:

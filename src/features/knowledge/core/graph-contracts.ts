@@ -1,8 +1,8 @@
 /**
  * Knowledge-graph contracts — nodes, ledgers, extraction findings
  *
- * The minimal implementation of the graph vision (docs/vision.md §1, the
- * 2026-09-02 redesign): every node is a TRUE proposition; edges are follows
+ * The minimal implementation of the graph vision (the 2026-09-02
+ * redesign): every node is a TRUE proposition; edges are follows
  * (derivable) and supports (grounds without entailing); provenance is
  * message-granular; extraction is free-form and post-hoc, fully decoupled
  * from the session's plan tree. The graph is an extraction of the reasoning
@@ -12,9 +12,9 @@
  * yet decided (the state model, strength derivation, selection strategies) is deliberately NOT here — transitional
  * stubs carry the renderer until those land.
  *
- * Part of the domain-split contracts (src/core/contracts/): each domain file
+ * Part of the domain-split contracts (each feature's core/): each domain file
  * is owned outright by its stream — cross-domain schema changes go through
- * master. Pure types + protocol docs + tiny pure helpers. See docs/vision.md.
+ * master. Pure types + protocol docs + tiny pure helpers.
  */
 // ─── Knowledge graph (vision §1 — global, cross-session) ────────────────────
 
@@ -119,7 +119,7 @@ export interface NamingRunStats {
 }
 
 /** The graph-family format version this build writes and understands
- *  (the format.json sidecar — src/store/graph-format.ts). */
+ *  (the format.json sidecar — src/features/knowledge/server/graph-format-store.ts). */
 export const CURRENT_GRAPH_FORMAT_VERSION = 1;
 
 
@@ -173,7 +173,7 @@ export interface CoverageEntry {
 }
 
 /**
- * Store format (src/store/graph.ts): JSONL ledgers at config.LEDGER_FILES
+ * Store format (src/features/knowledge/server/graph-store.ts): JSONL ledgers at config.LEDGER_FILES
  * (nodes/chains/sessions), all append-only. Edges are NEVER stored — the
  * derived view (implication nodes + untyped arrows) is rebuilt from chains
  * on every read (chains-primary, owner 2026-09-30).

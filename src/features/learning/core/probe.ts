@@ -1,5 +1,5 @@
 /**
- * Probe-phase contracts (the probe→teach split, docs/probe-teach-split.md).
+ * Probe-phase contracts (the probe→teach split).
  *
  * The prober concludes its phase with `probe_done` — a server-side tool
  * whose INPUT is the learner assessment (authored by the model, streamed to
@@ -39,7 +39,7 @@ export interface ProbeDoneInput {
 }
 
 // The TypeBox schema of that input — SINGLE SOURCE OF TRUTH, lived by the
-// tool (src/agent/tools/probe.ts) and by the UI parse seam (src/core/tool-parts.ts):
+// tool (src/features/learning/server/agent/tools/probe.ts) and by the UI parse seam (src/features/learning/core/tool-parts.ts):
 // the boundary validation and the consumer parse run literally the same
 // schema, so "schema-valid at the boundary" ⇔ "parseable by a consumer" is
 // structural, not a convention. (Live crash 2026-09-12: the model sent

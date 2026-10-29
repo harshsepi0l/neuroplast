@@ -3,7 +3,7 @@ import { graphView } from "@/features/knowledge/server/graph";
 
 /**
  * The home graph view's data endpoint (W4; vision §1 "Home page") — thin
- * transport: the server entry (src/server/graph.ts) returns nodes, edges,
+ * transport: the server entry (src/features/knowledge/server/graph.ts) returns nodes, edges,
  * session provenance, and per-session understanding observations.
  */
 

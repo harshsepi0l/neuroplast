@@ -18,7 +18,7 @@
  *    stream's, on this port).
  *
  * Pure types + protocol docs only (browser-safe, no node imports): the
- * adapters are server-side (src/server/search.ts) and arrive as injected
+ * adapters are server-side (src/features/learning/server/search.ts) and arrive as injected
  * dependencies — the agent-layer tool depends on THIS port only.
  */
 

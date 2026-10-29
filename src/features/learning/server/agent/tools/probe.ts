@@ -10,7 +10,7 @@ export interface ProbeDoneContext {
 	chatId: string;
 	/** The storage port (open-question + already-concluded checks). */
 	chatStore: ChatStore;
-	/** Queue the handoff steer (the wake pipeline — src/server/jobs.ts).
+	/** Queue the handoff steer (the wake pipeline — src/features/artifacts/server/jobs.ts).
 	 *  Injected so this module never imports the server seam. */
 	deliver: (steer: SteerMessage) => void;
 }
@@ -23,7 +23,7 @@ function probeConcluded(messages: readonly NeuroplastMessage[]): boolean {
 }
 
 /**
- * probe_done — the probe→planning seam (docs/probe-teach-split.md §2).
+ * probe_done — the probe→planning seam.
  *
  * SERVER-SIDE. The prober concludes the probe by authoring the learner
  * assessment (the tool INPUT — it streams to the learner live and is

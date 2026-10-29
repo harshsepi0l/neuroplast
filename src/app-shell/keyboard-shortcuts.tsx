@@ -14,7 +14,7 @@
  * - Global actions dispatch neuroplast:kbd-<action> window events; surfaces that are
  *   mounted listen (the neuroplast:chat-renamed pattern). A surface that isn't
  *   mounted simply doesn't listen — an F2 on the graph view is a no-op, not
- *   an error. Actions live in src/core/keyboard.ts (registry + persisted
+ *   an error. Actions live in src/features/settings/core/keyboard.ts (registry + persisted
  *   overrides), the ONE table the settings milestone will render as its
  *   editor.
  *

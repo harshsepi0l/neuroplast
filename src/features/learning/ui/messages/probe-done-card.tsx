@@ -5,7 +5,7 @@ import { parseProbeDoneInput } from "@/features/learning/core/tool-parts";
 import { type ProbeDoneResult } from "@/features/learning/core/probe";
 
 /**
- * The probe conclusion card (docs/probe-teach-split.md §2): renders the
+ * The probe conclusion card: renders the
  * prober's probe_done call. The INPUT is the learner assessment — strand by
  * strand, where his edge sits — and it belongs to the learner as much as to
  * the transcript: it streams live while the prober writes it and stays as
@@ -26,7 +26,7 @@ export function ProbeDoneCard({ part }: { part: { input?: unknown; output?: unkn
 	const output = part.output as ProbeDoneResult | undefined;
 	const state = typeof part.state === "string" ? part.state : "";
 
-	// Parse, don't cast (the seam rule, src/core/tool-parts.ts): the model
+	// Parse, don't cast (the seam rule, src/features/learning/core/tool-parts.ts): the model
 	// authored this input — it is consumer-trustworthy only if the SAME
 	// schema the tool declared says so. The parse subsumes the old state
 	// reasoning and shape guards: an errored call's stringified assessment,

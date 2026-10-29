@@ -76,7 +76,7 @@ import type { SteerMessage } from "@/features/artifacts/core/jobs";
  * Wake-pipeline steers ride the same composition (TurnInput's steer kind).
  *
  * THE SAME COMPOSITION serves both entry points: client requests and the
- * wake pipeline's server-side steers (src/server/jobs.ts) — one code path
+ * wake pipeline's server-side steers (src/features/artifacts/server/jobs.ts) — one code path
  * for write-ahead persistence, turn liveness, and the turn services.
  */
 
@@ -341,7 +341,7 @@ export async function handleChatInput(
 		});
 	};
 
-	// AGENT CONSTRUCTION BRANCH (docs/probe-teach-split.md §2): the transcript
+	// AGENT CONSTRUCTION BRANCH: the transcript
 	// is the seam — a probe_done call in the record means the probe is
 	// concluded: build the TEACHER (planning + the full toolset). Otherwise
 	// the session is still probing: build the PROBER (quiz/ask + probe_done).

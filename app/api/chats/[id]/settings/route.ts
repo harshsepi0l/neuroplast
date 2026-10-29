@@ -12,14 +12,14 @@ import type { ChatSettings } from "@/features/learning/core/chat";
  * writer — the composer's control binds the session's own record; the
  * strong slot is only the birth default and never reaches an existing
  * session again.
- * Validation is the catalog gate (src/server/model-catalog.ts): unknown
+ * Validation is the catalog gate (src/features/connections/server/model-catalog.ts): unknown
  * provider/model is a 400. Thinking levels never reject (owner,
  * interlude 2026-09-22): a pinned level clamps to the named model's
  * nearest supported and the clamped value is stored. Effective next turn
  * by construction (agents are stateless per turn).
  *
  * The body parsing itself is shared with the draft route
- * (src/server/settings-body.ts, default-settings wave 2026-09-18).
+ * (src/features/settings/server/settings-body.ts, default-settings wave 2026-09-18).
  */
 async function handlePUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;

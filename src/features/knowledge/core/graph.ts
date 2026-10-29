@@ -46,7 +46,7 @@
  * Derivation below (getGraph / graphSnapshot) is reads only — everything
  * is recomputed from the ledgers. Every function takes the storage ports
  * (core/ports.ts) as explicit parameters — pure core, no adapter imports;
- * the composition root (src/server/stores.ts) wires the fs adapters in.
+ * the composition root (src/server/workspace-stores.ts) wires the fs adapters in.
  */
 
 import { randomBytes } from "node:crypto";

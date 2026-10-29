@@ -23,7 +23,7 @@ import type { ChatGPTRequestCycle } from "@/features/connections/server/runtime/
 import { usageWasAdmitted } from "@/features/connections/server/runtime/subscription-request-cycle";
 
 /**
- * The two teaching-side agents (docs/probe-teach-split.md): the PROBER and
+ * The two teaching-side agents: the PROBER and
  * the TEACHER. Same transcript, different prompts and tool sets; the
  * chat-handler constructs ONE per request off the transcript's seam
  * (probe_done = teacher) — the STATELESS per-turn engine (docs/
@@ -35,8 +35,8 @@ import { usageWasAdmitted } from "@/features/connections/server/runtime/subscrip
  *
  * System prompts are COMPOSED per agent: system-prompt.md (the shared base:
  * agent, voice, philosophy, accuracy) + every numeric-prefix fragment in
- * that agent's directory (src/agent/prompts/prober/ or
- * src/agent/prompts/teacher/), in sorted filename order, then the shared/
+ * that agent's directory (src/features/learning/server/agent/prompts/prober/ or
+ * src/features/learning/server/agent/prompts/teacher/), in sorted filename order, then the shared/
  * fragments as a trailing appendix (question tools, learner files,
  * formatting) — the 2026-09-27 reorder: the agent's job and method lead,
  * the mechanics trail. Joined with `---` separators.
@@ -51,7 +51,7 @@ import { usageWasAdmitted } from "@/features/connections/server/runtime/subscrip
 export type AgentKind = "prober" | "teacher" | "practice";
 
 // P2 (2026-09-19): segment discovery + override resolution live in ONE
-// canonical place now — src/store/prompt-overrides.ts (listSourceSegments
+// canonical place now — src/features/settings/server/prompt-overrides-store.ts (listSourceSegments
 // mirrors this loader's rules, shared/ included). The agent imports it for
 // the static-file seam; the local fragment discovery helpers are retired.
 
@@ -130,7 +130,7 @@ export interface AgentBuildOptions {
 }
 
 /**
- * The turn's question-stop rule (docs/pi-engine-swap.md §2; Wave A
+ * The turn's question-stop rule (Wave A
  * 2026-09-26, owner Option A): a question tool call (quiz /
  * ask_user_question) that RESOLVED — its synthetic "question posed" result
  * is not an error — ends the run: the learner's answer arrives as the next
