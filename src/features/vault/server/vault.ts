@@ -8,7 +8,7 @@ import { AppError } from "@/lib/errors";
 import { subscribe } from "@/features/learning/core/events";
 import { challengeTopic, learnTopic, type SkillTreeTopic } from "@/features/knowledge/core/skill-trees";
 import { challengeView, knowledgeTrees, listChallenges, readChallenge, score } from "@/features/challenges/server/challenge-store";
-import { renderNote, ROOT, userText, vaultNotes, type VaultChallenge, type VaultSession } from "@/features/vault/core/notes";
+import { renderNote, ROOT, userText, vaultNotes, withGraphColors, type VaultChallenge, type VaultSession } from "@/features/vault/core/notes";
 
 /**
  * The Obsidian vault connection: Neuroplast's records written as Markdown
@@ -204,6 +204,26 @@ export function syncVault(): VaultStatus {
 		writeConfig({ ...config, lastError: (error as Error).message });
 	}
 	return vaultStatus();
+}
+
+/**
+ * Color Obsidian's graph by note kind and step status: Neuroplast's color
+ * groups go first in <vault>/.obsidian/graph.json; the learner's own groups
+ * and settings stay. Obsidian reads it when the graph view next opens.
+ */
+export function applyGraphColors(): void {
+	const config = readConfig();
+	if (!config) throw new AppError("vault_not_connected", "Connect a vault first.", 400);
+	const dir = path.join(config.path, ".obsidian");
+	if (!fs.existsSync(dir)) throw new AppError("not_obsidian", "This folder has no .obsidian settings yet: open it as a vault in Obsidian first.", 400);
+	const file = path.join(dir, "graph.json");
+	let graph: Record<string, unknown> = {};
+	try {
+		graph = JSON.parse(fs.readFileSync(file, "utf8")) as Record<string, unknown>;
+	} catch {
+		/* no graph settings yet */
+	}
+	writeAtomic(file, JSON.stringify(withGraphColors(graph), null, 2));
 }
 
 /** Remove folders left empty by moved or removed notes (never the root). */

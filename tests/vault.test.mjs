@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { learnTopic } from "@/features/knowledge/core/skill-trees";
-import { challengeNote, END, fileName, obsidianText, renderNote, START, userText, vaultNotes } from "@/features/vault/core/notes";
+import { challengeNote, END, fileName, GRAPH_COLOR_GROUPS, obsidianText, renderNote, START, userText, vaultNotes, withGraphColors } from "@/features/vault/core/notes";
 
 const t = Date.parse("2026-10-29T12:00:00Z");
 const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
@@ -70,19 +70,37 @@ test("a session note has a section per stage, questions as callouts, and plain l
 	assert.ok(body.includes("> [!failure] Question 2 ✗"));
 });
 
-test("a topic links its steps, draws the tree, and each step keeps its questions", () => {
+test("links follow the tree: the topic links where to start, each step what it builds on", () => {
 	const topic = learnTopic({ ...session, tree });
 	const notes = vaultNotes({ sessions: [session], topics: [topic], challenges: [] });
 	const top = notes.find((n) => n.key === "topic:learn:chat_1");
 	assert.ok(top.body.includes("```mermaid") && top.body.includes("n1 --> n2"));
-	assert.ok(top.body.includes("1. [[Neuroplast/Topics/Probability basics/01 Sample spaces|Sample spaces]]"));
+	assert.ok(top.body.includes('n1["1 · Sample spaces"]'), "labels are not markdown lists");
+	assert.ok(!/\["\d+\. /.test(top.body));
+	assert.ok(top.body.includes("Start: [[Neuroplast/Topics/Probability basics/01 Sample spaces|Sample spaces]]"));
+	assert.ok(top.body.includes("2. Conditioning:") && !top.body.includes("[[Neuroplast/Topics/Probability basics/02 Conditioning"));
 	const step = notes.find((n) => n.key === "step:learn:chat_1:space");
 	assert.equal(step.path, "Neuroplast/Topics/Probability basics/01 Sample spaces.md");
-	assert.equal(step.properties.topic, "[[Neuroplast/Topics/Probability basics|Probability basics]]");
-	assert.ok(step.body.includes("Leads to: [[Neuroplast/Topics/Probability basics/02 Conditioning|Conditioning]]"));
+	assert.equal(step.properties.topic, "Probability basics");
+	assert.ok(!step.body.includes("[["), "a root step links nothing");
 	assert.ok(step.body.includes("## Questions on this step") && step.body.includes("Two coins: P(at least one head)?"));
+	const next = notes.find((n) => n.key === "step:learn:chat_1:cond");
+	assert.ok(next.body.includes("Builds on: [[Neuroplast/Topics/Probability basics/01 Sample spaces|Sample spaces]]"));
+	assert.deepEqual(next.tags ?? next.properties.tags, ["neuroplast/step", "neuroplast/ahead"]);
 	const home = notes.find((n) => n.key === "home");
-	assert.ok(home.body.includes("[[Neuroplast/Sessions/2026-10-29 Probability basics|2026-10-29 Probability basics]]"));
+	assert.ok(home.body.includes("[[Neuroplast/Topics/Probability basics|Probability basics]]"));
+	assert.ok(home.body.includes("2026-10-29 Probability basics (in its topic)"), "a session its topic links is not linked again");
+	const loose = vaultNotes({ sessions: [{ ...session, id: "chat_9", title: "Loose" }], topics: [], challenges: [] }).find((n) => n.key === "home");
+	assert.ok(loose.body.includes("[[Neuroplast/Sessions/2026-10-29 Loose|2026-10-29 Loose]]"), "a session with no topic is linked from home");
+});
+
+test("graph colors go first and the learner's own groups stay", () => {
+	const merged = withGraphColors({ scale: 1.2, colorGroups: [{ query: "path:Daily", color: { a: 1, rgb: 1 } }, { query: "tag:#neuroplast/old", color: { a: 1, rgb: 2 } }] });
+	assert.equal(merged.scale, 1.2);
+	assert.equal(merged.colorGroups.length, GRAPH_COLOR_GROUPS.length + 1);
+	assert.equal(merged.colorGroups[0].query, "tag:#neuroplast/learning");
+	assert.equal(merged.colorGroups.at(-1).query, "path:Daily");
+	assert.equal(withGraphColors({}).colorGroups.length, GRAPH_COLOR_GROUPS.length);
 });
 
 test("a challenge hides answers until submitted, then shows the score and misses", () => {

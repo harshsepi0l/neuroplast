@@ -25,6 +25,7 @@ export function VaultSection() {
 	const [token, setToken] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	const [colored, setColored] = useState(false);
 
 	useEffect(() => {
 		void fetch("/api/vault").then((r) => r.json()).then(setStatus).catch(() => setError("The vault status could not be loaded."));
@@ -88,6 +89,11 @@ export function VaultSection() {
 								Disconnect
 							</button>
 						</div>
+					</SettingsRow>
+					<SettingsRow label="Graph colors" hint={colored ? "Added. Reopen Obsidian's graph view to see them." : "Color Obsidian's graph by topic, session, challenge and step status. Your own color groups stay."}>
+						<button type="button" className={BUTTON} disabled={busy || !status.obsidian} onClick={() => void call("POST", "/api/vault/graph").then((s) => s && setColored(true))}>
+							Color the graph
+						</button>
 					</SettingsRow>
 				</>
 			)}

@@ -228,6 +228,7 @@ export function sessionNote(s: VaultSession, links: { topic?: string; challenge?
 		path: sessionPath(s),
 		properties: {
 			neuroplast: "session",
+			tags: [tag("session")],
 			kind: s.kind === "teach" ? "learn" : "practice",
 			stage: s.kind === "teach" ? STAGE_PROPERTY[stage] : undefined,
 			questions: numbers.size,
@@ -247,6 +248,14 @@ const STATUS_WORD: Record<string, string> = {
 	solid: "Solid", learning: "Learning now", ahead: "Ahead", strong: "Strong", trained: "Trained",
 	practicing: "Practicing", "needs-practice": "Needs practice", unassessed: "Not tested yet",
 };
+/** Graph tags: one per kind of note, and one per step status, so
+ *  Obsidian's graph can color them (graphColorGroups). */
+const STATUS_TAG: Record<string, string> = {
+	solid: "solid", strong: "solid", trained: "solid", learning: "learning", practicing: "learning",
+	"needs-practice": "needs-practice", ahead: "ahead", unassessed: "ahead",
+};
+const tag = (name: string) => `neuroplast/${name}`;
+
 const STATUS_CLASS: Record<string, string> = {
 	solid: "good", strong: "good", trained: "good", learning: "now", practicing: "now", "needs-practice": "weak", ahead: "ahead", unassessed: "ahead",
 };
@@ -277,7 +286,9 @@ export function topicMermaid(topic: SkillTreeTopic): string {
 	const nodes = ordered(topic);
 	const id = new Map(nodes.map((n, i) => [n.id, `n${i + 1}`]));
 	const lines = ["```mermaid", "flowchart TD"];
-	nodes.forEach((n, i) => lines.push(`    n${i + 1}["${i + 1}. ${n.title.replace(/"/g, "'")}"]:::${STATUS_CLASS[n.status] ?? "ahead"}`));
+	// "1 · Title", never "1. Title": Mermaid reads a leading "1. " as a
+	// Markdown list and Obsidian refuses the diagram ("Unsupported markdown").
+	nodes.forEach((n, i) => lines.push(`    n${i + 1}["${i + 1} · ${n.title.replace(/["`]/g, "'")}"]:::${STATUS_CLASS[n.status] ?? "ahead"}`));
 	for (const e of topic.edges) if (id.has(e.from) && id.has(e.to)) lines.push(`    ${id.get(e.from)} --> ${id.get(e.to)}`);
 	lines.push(
 		"    classDef good fill:#d3f9d8,stroke:#2b8a3e,color:#1e1e1e",
@@ -294,21 +305,26 @@ export function topicNotes(topic: SkillTreeTopic, links: { session?: string; cha
 	const nodes = ordered(topic);
 	const path = topicPath(topic);
 	const paths = new Map(nodes.map((n, i) => [n.id, stepPath(topic, n, i)]));
-	const self = link(path, topic.title);
 	const solid = nodes.filter((n) => STATUS_CLASS[n.status] === "good").length;
 	const unit = topic.kind === "learn" ? "Steps" : "Skills";
+	// Links follow the tree, not a star: the topic links only where to
+	// start and where you are; each step links the steps it builds on.
+	const roots = nodes.filter((n) => !topic.edges.some((e) => e.to === n.id && paths.has(e.from)));
+	const now = nodes.filter((n) => STATUS_TAG[n.status] === "learning" && !roots.includes(n));
 	const body = [
 		`# ${topic.title}`,
 		[topic.statusLine, links.session && `Session: ${links.session}`, links.challenge && `Challenge: ${links.challenge}`].filter(Boolean).join(" · "),
+		[`Start: ${roots.map((n) => link(paths.get(n.id)!, n.title)).join(", ")}`, now.length ? `Now: ${now.map((n) => link(paths.get(n.id)!, n.title)).join(", ")}` : ""].filter(Boolean).join("\n"),
 		topicMermaid(topic),
 		`## ${unit}`,
-		nodes.map((n, i) => `${i + 1}. ${link(paths.get(n.id)!, n.title)}: ${stepLine(n)}`).join("\n"),
+		nodes.map((n, i) => `${i + 1}. ${n.title}: ${stepLine(n)}`).join("\n"),
 	];
 	const notes: Note[] = [{
 		key: `topic:${topic.key}`,
 		path,
 		properties: {
 			neuroplast: "topic",
+			tags: [tag("topic")],
 			kind: topic.kind,
 			status: topic.statusLine,
 			solid: `${solid}/${nodes.length}`,
@@ -321,11 +337,11 @@ export function topicNotes(topic: SkillTreeTopic, links: { session?: string; cha
 	}];
 	nodes.forEach((node, i) => {
 		const needs = topic.edges.filter((e) => e.to === node.id && paths.has(e.from)).map((e) => link(paths.get(e.from)!, nodes.find((n) => n.id === e.from)!.title));
-		const next = topic.edges.filter((e) => e.from === node.id && paths.has(e.to)).map((e) => link(paths.get(e.to)!, nodes.find((n) => n.id === e.to)!.title));
-		const lines = [`# ${node.title}`, `${topic.kind === "learn" ? "Step" : "Skill"} ${i + 1} of ${nodes.length} in ${self} · ${stepLine(node)}`];
+		// What comes next shows in Obsidian's backlinks; a link back to the
+		// topic from every step would turn the graph into a star.
+		const lines = [`# ${node.title}`, `${topic.kind === "learn" ? "Step" : "Skill"} ${i + 1} of ${nodes.length} in ${topic.title} · ${stepLine(node)}`];
 		if (node.summary) lines.push(obsidianText(node.summary));
-		const rel = [needs.length && `Builds on: ${needs.join(", ")}`, next.length && `Leads to: ${next.join(", ")}`].filter(Boolean);
-		if (rel.length) lines.push(rel.join("\n"));
+		if (needs.length) lines.push(`Builds on: ${needs.join(", ")}`);
 		if (node.stages?.length) lines.push(`## Training\n\n${node.stages.map((s) => `- [${s.passed ? "x" : " "}] ${s.stage}`).join("\n")}`);
 		const asked = questions.get(node.id);
 		if (asked?.length) lines.push(`## Questions on this ${topic.kind === "learn" ? "step" : "skill"}`, ...asked);
@@ -334,7 +350,8 @@ export function topicNotes(topic: SkillTreeTopic, links: { session?: string; cha
 			path: paths.get(node.id)!,
 			properties: {
 				neuroplast: topic.kind === "learn" ? "step" : "skill",
-				topic: self,
+				tags: [tag(topic.kind === "learn" ? "step" : "skill"), tag(STATUS_TAG[node.status] ?? "ahead")],
+				topic: topic.title,
 				order: i + 1,
 				status: STATUS_WORD[node.status] ?? node.status,
 				checks: node.checks ? { asked: node.checks.asked, right: node.checks.correct } : undefined,
@@ -400,6 +417,7 @@ export function challengeNote(c: VaultChallenge, links: { session?: string; prev
 		path: challengePath(c),
 		properties: {
 			neuroplast: "challenge",
+			tags: [tag("challenge")],
 			topic: c.title,
 			score: r?.points,
 			goal_met: r ? r.goalMet : undefined,
@@ -451,11 +469,17 @@ export function vaultNotes(input: VaultInput): Note[] {
 		note.path = path;
 	}
 
-	const list = (kind: string) => notes.filter((n) => n.properties.neuroplast === kind).map((n) => `- ${link(n.path, String(n.path.split("/").pop()).replace(/\.md$/, ""))}`).join("\n") || "- None yet";
+	// Home links the topics, and only the sessions and challenges no topic
+	// links to; the rest are reached through their topic.
+	const reached = new Set<string>();
+	for (const n of notes) if (n.properties.neuroplast === "topic") for (const m of n.body.matchAll(/\[\[([^|\]]+)/g)) reached.add(`${m[1]}.md`);
+	const name = (n: Note) => String(n.path.split("/").pop()).replace(/\.md$/, "");
+	const list = (kind: string) =>
+		notes.filter((n) => n.properties.neuroplast === kind).map((n) => `- ${kind === "topic" || !reached.has(n.path) ? link(n.path, name(n)) : `${name(n)} (in its topic)`}`).join("\n") || "- None yet";
 	notes.unshift({
 		key: "home",
 		path: `${ROOT}/Neuroplast.md`,
-		properties: { neuroplast: "home" },
+		properties: { neuroplast: "home", tags: [tag("home")] },
 		body: [
 			"# Neuroplast",
 			"Your Neuroplast records, kept in sync by the app. Each note has a generated part between the `neuroplast` markers; write your own notes below the end marker and they are kept.",
@@ -465,4 +489,20 @@ export function vaultNotes(input: VaultInput): Note[] {
 		].join("\n\n"),
 	});
 	return notes;
+}
+
+// ─── graph colors ────────────────────────────────────────────────────────────
+
+/** Color groups for Obsidian's graph (.obsidian/graph.json), first match
+ *  wins: step status before kind. Colors as Obsidian stores them. */
+export const GRAPH_COLOR_GROUPS: readonly { query: string; color: { a: 1; rgb: number } }[] = [
+	["learning", 0xffd43b], ["needs-practice", 0xff6b6b], ["solid", 0x51cf66], ["ahead", 0xadb5bd],
+	["topic", 0x4dabf7], ["session", 0x9775fa], ["challenge", 0xff922b], ["home", 0xe9ecef],
+].map(([name, rgb]) => ({ query: `tag:#neuroplast/${name}`, color: { a: 1 as const, rgb: rgb as number } }));
+
+/** An existing graph.json with Neuroplast's color groups in front and the
+ *  learner's own groups (and every other setting) kept. */
+export function withGraphColors(graph: Record<string, unknown>): Record<string, unknown> {
+	const own = Array.isArray(graph.colorGroups) ? (graph.colorGroups as { query?: string }[]).filter((g) => !g.query?.startsWith("tag:#neuroplast/")) : [];
+	return { ...graph, colorGroups: [...GRAPH_COLOR_GROUPS, ...own] };
 }

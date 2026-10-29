@@ -30,8 +30,9 @@ the notes where they are.
 
 - **Topics**: one per Learn session with a plan, plus one per challenge
   topic you have taken. The Mermaid diagram colors each step by status.
-- **Steps**: status, what it builds on and leads to (as links), and the
-  lesson questions asked on that step with your answers.
+- **Steps**: status, the steps it builds on (as links), and the lesson
+  questions asked on that step with your answers. What it leads to shows in
+  Obsidian's backlinks.
 - **Sessions**: `## Warm-up`, `## Plan`, `## Learn` sections. Your messages,
   the tutor's text, each question as a callout (`[!success]`, `[!failure]`,
   `[!question]`) with your answer, the warm-up assessment, and stage moves.
@@ -39,10 +40,30 @@ the notes where they are.
   explanations appear only after the challenge is submitted, as in the app.
 
 Every note has properties (frontmatter) such as `neuroplast: step`,
-`status`, `score` and `topic: "[[…]]"`, so Dataview, Bases and the graph view
-work over them. Links use full paths, so two notes with the same name never
-collide. Math is converted to Obsidian's `$…$` / `$$…$$`, and money keeps a
+`status`, `score`, `topic` and `tags`, so Dataview and Bases work over them.
+Links use full paths, so two notes with the same name never collide. Math is converted to Obsidian's `$…$` / `$$…$$`, and money keeps a
 literal `\$`.
+
+## The graph
+
+Links follow the knowledge tree rather than forming stars, so Obsidian's
+graph shows each plan's shape:
+
+- home → topics (and any session or challenge no topic reaches);
+- topic → its first step(s), the current step, its session and challenge;
+- step → the steps it builds on;
+- session ↔ topic and challenge; a retake → the challenge it retakes.
+
+Steps do not link back to their topic, and the topic's step list is plain
+text (its Mermaid diagram shows the tree). Diagram labels read "1 · Step",
+never "1. Step", which Mermaid would read as a Markdown list.
+
+Every note is tagged `neuroplast/<kind>`, and steps also
+`neuroplast/<status>` (`learning`, `solid`, `needs-practice`, `ahead`).
+**Color the graph** in Settings › Obsidian adds color groups for those tags
+to `<vault>/.obsidian/graph.json`, in front of your own groups (which stay):
+yellow learning now, green solid, red needs practice, gray ahead, blue
+topics, purple sessions, orange challenges.
 
 ## Writing in the notes
 
@@ -76,7 +97,7 @@ it.
 | --- | --- |
 | Note rendering (pure) | `src/features/vault/core/notes.ts` |
 | Connect, sync, watch | `src/features/vault/server/vault.ts` |
-| API | `app/api/vault/route.ts` (status, connect, disconnect), `app/api/vault/sync/route.ts` |
+| API | `app/api/vault/route.ts` (status, connect, disconnect), `app/api/vault/sync/route.ts`, `app/api/vault/graph/route.ts` (graph colors) |
 | Settings section | `src/features/vault/ui/vault-section.tsx` |
 | Connection record | `<workspace>/vault.json` (path, token hash, last sync) |
 | Tests | `tests/vault.test.mjs` |
