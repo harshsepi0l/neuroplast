@@ -240,22 +240,39 @@ button:focus-visible,a:focus-visible,.focus-ring:focus-visible { outline:2px sol
 @media(max-width:760px) { .challenge-page { padding:34px 18px 55px; }.challenge-topic { padding:22px; }.challenge-skill-list { grid-template-columns:1fr; }.challenge-score-hero { align-items:flex-start; flex-direction:column; }.challenge-mode-results { grid-template-columns:1fr; }.challenge-question { font-size:23px; }.challenge-back { margin-bottom:26px; } }
 
 /* A drawing surface belongs to the current question and opens only on demand. */
-.challenge-taking:has(.scratchpad-open) { width:min(100%,1280px); max-width:1280px; }
-.problem-workspace { display:grid; gap:28px; }
-.problem-workspace.scratchpad-open { grid-template-columns:minmax(320px,1fr) minmax(440px,1.08fr); align-items:start; }
-.problem-main { min-width:0; }
-.scratchpad-toggle { display:inline-flex; align-items:center; gap:9px; min-height:36px; padding:0 12px; margin:0 0 24px; border:1px solid var(--border); border-radius:9px; background:var(--card); color:var(--foreground); cursor:pointer; font-size:12px; }
+.problem-workspace { display:flex; flex-direction:column; align-items:flex-start; min-width:0; }
+.problem-workspace>* { max-width:100%; }
+.scratchpad-toggle { display:inline-flex; align-items:center; gap:9px; min-height:36px; padding:0 12px; margin:18px 0 0; border:1px solid var(--border); border-radius:9px; background:var(--card); color:var(--foreground); cursor:pointer; font-size:12px; }
 .scratchpad-toggle:hover { background:var(--card); border-color:var(--brand); }
-.scratchpad-panel { min-width:0; position:sticky; top:16px; padding:12px; border:1px solid var(--border); border-radius:16px; background:var(--card); box-shadow:0 20px 54px #0003; }
-.scratchpad-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:3px 3px 12px 6px; }
-.scratchpad-heading>div { display:flex; flex-direction:column; gap:3px; }.scratchpad-heading strong { font-size:13px; font-weight:600; }.scratchpad-heading span { color:var(--text-secondary); font-size:11px; }
-.scratchpad-heading button { width:29px; height:29px; display:grid; place-items:center; border:0; border-radius:7px; background:transparent; color:var(--text-secondary); cursor:pointer; }.scratchpad-heading button:hover { color:var(--text-primary); background:var(--surface-hover); }
+.scratchpad-panel { width:100%; box-sizing:border-box; min-width:0; margin-top:12px; padding:10px; border:1px solid var(--border); border-radius:14px; background:var(--card); }
+
+/* One-page boss challenge and the training log: questions stacked top to bottom. */
+.challenge-sheet-bar { position:sticky; top:-54px; z-index:3; display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin:0 0 8px; padding:12px 0; background:var(--bg); border-bottom:1px solid var(--border); font-size:12px; }
+.challenge-sheet-bar>strong { font-weight:600; white-space:nowrap; }
+.challenge-sheet-chips { display:flex; flex-wrap:wrap; gap:5px; flex:1 1 280px; }
+.challenge-sheet-chips button { width:30px; height:30px; display:grid; place-items:center; padding:0; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text-secondary); font-size:11px; cursor:pointer; }
+.challenge-sheet-chips button.answered { background:var(--brand); border-color:var(--brand); color:var(--brand-ink); font-weight:600; }
+.challenge-sheet-chips button:hover { border-color:var(--brand); }
+.challenge-sheet { list-style:none; margin:0; padding:0; }
+.challenge-sheet-item { display:grid; grid-template-columns:36px minmax(0,1fr); gap:0 18px; padding:30px 0; border-bottom:1px solid var(--border); scroll-margin-top:90px; }
+.challenge-sheet-number { width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--border); border-radius:9px; background:var(--card); font-size:13px; font-weight:600; }
+.challenge-sheet-item.answered .challenge-sheet-number { background:var(--brand); color:var(--brand-ink); border-color:var(--brand); }
+.challenge-sheet-item .challenge-question { font-size:clamp(19px,2.4vw,24px); margin:0 0 18px; }
+.challenge-sheet-item .challenge-option { min-height:48px; }
+.challenge-sheet-item .challenge-number-field input { height:48px; font-size:19px; }
+.challenge-sheet-saved { margin:10px 0 0; color:var(--text-secondary); font-size:11px; }
+.challenge-sheet-submit { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; margin-top:30px; padding:20px 22px; border:1px solid var(--border); border-radius:14px; background:var(--card); }
+.challenge-sheet-submit p { margin:0; font-size:13px; line-height:1.6; }.challenge-sheet-submit p span { color:var(--text-secondary); }
+.training-log-result { margin:14px 0 0; font-size:13px; line-height:1.7; }
+.training-log-result .challenge-feedback-label { margin-right:8px; }
+.training-log-result p { margin:4px 0 0; color:var(--text-secondary); }
+.training-log-current { padding:24px 22px; margin:14px 0; border:1px solid var(--border); border-radius:16px; background:var(--card); box-shadow:4px 4px 0 var(--brand); }
+@media(max-width:760px) { .challenge-sheet-bar { top:-34px; }.challenge-sheet-item { grid-template-columns:1fr; gap:12px; } }
 .scratchpad-body { min-width:0; }
-.scratchpad-canvas,.scratchpad-loading { height:580px; width:100%; overflow:hidden; border-radius:10px; background:#f7f7fa; }
+.scratchpad-canvas,.scratchpad-loading { height:460px; width:100%; overflow:hidden; border-radius:10px; background:#f7f7fa; }
 .scratchpad-loading { display:grid; place-items:center; color:var(--muted-foreground); font-size:12px; }
 .scratchpad-save-note { margin:10px 4px 2px; color:var(--text-secondary); font-size:10px; }.scratchpad-save-note.error { color:var(--danger); }
-@media(max-width:1120px) { .problem-workspace.scratchpad-open { grid-template-columns:1fr; }.scratchpad-panel { position:static; }.scratchpad-canvas,.scratchpad-loading { height:480px; } }
-@media(max-width:760px) { .scratchpad-canvas,.scratchpad-loading { height:430px; }.scratchpad-panel { padding:8px; }.scratchpad-toggle { margin-bottom:20px; } }
+@media(max-width:760px) { .scratchpad-canvas,.scratchpad-loading { height:430px; }.scratchpad-panel { padding:8px; } }
 
 /* Knowledge tree: topic structure with progress derived from challenge records. */
 .knowledge-page { height:100%; overflow:auto; padding:52px 32px 76px; background:transparent; }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, RotateCcw, Sparkles } from "lucide-react";
 import { Button } from "@/ui/easyui/Button";
@@ -9,26 +9,54 @@ import { challengeRequest } from "./challenge-api";
 import { QuestionInput, QuestionPrompt } from "./question-input";
 import { ProblemScratchpad } from "./problem-scratchpad";
 
+/** The boss challenge as one page: every question stacked, answered in any order, each saved as it is given. */
 export function ChallengeView({ initial }: { initial: ChallengeDto }) {
   const router = useRouter();
   const [view, setView] = useState(initial);
-  const [index, setIndex] = useState(() => Math.max(0, initial.questions.findIndex(question => !initial.responses[question.id]?.trim())));
-  const [draft, setDraft] = useState(() => initial.responses[initial.questions[Math.max(0, initial.questions.findIndex(question => !initial.responses[question.id]?.trim()))]?.id] ?? "");
+  const [drafts, setDrafts] = useState<Record<string, string>>(() => ({ ...initial.responses }));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const question = view.questions[index];
-  useEffect(() => { if (question) setDraft(view.responses[question.id] ?? ""); }, [index, question, view.responses]);
+  // Last value sent per question, so blur/Enter only saves real changes.
+  const sent = useRef<Record<string, string>>({ ...initial.responses });
+  // In-flight saves; submitting waits for them so the score sees every answer.
+  const pending = useRef(new Set<Promise<void>>());
 
-  async function next() {
-    if (!question || !draft.trim() || busy) return;
+  function save(questionId: string, value: string): Promise<void> {
+    const response = value.trim();
+    if (!response || sent.current[questionId] === response) return Promise.resolve();
+    sent.current[questionId] = response;
+    const request = persist(questionId, response).finally(() => pending.current.delete(request));
+    pending.current.add(request);
+    return request;
+  }
+  async function persist(questionId: string, response: string) {
+    try {
+      const saved = await challengeRequest<ChallengeDto>(`/api/challenges/${view.id}`, "PATCH", { questionId, response });
+      setView(current => ({ ...current, responses: saved.responses }));
+      setError("");
+    } catch (failure) {
+      delete sent.current[questionId];
+      setError((failure as Error).message);
+    }
+  }
+  function choose(questionId: string, value: string, immediate: boolean) {
+    setDrafts(current => ({ ...current, [questionId]: value }));
+    if (immediate) void save(questionId, value);
+  }
+  async function submit() {
+    if (busy) return;
     setBusy(true); setError("");
     try {
-      const saved = await challengeRequest<ChallengeDto>(`/api/challenges/${view.id}`, "PATCH", { questionId: question.id, response: draft.trim() });
-      setView(saved);
-      if (index < view.questions.length - 1) setIndex(index + 1);
-      else setView(await challengeRequest<ChallengeDto>(`/api/challenges/${view.id}`, "POST", { action: "submit" }));
+      for (const question of view.questions) void save(question.id, drafts[question.id] ?? "");
+      await Promise.all(pending.current);
+      setView(await challengeRequest<ChallengeDto>(`/api/challenges/${view.id}`, "POST", { action: "submit" }));
     } catch (failure) { setError((failure as Error).message); }
     finally { setBusy(false); }
+  }
+  function jump(questionId: string) {
+    const target = document.getElementById(`question-${questionId}`);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    target?.querySelector<HTMLElement>("input, button.challenge-option")?.focus({ preventScroll: true });
   }
   async function train() {
     setBusy(true); setError("");
@@ -61,19 +89,35 @@ export function ChallengeView({ initial }: { initial: ChallengeDto }) {
           return <div className="challenge-review-item" key={item.questionId}><span className="challenge-tag">{view.skills.find(skill => skill.id === item.skillId)?.name} · {item.mode}</span><QuestionPrompt text={original.prompt}/><p>Your answer: {original.options?.find(option => option.value === item.response)?.label ?? item.response}</p><p><b>Answer: {answerLabel}.</b> {item.explanation}</p></div>; })}</section>}
     </div></div>;
   }
-  if (!question) return null;
+  const answered = view.questions.filter(question => drafts[question.id]?.trim()).length;
+  const remaining = view.questions.length - answered;
   return <div className="challenge-page"><div className="challenge-container challenge-taking">
     <button className="challenge-back" onClick={() => router.push("/challenges")}><ArrowLeft size={15}/> Save and leave</button>
-    <div className="challenge-topline"><span className="challenge-tag">BOSS CHALLENGE · {view.topic.title}</span><span>{index + 1} of {view.questions.length}</span></div>
-    <div className="challenge-progress" aria-label={`${index + 1} of ${view.questions.length} questions`}><span style={{ width: `${100 * (index + 1) / view.questions.length}%` }}/></div>
-    <ProblemScratchpad challengeId={view.id} questionId={question.id}>
-      <div className="challenge-question-meta"><span>{view.skills.find(skill => skill.id === question.skillId)?.name}</span><span>{question.mode === "recall" ? "Recall" : "Application"}</span></div>
-      <QuestionPrompt text={question.prompt}/>
-      <QuestionInput question={question} value={draft} onChange={setDraft} disabled={busy}/>
-      <div className="challenge-actions"><Button variant="secondary" disabled={busy || index === 0} onClick={() => setIndex(index - 1)}>Previous</Button>
-        <Button disabled={!draft.trim() || busy} isLoading={busy} rightIcon={index === view.questions.length - 1 ? <Check size={16}/> : <ArrowRight size={16}/>} onClick={() => void next()}>{index === view.questions.length - 1 ? "Submit for score" : "Next question"}</Button></div>
-      <p className="challenge-footnote">No hints during the boss challenge. Answers are revealed with your score.</p>
-      {error && <p role="alert" className="error-banner">{error}</p>}
-    </ProblemScratchpad>
+    <div className="challenge-eyebrow">BOSS CHALLENGE · {view.topic.title.toUpperCase()}</div>
+    <h1 className="challenge-training-title">{view.questions.length} questions, one page.</h1>
+    <p className="challenge-intro">Answer in any order. Each answer saves as you go. No hints; answers are revealed with your score.</p>
+    <div className="challenge-sheet-bar">
+      <strong>{answered} of {view.questions.length} answered</strong>
+      <nav className="challenge-sheet-chips" aria-label="Jump to question">
+        {view.questions.map((question, index) => <button key={question.id} type="button" className={drafts[question.id]?.trim() ? "answered" : ""} aria-label={`Question ${index + 1}${drafts[question.id]?.trim() ? ", answered" : ""}`} onClick={() => jump(question.id)}>{index + 1}</button>)}
+      </nav>
+    </div>
+    <ol className="challenge-sheet" aria-label="Questions">
+      {view.questions.map((question, index) => <li key={question.id} id={`question-${question.id}`} className={`challenge-sheet-item${drafts[question.id]?.trim() ? " answered" : ""}`}>
+        <span className="challenge-sheet-number" aria-hidden="true">{index + 1}</span>
+        <ProblemScratchpad challengeId={view.id} questionId={question.id}>
+          <div className="challenge-question-meta"><span>{view.skills.find(skill => skill.id === question.skillId)?.name}</span><span>{question.mode === "recall" ? "Recall" : "Application"}</span></div>
+          <QuestionPrompt text={question.prompt}/>
+          <QuestionInput question={question} inputId={`answer-${question.id}`} value={drafts[question.id] ?? ""} disabled={busy}
+            onChange={value => choose(question.id, value, question.responseKind === "choice")}
+            onCommit={() => void save(question.id, drafts[question.id] ?? "")}/>
+        </ProblemScratchpad>
+      </li>)}
+    </ol>
+    <div className="challenge-sheet-submit">
+      <p>{remaining ? <><b>{remaining} {remaining === 1 ? "question" : "questions"} left.</b> <span>Answer every question to get your score.</span></> : <b>All questions answered.</b>}</p>
+      <Button disabled={remaining > 0 || busy} isLoading={busy} rightIcon={<Check size={16}/>} onClick={() => void submit()}>Submit for score</Button>
+    </div>
+    {error && <p role="alert" className="error-banner">{error}</p>}
   </div></div>;
 }
